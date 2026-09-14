@@ -1,0 +1,25 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+*.cs text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.meta text eol=lf whitespace=-blank-at-eol
+*.unity text eol=lf whitespace=-blank-at-eol
+*.prefab text eol=lf whitespace=-blank-at-eol
+*.controller text eol=lf whitespace=-blank-at-eol
+*.anim text=auto eol=lf whitespace=-blank-at-eol
+*.asset text=auto eol=lf whitespace=-blank-at-eol
+*.[fF][bB][xX] binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.tga binary
+*.exr binary
+*.psd binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.dll binary
+*.unitypackage binary
+*.mat text eol=lf whitespace=-blank-at-eol
