@@ -76,6 +76,18 @@ public class PlayerController : MonoBehaviour
             }
         }
         HandleMovement();
+        if (playerCombat != null && playerCombat.IsUsingUpperAttack)
+        {
+            // UpperAttack owns vertical movement through collision-aware root motion.
+            // Do not add normal jump gravity or accept Space during this animation.
+            velocity = Vector3.zero;
+            jumpCount = 0;
+            isJumping = false;
+            animator.SetBool("isJumping", false);
+            animator.SetInteger("jumpCount", 0);
+            animator.SetBool("isGrounded", controller.isGrounded);
+            return;
+        }
         HandleJump();
     }
 

@@ -13,6 +13,11 @@ namespace ParrySystem.Player
         [SerializeField] private Vector3 skillImpactCenter = new Vector3(0f, -0.1f, 1.2f);
         [SerializeField] private Vector3 skillImpactSize = new Vector3(1.8f, 2.2f, 2.4f);
         [SerializeField] private Vector2 skillAHitWindow = new Vector2(15f / 45f, 16f / 45f);
+        [Header("Upper attack")]
+        [SerializeField] private Vector2 upperHitWindow = new Vector2(9f / 75f, 16f / 75f);
+        [SerializeField] private Vector3 upperImpactCenter = new Vector3(0, -.15f, 1.2f);
+        [SerializeField] private Vector3 upperImpactSize = new Vector3(1.4f, 2.2f, 2f);
+        private float previousUpperProgress;
         private PlayerCombat combat;
         private Animator animator;
         private BoxCollider box;
@@ -44,6 +49,7 @@ namespace ParrySystem.Player
             if (sequence != combat.AttackSequence || combo != index)
             {
                 hits.Clear();
+                previousUpperProgress = 0;
                 bossHits.Clear();
                 secondBossHits.Clear();
                 secondSkillHits.Clear();
@@ -58,6 +64,22 @@ namespace ParrySystem.Player
                 if (next.IsName(name)) state = next;
             }
             if (!state.IsName(name)) return;
+            if (combat.IsUsingUpperAttack)
+            {
+                float progress = state.normalizedTime;
+                bool crossedWindow = progress >= upperHitWindow.x && previousUpperProgress <= upperHitWindow.y;
+                previousUpperProgress = progress;
+                if (!crossedWindow) return;
+                Transform owner = combat.transform;
+                foreach (var other in Physics.OverlapBox(owner.TransformPoint(upperImpactCenter),
+                    upperImpactSize * .5f, owner.rotation, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    var enemy = other.GetComponentInParent<EnemyDamageReaction>();
+                    if (enemy != null && hits.Add(enemy)) enemy.ReceiveUpperHit(owner);
+                    HitBoss(other, false);
+                }
+                return;
+            }
             if (combat.IsUsingSkill)
             {
                 float progress = state.normalizedTime;
@@ -86,7 +108,7 @@ namespace ParrySystem.Player
                 HitBoss(other, false);
                 if (enemy != null && hits.Add(enemy))
                 {
-                    if (combat.IsUsingSkillA) enemy.ReceiveSkillHit();
+                    if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(combat.transform);
                     else enemy.ReceiveHit();
                 }
             }

@@ -28,12 +28,22 @@ namespace ParrySystem.Combat
         public void Enter()
         {
             elapsed = 0f;
-            combat.PlayObserveAnim();
 
             if (!hasTarget || (combat.PlayerTransform != null && IsTargetInvalid(combat.PlayerTransform)))
             {
                 PickNewTargetPosition();
             }
+            Vector3 initialDirection = targetPosition - machine.transform.position;
+            initialDirection.y = 0;
+            if (initialDirection.sqrMagnitude <= combat.RepositionArriveThreshold * combat.RepositionArriveThreshold)
+            {
+                PickNewTargetPosition();
+                initialDirection = targetPosition - machine.transform.position;
+                initialDirection.y = 0;
+            }
+            Vector3 local = machine.transform.InverseTransformDirection(initialDirection.normalized);
+            combat.PlayObserveAnim();
+            combat.SetObserveMoveDirection(local.x, local.z);
         }
 
         /// <summary>
@@ -82,24 +92,22 @@ namespace ParrySystem.Combat
             toTarget.y = 0f;
             float distanceToTarget = toTarget.magnitude;
 
-            Vector3 localMove;
-            if (distanceToTarget > combat.RepositionArriveThreshold)
+            // Arrival never waits for the invalid-target reselection cooldown.
+            // Select and move toward the next point in this same frame.
+            if (distanceToTarget <= combat.RepositionArriveThreshold)
             {
-                // moveDir은 항상 단위 벡터라 ObserveSpeed를 아무리 낮춰도 블렌드 트리에는
-                // "이 방향으로 이동 중"이라는 신호가 그대로 들어간다 (실제 이동 거리로 판단하면
-                // 속도가 느릴 때 한 프레임 이동량이 너무 작아져서 Idle로 오인될 수 있다).
+                PickNewTargetPosition();
+                toTarget = targetPosition - self.position;
+                toTarget.y = 0f;
+                distanceToTarget = toTarget.magnitude;
+            }
+
+            Vector3 localMove = Vector3.zero;
+            if (distanceToTarget > .001f)
+            {
                 Vector3 moveDir = toTarget / distanceToTarget;
                 self.position += moveDir * Mathf.Min(combat.ObserveSpeed * deltaTime, distanceToTarget);
                 localMove = self.InverseTransformDirection(moveDir);
-            }
-            else
-            {
-                // 목표 지점에 도착했다 - 맴도는 느낌을 위해 새 지점을 하나 더 고른다.
-                if (targetAge >= combat.RepositionMinInterval)
-                {
-                    PickNewTargetPosition();
-                }
-                localMove = Vector3.zero;
             }
 
             combat.SetObserveMoveDirection(localMove.x, localMove.z);
@@ -148,11 +156,24 @@ namespace ParrySystem.Combat
 
             // forward는 목표를 선택하는 순간에만 사용한다. 이후 회전/이동에 목표를 붙이지 않는다.
             Vector3 forward = GetPlanarForward(player);
-            float angle = Random.Range(-combat.CombatHalfAngle, combat.CombatHalfAngle);
-            float distance = Random.Range(combat.CombatMinDistance, combat.CombatMaxDistance);
-            Vector3 offset = Quaternion.Euler(0f, angle, 0f) * forward * distance;
-
-            targetPosition = player.position + offset;
+            float minimumTravel = Mathf.Max(.8f, combat.RepositionArriveThreshold + .2f);
+            Vector3 best = player.position + forward * combat.CombatMaxDistance;
+            float bestDistance = -1f;
+            // Bounded sampling avoids choosing another already-reached point.
+            // Sector corners provide a deterministic fallback without an unbounded retry.
+            for (int i = 0; i < 16; i++)
+            {
+                float angle = i < 12 ? Random.Range(-combat.CombatHalfAngle, combat.CombatHalfAngle)
+                    : (i % 2 == 0 ? -combat.CombatHalfAngle : combat.CombatHalfAngle);
+                float distance = i < 12 ? Random.Range(combat.CombatMinDistance, combat.CombatMaxDistance)
+                    : (i < 14 ? combat.CombatMinDistance : combat.CombatMaxDistance);
+                Vector3 candidate = player.position + Quaternion.Euler(0f, angle, 0f) * forward * distance;
+                candidate.y = machine.transform.position.y;
+                float travel = Vector3.Distance(candidate, machine.transform.position);
+                if (travel > bestDistance) { bestDistance = travel; best = candidate; }
+                if (travel >= minimumTravel) { best = candidate; break; }
+            }
+            targetPosition = best;
             targetPosition.y = machine.transform.position.y;
             hasTarget = true;
             targetAge = 0f;

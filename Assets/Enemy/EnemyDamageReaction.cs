@@ -13,6 +13,12 @@ namespace ParrySystem.Combat
         private Animator animator;
         private string reactionState = "Base Layer.Hit";
         private bool aerialReaction;
+        private EnemyKnockbackMotion knockback;
+        private bool physicalKnockdown;
+        private float downElapsed;
+        [SerializeField, Min(0)] private float downDuration = 1f;
+        public bool HasPhysicalKnockdown => physicalKnockdown;
+        public bool IsKnockdownGrounded => knockback != null && knockback.Grounded;
         [SerializeField, Min(0f)] private float aerialHitBlendTime = 0.1f;
         private void Awake()
         {
@@ -20,6 +26,8 @@ namespace ParrySystem.Combat
             machine = GetComponent<EnemyStateMachine>();
             combat = GetComponent<EnemyCombat>();
             animator = GetComponent<Animator>();
+            knockback = GetComponent<EnemyKnockbackMotion>();
+            if (knockback == null) knockback = gameObject.AddComponent<EnemyKnockbackMotion>();
         }
         public void ReceiveHit()
         {
@@ -31,18 +39,43 @@ namespace ParrySystem.Combat
             if (machine.CurrentState == this) Enter();
             else machine.ChangeState(this);
         }
-        public void ReceiveSkillHit()
+        public void ReceiveSkillHit(Transform attacker = null)
         {
             CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
             if (aerialReaction) return;
             aerialReaction = true;
             reactionState = "Base Layer.SkillAKnockDown";
+            Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
+            away.y = 0;
+            if (away.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(-away);
+            physicalKnockdown = true;
+            downElapsed = 0;
+            knockback.Launch(away);
+            if (machine.CurrentState == this) Enter();
+            else machine.ChangeState(this);
+        }
+
+        [Header("Upper attack reaction")]
+        [SerializeField, Min(0)] private float upperLiftSpeed = 8f;
+        [SerializeField, Min(0)] private float upperPushSpeed = 1.5f;
+        public void ReceiveUpperHit(Transform attacker)
+        {
+            CurrentHealth = Mathf.Max(0, CurrentHealth - damagePerHit);
+            if (aerialReaction) return;
+            Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
+            away.y = 0;
+            if (away.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(-away);
+            aerialReaction = physicalKnockdown = true;
+            reactionState = "Base Layer.UpperHit";
+            downElapsed = 0;
+            knockback.LaunchUpper(away, upperLiftSpeed, upperPushSpeed);
             if (machine.CurrentState == this) Enter();
             else machine.ChangeState(this);
         }
 
         public void ReceiveAerialHit(Transform attacker, int strikeIndex = 0)
         {
+            if (physicalKnockdown) { CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit); return; }
             CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
             Vector3 direction = attacker.position - transform.position;
             direction.y = 0f;
@@ -61,6 +94,28 @@ namespace ParrySystem.Combat
         }
         public void Tick(float deltaTime)
         {
+            if (physicalKnockdown)
+            {
+                knockback.Tick(deltaTime);
+                if (!knockback.Grounded) return;
+                if (reactionState == "Base Layer.SkillAKnockDown" || reactionState == "Base Layer.UpperHit")
+                {
+                    reactionState = "Base Layer.KnockDownGrounded";
+                    downElapsed = 0;
+                    animator.CrossFadeInFixedTime(reactionState, .12f, 0, 0f);
+                    return;
+                }
+                if (reactionState == "Base Layer.KnockDownGrounded")
+                {
+                    downElapsed += deltaTime;
+                    if (downElapsed >= downDuration)
+                    {
+                        reactionState = "Base Layer.AerialGetUp";
+                        animator.CrossFadeInFixedTime(reactionState, .12f, 0, 0f);
+                    }
+                    return;
+                }
+            }
             if (animator.IsInTransition(0)) return;
             var state = animator.GetCurrentAnimatorStateInfo(0);
             if (state.IsName(reactionState) && state.normalizedTime >= 1f)
@@ -73,6 +128,6 @@ namespace ParrySystem.Combat
                 else machine.ChangeState(machine.ObserveState);
             }
         }
-        public void Exit() { aerialReaction = false; }
+        public void Exit() { aerialReaction = false; physicalKnockdown = false; if (knockback != null) knockback.Stop(); }
     }
 }

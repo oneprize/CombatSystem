@@ -33,6 +33,15 @@ namespace ParrySystem.Combat
 
         private void OnAnimatorMove()
         {
+            if (enemyReaction != null && enemyReaction.HasPhysicalKnockdown)
+            {
+                var motion = GetComponent<EnemyKnockbackMotion>();
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                if (motion != null && animator.applyRootMotion &&
+                    state.IsName("Base Layer.AerialGetUp") && !animator.IsInTransition(0))
+                    motion.ApplyRecoveryMotion(animator.deltaPosition);
+                return;
+            }
             if (dodge != null && dodge.IsDodging)
             {
                 if (animator.applyRootMotion) dodge.ApplyRootMotion(animator.deltaPosition);
@@ -47,7 +56,7 @@ namespace ParrySystem.Combat
             if (!animator.applyRootMotion || (!attack && !damaged && !enemyReactionMotion && !(player != null && player.isAttacking))) return;
             Vector3 movement = animator.deltaPosition;
             // 중력은 기존 컨트롤러가 담당하고 정면 회전은 전투 코드가 담당한다.
-            movement.y = 0f;
+            if (player == null || !player.IsUsingUpperAttack) movement.y = 0f;
             if (character != null && character.enabled)
                 character.Move(movement);
             else

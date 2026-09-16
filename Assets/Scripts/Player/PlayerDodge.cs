@@ -24,11 +24,12 @@ namespace ParrySystem.Player
                 (combat != null && (combat.isAttacking || combat.IsGuarding || combat.IsHitReacting || combat.IsLinkJumping))) return false;
             worldInput.y = 0f;
             direction = worldInput.sqrMagnitude > .001f ? worldInput.normalized : transform.forward;
-            Vector3 local = transform.InverseTransformDirection(direction);
-            string side = Mathf.Abs(local.z) >= Mathf.Abs(local.x)
-                ? (local.z >= 0 ? "Front" : "Back") : (local.x >= 0 ? "Right" : "Left");
-            CurrentStateName = "Base Layer.Dodge" + side;
+            CurrentStateName = "Base Layer.DodgeFront";
             if (!animator.HasState(0, Animator.StringToHash(CurrentStateName))) return false;
+            // Face the movement direction so the forward dodge matches its displacement.
+            direction.y = 0f;
+            direction.Normalize();
+            if (direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction);
             IsDodging = true;
             animator.SetBool("isMoving", false);
             animator.SetBool("isRunning", false);

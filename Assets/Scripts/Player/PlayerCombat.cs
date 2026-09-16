@@ -31,8 +31,9 @@ namespace ParrySystem.Player
         public int AttackSequence { get; private set; }
         public bool IsUsingSkill => isAttacking && attackIndex == 3;
         public bool IsUsingSkillA => isAttacking && attackIndex == 4;
+        public bool IsUsingUpperAttack => isAttacking && attackIndex == 5;
         public string CurrentAttackStateName => AttackStateName;
-        private string AttackStateName => attackIndex == 4 ? "Skill_A" : attackIndex == 3 ? "Skill_G" : attackIndex == 0 ? attackAnimStateName : attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => attackIndex == 5 ? "UpperAttack" : attackIndex == 4 ? "Skill_A" : attackIndex == 3 ? "Skill_G" : attackIndex == 0 ? attackAnimStateName : attackAnimStateName + (attackIndex + 1);
 
         [Header("Guard (우클릭을 누르고 있는 동안 유지)")]
         [SerializeField] private string guardAnimStateName = "Guard";
@@ -81,6 +82,8 @@ namespace ParrySystem.Player
                 TrySkill();
             if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                 TrySkillA();
+            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
+                TryUpperAttack();
 
             if (Mouse.current == null)
             {
@@ -125,6 +128,20 @@ namespace ParrySystem.Player
             AttackSequence++;
             isAttacking = true;
             animator.CrossFadeInFixedTime("Base Layer.Skill_A", crossFadeTime, 0, 0f);
+        }
+
+        public bool TryUpperAttack()
+        {
+            if (IsDodging || IsLinkJumping || IsHitReacting || IsGuarding || isAttacking || animator == null) return false;
+            if (!animator.HasState(0, Animator.StringToHash("Base Layer.UpperAttack"))) return false;
+            attackIndex = 5;
+            queuedAttack = false;
+            lastParryInput = float.NegativeInfinity;
+            FaceNearbyEnemy(attackTargetDistance);
+            AttackSequence++;
+            isAttacking = true;
+            animator.CrossFadeInFixedTime("Base Layer.UpperAttack", crossFadeTime, 0, 0f);
+            return true;
         }
 
         private void TryAttack()

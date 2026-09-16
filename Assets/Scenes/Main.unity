@@ -2798,6 +2798,14 @@ PrefabInstance:
       propertyPath: cam
       value: 
       objectReference: {fileID: 1220916616}
+    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
+      propertyPath: upperHitWindow.x
+      value: 0.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
+      propertyPath: upperHitWindow.y
+      value: 0.21333334
+      objectReference: {fileID: 0}
     - target: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       propertyPath: m_Name
       value: Player
@@ -8754,6 +8762,7 @@ GameObject:
   - component: {fileID: 7673809941238296321}
   - component: {fileID: 7673809941238296323}
   - component: {fileID: 7673809941238296324}
+  - component: {fileID: 7673809941238296326}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -8870,7 +8879,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.EnemyDamageReaction
   maxHealth: 100
   damagePerHit: 10
+  downDuration: 1
   aerialHitBlendTime: 0.1
+  upperLiftSpeed: 8
+  upperPushSpeed: 1.5
 --- !u!136 &7673809941238296325
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -8894,6 +8906,25 @@ CapsuleCollider:
   m_Height: 1.8
   m_Direction: 1
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &7673809941238296326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7673809941238296320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 204bf21a8472a8844a0666ac3f7caf8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.EnemyKnockbackMotion
+  launchSpeed: 6
+  upwardSpeed: 4
+  gravity: 18
+  groundClearance: 0.02
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!4 &7703038918716864207
 Transform:
   m_ObjectHideFlags: 0
