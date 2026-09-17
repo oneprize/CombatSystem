@@ -42,6 +42,14 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        var air = GetComponent<PlayerAirCombo>();
+        if (air != null && air.Active)
+        {
+            air.Tick(Time.deltaTime);
+            velocity = Vector3.zero;
+            jumpCount = 0;
+            return;
+        }
         if (dodge != null)
         {
             if (dodge.IsDodging)

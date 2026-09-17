@@ -17,6 +17,13 @@ namespace ParrySystem.Player
         [SerializeField] private Vector2 upperHitWindow = new Vector2(9f / 75f, 16f / 75f);
         [SerializeField] private Vector3 upperImpactCenter = new Vector3(0, -.15f, 1.2f);
         [SerializeField] private Vector3 upperImpactSize = new Vector3(1.4f, 2.2f, 2f);
+        [Header("Air combo")]
+        [SerializeField] private Vector2[] airHitWindows = {
+            new Vector2(.15f,.35f), new Vector2(.15f,.35f), new Vector2(.15f,.35f),
+            new Vector2(.15f,.35f), new Vector2(.15f,.35f), new Vector2(.15f,.4f) };
+        [SerializeField] private Vector3 airImpactCenter = new Vector3(0, -.1f, 1.25f);
+        [SerializeField] private Vector3 airImpactSize = new Vector3(1.8f, 2.5f, 2.5f);
+        private float previousAirProgress;
         private float previousUpperProgress;
         private PlayerCombat combat;
         private Animator animator;
@@ -50,6 +57,7 @@ namespace ParrySystem.Player
             {
                 hits.Clear();
                 previousUpperProgress = 0;
+                previousAirProgress = 0;
                 bossHits.Clear();
                 secondBossHits.Clear();
                 secondSkillHits.Clear();
@@ -64,6 +72,26 @@ namespace ParrySystem.Player
                 if (next.IsName(name)) state = next;
             }
             if (!state.IsName(name)) return;
+            if (combat.IsUsingAirCombo)
+            {
+                int airIndex = combat.AirComboIndex;
+                Vector2 hitRange = airHitWindows != null && airIndex < airHitWindows.Length
+                    ? airHitWindows[airIndex] : new Vector2(.15f, .35f);
+                float progress = state.normalizedTime;
+                bool active = progress >= hitRange.x && previousAirProgress <= hitRange.y;
+                previousAirProgress = progress;
+                if (!active) return;
+                Transform owner = combat.transform;
+                foreach (var other in Physics.OverlapBox(owner.TransformPoint(airImpactCenter),
+                    airImpactSize * .5f, owner.rotation, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    var enemy = other.GetComponentInParent<EnemyDamageReaction>();
+                    if (enemy != null && enemy.IsAirborneForCombo && hits.Add(enemy))
+                        enemy.ReceiveAirComboHit(owner, airIndex);
+                    HitBoss(other, false);
+                }
+                return;
+            }
             if (combat.IsUsingUpperAttack)
             {
                 float progress = state.normalizedTime;

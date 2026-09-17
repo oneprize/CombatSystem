@@ -73,6 +73,21 @@ namespace ParrySystem.Combat
             else machine.ChangeState(this);
         }
 
+        public bool IsAirborneForCombo => physicalKnockdown && knockback != null && knockback.Active && !knockback.Grounded;
+        public void ReceiveAirComboHit(Transform attacker, int comboIndex)
+        {
+            // Air attacks do not launch a grounded enemy or bypass the existing down state.
+            if (!IsAirborneForCombo) return;
+            CurrentHealth = Mathf.Max(0, CurrentHealth - damagePerHit);
+            var toward = attacker.position - transform.position;
+            toward.y = 0;
+            if (toward.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(toward);
+            reactionState = comboIndex == 5 ? "Base Layer.AirComboHitB" :
+                comboIndex % 2 == 0 ? "Base Layer.AirComboHitA" : "Base Layer.AirComboHitB";
+            knockback.AirComboImpact(comboIndex == 5);
+            animator.CrossFadeInFixedTime(reactionState, .05f, 0, 0);
+        }
+
         public void ReceiveAerialHit(Transform attacker, int strikeIndex = 0)
         {
             if (physicalKnockdown) { CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit); return; }
@@ -98,7 +113,8 @@ namespace ParrySystem.Combat
             {
                 knockback.Tick(deltaTime);
                 if (!knockback.Grounded) return;
-                if (reactionState == "Base Layer.SkillAKnockDown" || reactionState == "Base Layer.UpperHit")
+                if (reactionState == "Base Layer.SkillAKnockDown" || reactionState == "Base Layer.UpperHit" ||
+                    reactionState == "Base Layer.AirComboHitA" || reactionState == "Base Layer.AirComboHitB")
                 {
                     reactionState = "Base Layer.KnockDownGrounded";
                     downElapsed = 0;

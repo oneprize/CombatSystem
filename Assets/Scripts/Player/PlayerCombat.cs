@@ -25,6 +25,13 @@ namespace ParrySystem.Player
             lastParryInput = float.NegativeInfinity;
             return true;
         }
+        [Header("Air combo")]
+        [SerializeField, Range(0, 1)] private float upperAirChainProgress = .22f;
+        [SerializeField, Range(0, 1)] private float airChainProgress = .65f;
+        private PlayerAirCombo airCombo;
+        public bool IsUsingAirCombo => isAttacking && attackIndex >= 6 && attackIndex <= 11;
+        public int AirComboIndex => IsUsingAirCombo ? attackIndex - 6 : -1;
+        public bool IsAirComboActive => airCombo != null && airCombo.Active;
         private int attackIndex;
         private bool queuedAttack;
         public int AttackComboIndex => attackIndex;
@@ -33,7 +40,7 @@ namespace ParrySystem.Player
         public bool IsUsingSkillA => isAttacking && attackIndex == 4;
         public bool IsUsingUpperAttack => isAttacking && attackIndex == 5;
         public string CurrentAttackStateName => AttackStateName;
-        private string AttackStateName => attackIndex == 5 ? "UpperAttack" : attackIndex == 4 ? "Skill_A" : attackIndex == 3 ? "Skill_G" : attackIndex == 0 ? attackAnimStateName : attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => attackIndex >= 6 ? "AirAttack" + (attackIndex - 5) : attackIndex == 5 ? "UpperAttack" : attackIndex == 4 ? "Skill_A" : attackIndex == 3 ? "Skill_G" : attackIndex == 0 ? attackAnimStateName : attackAnimStateName + (attackIndex + 1);
 
         [Header("Guard (우클릭을 누르고 있는 동안 유지)")]
         [SerializeField] private string guardAnimStateName = "Guard";
@@ -54,7 +61,7 @@ namespace ParrySystem.Player
         private PlayerDamageReaction damageReaction;
         public bool IsHitReacting => damageReaction != null && damageReaction.IsReacting;
 
-        private void Awake() { dodge = GetComponent<PlayerDodge>(); damageReaction = GetComponent<PlayerDamageReaction>(); linkJump = GetComponent<PlayerLinkJump>(); }
+        private void Awake() { airCombo = GetComponent<PlayerAirCombo>(); if (airCombo == null) airCombo = gameObject.AddComponent<PlayerAirCombo>(); dodge = GetComponent<PlayerDodge>(); damageReaction = GetComponent<PlayerDamageReaction>(); linkJump = GetComponent<PlayerLinkJump>(); }
 
         public void CancelForDamage()
         {
@@ -65,6 +72,7 @@ namespace ParrySystem.Player
             attackIndex = 0;
             animator.SetBool("isAttacking", false);
             animator.SetBool("isGuarding", false);
+            if (airCombo != null && airCombo.Active) airCombo.Fall();
         }
 
 
@@ -76,7 +84,7 @@ namespace ParrySystem.Player
 
         private void Update()
         {
-            if (IsHitReacting || IsLinkJumping || IsDodging) return;
+            if (IsHitReacting || IsLinkJumping || IsDodging || (airCombo != null && airCombo.Recovering)) return;
             UpdateAttackProgress();
             if (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame)
                 TrySkill();
@@ -90,7 +98,7 @@ namespace ParrySystem.Player
                 return;
             }
 
-            if (Mouse.current.rightButton.isPressed && !IsGuarding)
+            if (Mouse.current.rightButton.isPressed && !IsGuarding && !IsAirComboActive)
                 StartGuard();
             else if (!Mouse.current.rightButton.isPressed && IsGuarding)
                 StopGuard();
@@ -134,6 +142,7 @@ namespace ParrySystem.Player
         {
             if (IsDodging || IsLinkJumping || IsHitReacting || IsGuarding || isAttacking || animator == null) return false;
             if (!animator.HasState(0, Animator.StringToHash("Base Layer.UpperAttack"))) return false;
+            airCombo.BeginUpperMotion();
             attackIndex = 5;
             queuedAttack = false;
             lastParryInput = float.NegativeInfinity;
@@ -144,20 +153,42 @@ namespace ParrySystem.Player
             return true;
         }
 
-        private void TryAttack()
+        public void TryAttack()
         {
             if (IsDodging || IsLinkJumping || IsHitReacting || IsGuarding || animator == null) return;
             if (isAttacking)
             {
-                if (attackIndex < 2) queuedAttack = true;
+                if (attackIndex < 2 || IsUsingUpperAttack || (IsUsingAirCombo && AirComboIndex < 5)) queuedAttack = true;
                 return;
             }
+            if (IsAirComboActive) return;
+            if (airCombo != null && airCombo.CanBegin()) { BeginAirAttack(0); return; }
             attackIndex = 0;
             queuedAttack = false;
             FaceNearbyEnemy();
             AttackSequence++;
             isAttacking = true;
             PlayAnimState(AttackStateName);
+        }
+
+        private void BeginAirAttack(int index)
+        {
+            if (index < 0 || index > 5 || !animator.HasState(0, Animator.StringToHash("Base Layer.AirAttack" + (index + 1)))) return;
+            if (!airCombo.Active) airCombo.Begin();
+            attackIndex = 6 + index;
+            queuedAttack = false;
+            isAttacking = true;
+            lastParryInput = float.NegativeInfinity;
+            AttackSequence++;
+            FaceNearbyEnemy(skillTargetDistance);
+            animator.CrossFadeInFixedTime("Base Layer." + AttackStateName, .08f, 0, 0);
+        }
+
+        public void EndAirCombo()
+        {
+            if (!IsAirComboActive) return;
+            isAttacking = false; queuedAttack = false; attackIndex = 0;
+            airCombo.Fall();
         }
 
         private void FaceNearbyEnemy(float targetDistance = -1f)
@@ -194,6 +225,20 @@ namespace ParrySystem.Player
                 if (next.IsName(expected)) info = next;
             }
             if (!info.IsName(expected)) return;
+
+            if (IsUsingUpperAttack && queuedAttack && info.normalizedTime >= upperAirChainProgress &&
+                info.normalizedTime < .48f && airCombo.CanBegin())
+            {
+                BeginAirAttack(0);
+                return;
+            }
+            if (IsUsingAirCombo)
+            {
+                if (queuedAttack && AirComboIndex < 5 && info.normalizedTime >= airChainProgress)
+                    BeginAirAttack(AirComboIndex + 1);
+                else if (info.normalizedTime >= 1) EndAirCombo();
+                return;
+            }
 
             if (queuedAttack && attackIndex < 2 &&
                 info.normalizedTime >= comboTransitionProgress)

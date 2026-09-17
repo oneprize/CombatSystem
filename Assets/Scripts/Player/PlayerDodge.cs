@@ -21,7 +21,7 @@ namespace ParrySystem.Player
         public bool TryBegin(Vector3 worldInput)
         {
             if (!isActiveAndEnabled || IsDodging || !character.enabled ||
-                (combat != null && (combat.isAttacking || combat.IsGuarding || combat.IsHitReacting || combat.IsLinkJumping))) return false;
+                (combat != null && (combat.isAttacking || combat.IsGuarding || combat.IsHitReacting || combat.IsLinkJumping || combat.IsAirComboActive))) return false;
             worldInput.y = 0f;
             direction = worldInput.sqrMagnitude > .001f ? worldInput.normalized : transform.forward;
             CurrentStateName = "Base Layer.DodgeFront";

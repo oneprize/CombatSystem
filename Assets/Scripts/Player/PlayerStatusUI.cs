@@ -50,6 +50,8 @@ namespace ParrySystem.Player
                 if(combat.IsLinkJumping) return "LINK JUMP";
                 if(combat.IsUsingSkillA) return "SKILL A";
                 if(combat.IsUsingSkill) return "SKILL G";
+                if(combat.IsUsingAirCombo) return "AIR COMBO " + (combat.AirComboIndex + 1);
+                if(combat.IsAirComboActive) return "AIR RECOVERY";
                 if(combat.isAttacking) return "ATTACK";
                 if(combat.IsGuarding) return "GUARD";
             }

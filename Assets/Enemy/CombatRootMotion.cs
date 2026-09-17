@@ -47,7 +47,13 @@ namespace ParrySystem.Combat
                 if (animator.applyRootMotion) dodge.ApplyRootMotion(animator.deltaPosition);
                 return;
             }
-            if (player != null && player.IsLinkJumping) return;
+            if (player != null && player.IsUsingUpperAttack)
+            {
+                var air = GetComponent<PlayerAirCombo>();
+                if (air != null) air.ApplyUpperMotion(animator.deltaPosition);
+                return;
+            }
+            if (player != null && (player.IsLinkJumping || player.IsAirComboActive)) return;
             bool attack = enemy != null && enemy.CurrentState == enemy.AttackState;
             bool damaged = reaction != null && reaction.IsReacting;
             bool enemyReactionMotion = enemy != null && enemyReaction != null && enemy.CurrentState == enemyReaction &&

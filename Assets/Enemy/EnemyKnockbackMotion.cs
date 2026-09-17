@@ -15,6 +15,7 @@ namespace ParrySystem.Combat
         public bool Grounded { get; private set; }
         public float LastPoseCorrection { get; private set; }
         private Vector3 velocity;
+        private float airHoldRemaining;
         private CapsuleCollider capsule;
         private Animator animator;
         private Transform[] contactBones;
@@ -41,6 +42,7 @@ namespace ParrySystem.Combat
             if (away.sqrMagnitude < .001f) away = -transform.forward;
             velocity = away.normalized * launchSpeed + Vector3.up * upwardSpeed;
             Grounded = false;
+            airHoldRemaining = 0;
             Active = true;
         }
 
@@ -50,6 +52,13 @@ namespace ParrySystem.Combat
             away.y = 0;
             if (away.sqrMagnitude < .001f) away = -transform.forward;
             velocity = away.normalized * Mathf.Max(0, pushSpeed) + Vector3.up * Mathf.Max(0, liftSpeed);
+        }
+
+        public void AirComboImpact(bool finisher)
+        {
+            if (!Active || Grounded) return;
+            airHoldRemaining = finisher ? 0 : 1.3f;
+            velocity = finisher ? Vector3.down * 8f : Vector3.zero;
         }
 
         private bool Sweep(Vector3 direction, float distance, out RaycastHit nearest)
@@ -88,6 +97,12 @@ namespace ParrySystem.Combat
         public void Tick(float deltaTime)
         {
             if (!Active) return;
+            if (airHoldRemaining > 0)
+            {
+                float held = Mathf.Min(deltaTime, airHoldRemaining);
+                airHoldRemaining -= held;
+                deltaTime -= held;
+            }
             // Small steps keep low frame rates from tunnelling through floors or walls.
             float remaining = deltaTime;
             while (remaining > .00001f)
@@ -147,6 +162,7 @@ namespace ParrySystem.Combat
         public void Stop()
         {
             Active = Grounded = false;
+            airHoldRemaining = 0;
             velocity = Vector3.zero;
         }
         private void OnDisable() { Stop(); }

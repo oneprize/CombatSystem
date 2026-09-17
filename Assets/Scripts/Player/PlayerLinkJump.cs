@@ -37,7 +37,7 @@ namespace ParrySystem.Player
         public bool TryBegin()
         {
             if (!isActiveAndEnabled || IsTraversing || !character.enabled ||
-                (combat != null && (combat.isAttacking || combat.IsGuarding || combat.IsHitReacting))) return false;
+                (combat != null && (combat.isAttacking || combat.IsGuarding || combat.IsHitReacting || combat.IsAirComboActive))) return false;
             Vector3 feet = transform.position - FootOffset;
             float best = activationDistance;
             bool found = false;
