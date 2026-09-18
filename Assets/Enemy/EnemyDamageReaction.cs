@@ -82,8 +82,7 @@ namespace ParrySystem.Combat
             var toward = attacker.position - transform.position;
             toward.y = 0;
             if (toward.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(toward);
-            reactionState = comboIndex == 5 ? "Base Layer.AirComboHitB" :
-                comboIndex % 2 == 0 ? "Base Layer.AirComboHitA" : "Base Layer.AirComboHitB";
+            reactionState = "Base Layer.AirComboHitB";
             knockback.AirComboImpact(comboIndex == 5);
             animator.CrossFadeInFixedTime(reactionState, .05f, 0, 0);
         }

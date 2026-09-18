@@ -27,7 +27,7 @@ namespace ParrySystem.Player
         }
         [Header("Air combo")]
         [SerializeField, Range(0, 1)] private float upperAirChainProgress = .22f;
-        [SerializeField, Range(0, 1)] private float airChainProgress = .65f;
+        [SerializeField, Range(0, 1)] private float airChainProgress = .95f;
         private PlayerAirCombo airCombo;
         public bool IsUsingAirCombo => isAttacking && attackIndex >= 6 && attackIndex <= 11;
         public int AirComboIndex => IsUsingAirCombo ? attackIndex - 6 : -1;

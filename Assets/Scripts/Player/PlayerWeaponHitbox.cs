@@ -19,8 +19,9 @@ namespace ParrySystem.Player
         [SerializeField] private Vector3 upperImpactSize = new Vector3(1.4f, 2.2f, 2f);
         [Header("Air combo")]
         [SerializeField] private Vector2[] airHitWindows = {
-            new Vector2(.15f,.35f), new Vector2(.15f,.35f), new Vector2(.15f,.35f),
-            new Vector2(.15f,.35f), new Vector2(.15f,.35f), new Vector2(.15f,.4f) };
+            // Attach clips omit recovery frames; preserve the hit times in seconds.
+            new Vector2(6f/24f,14f/24f), new Vector2(4.5f/18f,10.5f/18f), new Vector2(6.3f/25f,14.7f/25f),
+            new Vector2(6f/23f,14f/23f), new Vector2(5.4f/22f,12.6f/22f), new Vector2(6.75f/30f,18f/30f) };
         [SerializeField] private Vector3 airImpactCenter = new Vector3(0, -.1f, 1.25f);
         [SerializeField] private Vector3 airImpactSize = new Vector3(1.8f, 2.5f, 2.5f);
         private float previousAirProgress;
