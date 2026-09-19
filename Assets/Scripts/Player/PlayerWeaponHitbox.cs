@@ -12,7 +12,6 @@ namespace ParrySystem.Player
         [SerializeField] private Vector2 skillHitWindow = new Vector2(0.47f, 0.57f);
         [SerializeField] private Vector3 skillImpactCenter = new Vector3(0f, -0.1f, 1.2f);
         [SerializeField] private Vector3 skillImpactSize = new Vector3(1.8f, 2.2f, 2.4f);
-        [SerializeField] private Vector2 skillAHitWindow = new Vector2(15f / 45f, 16f / 45f);
         [Header("Upper attack")]
         [SerializeField] private Vector2 upperHitWindow = new Vector2(9f / 75f, 16f / 75f);
         [SerializeField] private Vector3 upperImpactCenter = new Vector3(0, -.15f, 1.2f);
@@ -53,6 +52,8 @@ namespace ParrySystem.Player
         private void LateUpdate()
         {
             if (!combat.isAttacking || combat.IsGuarding || combat.IsHitReacting || !box.enabled) return;
+            // Skill_A applies swept hits during its collision-aware dash.
+            if (combat.IsUsingSkillA) return;
             int index = combat.AttackComboIndex;
             if (sequence != combat.AttackSequence || combo != index)
             {
@@ -126,7 +127,7 @@ namespace ParrySystem.Player
                 }
                 return;
             }
-            Vector2 window = combat.IsUsingSkillA ? skillAHitWindow : index == 1 ? combo2HitWindow : index == 2 ? combo3HitWindow : hitWindow;
+            Vector2 window = index == 1 ? combo2HitWindow : index == 2 ? combo3HitWindow : hitWindow;
             if (state.normalizedTime < window.x || state.normalizedTime > window.y) return;
             var scale = transform.lossyScale;
             scale = new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
@@ -137,8 +138,7 @@ namespace ParrySystem.Player
                 HitBoss(other, false);
                 if (enemy != null && hits.Add(enemy))
                 {
-                    if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(combat.transform);
-                    else enemy.ReceiveHit();
+                    enemy.ReceiveHit();
                 }
             }
         }

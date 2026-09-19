@@ -1,15 +1,18 @@
 using UnityEngine;
+using Unity.Cinemachine;
 namespace ParrySystem.Player
 {
     public class ParryFeedback : MonoBehaviour
     {
         [SerializeField] private Camera targetCamera;
-        [SerializeField, Range(0.05f, 1f)] private float slowMotionScale = 0.2f;
+        [SerializeField, Range(0.05f, 1f)] private float slowMotionScale = 0.1f;
         [SerializeField, Min(0.01f)] private float zoomInDuration = 0.08f;
-        [SerializeField, Min(0f)] private float holdDuration = 0.12f;
-        [SerializeField, Min(0.01f)] private float recoveryDuration = 0.25f;
-        [SerializeField, Range(0.3f, 1f)] private float zoomMultiplier = 0.85f;
+        [SerializeField, Min(0f)] private float holdDuration = 0.22f;
+        [SerializeField, Min(0.01f)] private float recoveryDuration = 0.35f;
+        [SerializeField, Range(0.3f, 1f)] private float zoomMultiplier = 0.7f;
         private Camera activeCamera;
+        private CinemachineCamera activeVirtualCamera;
+        private float originalVirtualZoom;
         private float elapsed, originalScale, originalFixedStep, originalZoom;
         private bool active, orthographic;
 
@@ -25,6 +28,10 @@ namespace ParrySystem.Player
                 {
                     orthographic = activeCamera.orthographic;
                     originalZoom = orthographic ? activeCamera.orthographicSize : activeCamera.fieldOfView;
+                    var brain = activeCamera.GetComponent<CinemachineBrain>();
+                    activeVirtualCamera = brain != null ? brain.ActiveVirtualCamera as CinemachineCamera : null;
+                    if (activeVirtualCamera != null)
+                        originalVirtualZoom = orthographic ? activeVirtualCamera.Lens.OrthographicSize : activeVirtualCamera.Lens.FieldOfView;
                 }
                 active = true;
             }
@@ -33,7 +40,7 @@ namespace ParrySystem.Player
             Time.timeScale = originalScale * slowMotionScale;
             Time.fixedDeltaTime = originalFixedStep * slowMotionScale;
         }
-        private void LateUpdate()
+        private void Update()
         {
             if (!active) return;
             elapsed += Time.unscaledDeltaTime;
@@ -51,6 +58,13 @@ namespace ParrySystem.Player
                 if (orthographic) activeCamera.orthographicSize = zoom;
                 else activeCamera.fieldOfView = zoom;
             }
+            // Drive Cinemachine's lens too, so its Brain cannot overwrite the zoom.
+            if (activeVirtualCamera != null)
+            {
+                float zoom = Mathf.Lerp(originalVirtualZoom, originalVirtualZoom * zoomMultiplier, zoomWeight);
+                if (orthographic) activeVirtualCamera.Lens.OrthographicSize = zoom;
+                else activeVirtualCamera.Lens.FieldOfView = zoom;
+            }
             if (elapsed >= endHold + recovery) Restore();
         }
         private void Restore()
@@ -63,6 +77,12 @@ namespace ParrySystem.Player
                 if (orthographic) activeCamera.orthographicSize = originalZoom;
                 else activeCamera.fieldOfView = originalZoom;
             }
+            if (activeVirtualCamera != null)
+            {
+                if (orthographic) activeVirtualCamera.Lens.OrthographicSize = originalVirtualZoom;
+                else activeVirtualCamera.Lens.FieldOfView = originalVirtualZoom;
+            }
+            activeVirtualCamera = null;
             active = false;
         }
         private void OnDisable() { Restore(); }

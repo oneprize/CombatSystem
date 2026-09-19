@@ -47,6 +47,12 @@ namespace ParrySystem.Combat
                 if (animator.applyRootMotion) dodge.ApplyRootMotion(animator.deltaPosition);
                 return;
             }
+            if (player != null && player.IsUsingSkillA)
+            {
+                var dash = GetComponent<PlayerSkillDash>();
+                if (dash != null) dash.ApplyMotion();
+                return;
+            }
             if (player != null && player.IsUsingUpperAttack)
             {
                 var air = GetComponent<PlayerAirCombo>();

@@ -7,7 +7,7 @@ namespace ParrySystem.Player
     {
         [Header("Attack")]
         [SerializeField] private string attackAnimStateName = "Attack";
-        [SerializeField, Range(0f, 1f)] private float comboTransitionProgress = 0.85f;
+        [SerializeField, Range(0f, 1f)] private float comboTransitionProgress = 0.5f;
         [Header("Attack Facing")]
         [SerializeField, Min(0f)] private float attackTargetDistance = 3f;
         [SerializeField, Min(0f)] private float attackTargetHeightTolerance = 2f;
@@ -54,6 +54,7 @@ namespace ParrySystem.Player
         public bool IsGuarding { get; private set; }
         public bool isAttacking { get; private set; }
 
+        private PlayerSkillDash skillDash;
         private PlayerDodge dodge;
         public bool IsDodging => dodge != null && dodge.IsDodging;
         private PlayerLinkJump linkJump;
@@ -61,10 +62,11 @@ namespace ParrySystem.Player
         private PlayerDamageReaction damageReaction;
         public bool IsHitReacting => damageReaction != null && damageReaction.IsReacting;
 
-        private void Awake() { airCombo = GetComponent<PlayerAirCombo>(); if (airCombo == null) airCombo = gameObject.AddComponent<PlayerAirCombo>(); dodge = GetComponent<PlayerDodge>(); damageReaction = GetComponent<PlayerDamageReaction>(); linkJump = GetComponent<PlayerLinkJump>(); }
+        private void Awake() { skillDash = GetComponent<PlayerSkillDash>(); if (skillDash == null) skillDash = gameObject.AddComponent<PlayerSkillDash>(); airCombo = GetComponent<PlayerAirCombo>(); if (airCombo == null) airCombo = gameObject.AddComponent<PlayerAirCombo>(); dodge = GetComponent<PlayerDodge>(); damageReaction = GetComponent<PlayerDamageReaction>(); linkJump = GetComponent<PlayerLinkJump>(); }
 
         public void CancelForDamage()
         {
+            if (skillDash != null) skillDash.Cancel();
             lastParryInput = float.NegativeInfinity;
             isAttacking = false;
             IsGuarding = false;
@@ -135,6 +137,7 @@ namespace ParrySystem.Player
             FaceNearbyEnemy(skillTargetDistance);
             AttackSequence++;
             isAttacking = true;
+            skillDash.Begin();
             animator.CrossFadeInFixedTime("Base Layer.Skill_A", crossFadeTime, 0, 0f);
         }
 
