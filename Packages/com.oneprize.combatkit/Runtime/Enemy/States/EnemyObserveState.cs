@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// 공격 뒤 곧바로 다시 붙지 않고, 플레이어 주변의 전투 위치(combatMinDistance~combatMaxDistance)를

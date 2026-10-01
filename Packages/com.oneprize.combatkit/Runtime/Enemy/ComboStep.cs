@@ -1,6 +1,6 @@
 using System;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     [Serializable]
     public class ComboStep

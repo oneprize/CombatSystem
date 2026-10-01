@@ -1,6 +1,6 @@
 using UnityEngine;
-using ParrySystem.Combat;
-namespace ParrySystem.Training
+using CombatSystem.Combat;
+namespace CombatSystem.Training
 {
     [DisallowMultipleComponent]
     public sealed class PracticeDummy : MonoBehaviour

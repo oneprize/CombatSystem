@@ -485,7 +485,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 15107d78de53b9c4bb517a72fb8fed43, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.MonsterStateMachine
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.MonsterStateMachine
 --- !u!114 &5259744772965930340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -497,7 +497,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3c723effa64c5294bb38b3bb350904b3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.MonsterCombat
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.MonsterCombat
   idleDuration: 2
   staggerDuration: 1
   comboSteps:
@@ -557,6 +557,7 @@ MonoBehaviour:
   crossFadeTime: 0.1
   maxGroggyGauge: 100
   groggyPerParry: 25
+  config: {fileID: 11400000, guid: eb00e43166534d6cb7c3a5b11f079811, type: 2}
 --- !u!114 &2784195930224812121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -566,9 +567,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2200748518399378798}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3133cd56ed4113d45880e694607ef1c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.CombatRootMotion
+  m_Script: {fileID: 11500000, guid: 0d3541ce2eee4ae3ab1d2365d8f9d7cd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyRootMotion
 --- !u!114 &4906460427493798672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -580,13 +581,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e4922bb80d0557418c868d2e015e9ae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.EnemyDamageReaction
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyDamageReaction
   maxHealth: 100
   damagePerHit: 10
   downDuration: 1
   aerialHitBlendTime: 0.1
   upperLiftSpeed: 8
   upperPushSpeed: 1.5
+  config: {fileID: 11400000, guid: 922ab0232c7b47ea81daca219c9c2fda, type: 2}
 --- !u!114 &6359826120824989392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -598,7 +600,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 204bf21a8472a8844a0666ac3f7caf8c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.EnemyKnockbackMotion
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyKnockbackMotion
   launchSpeed: 6
   upwardSpeed: 4
   gravity: 18
@@ -606,6 +608,7 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  config: {fileID: 11400000, guid: 3d0815de485843ae91ad4e177e42f6e1, type: 2}
 --- !u!114 &4617015989602868085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -617,7 +620,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d744735595ba0b143aa558686e220e03, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Training.PracticeDummy
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Training.PracticeDummy
 --- !u!1 &2250139214972211004
 GameObject:
   m_ObjectHideFlags: 0
@@ -2628,11 +2631,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3842c3765063a941acefbfc665a09f5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.EnemyWeaponHitbox
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyWeaponHitbox
   combo1HitWindow: {x: 0.38, y: 0.52}
   combo2HitWindow: {x: 0.18, y: 0.3}
   combo3HitWindow: {x: 0.03, y: 0.16}
   combo4HitWindow: {x: 0.2, y: 0.58}
+  config: {fileID: 11400000, guid: 66991c0d03c541039e5339d5cf16ee8d, type: 2}
 --- !u!1 &9001351455588231471
 GameObject:
   m_ObjectHideFlags: 0

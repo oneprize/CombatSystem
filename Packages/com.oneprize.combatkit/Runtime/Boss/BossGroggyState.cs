@@ -1,5 +1,5 @@
 using UnityEngine;
-namespace ParrySystem.Boss
+namespace CombatSystem.Boss
 {
     public sealed class BossGroggyState : IBossState
     {

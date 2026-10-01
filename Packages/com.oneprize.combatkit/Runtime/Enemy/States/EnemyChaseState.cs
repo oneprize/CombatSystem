@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// 플레이어의 공격 사거리(attackRange) 밖에 있는 동안 플레이어 쪽으로 이동+회전한다.

@@ -1,21 +1,31 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using ParrySystem.Player;
-namespace ParrySystem.Training
+using CombatSystem.Core;
+using CombatSystem.Player;
+namespace CombatSystem.Training
 {
     public sealed class PracticeMonitor : MonoBehaviour
     {
-        [SerializeField] private PlayerCombat player;
+        [SerializeField] private PlayerCharacter player;
         [SerializeField] private PracticeDummy dummy;
         [SerializeField] private PlayerWeaponHitbox hitbox;
         private GUIStyle heading, text;
+        private void Awake() { EnsurePlayerLinked(); }
+        private void EnsurePlayerLinked()
+        {
+            if (player != null) return;
+            var nearest = CombatRegistry.FindNearest(CombatTeam.Player, transform.position);
+            if (nearest != null) player = nearest.Transform.GetComponent<PlayerCharacter>();
+        }
         private void Update()
         {
+            EnsurePlayerLinked();
             if (Keyboard.current != null && Keyboard.current.f5Key.wasPressedThisFrame && dummy != null)
                 dummy.ResetDummy();
         }
         private void OnGUI()
         {
+            EnsurePlayerLinked();
             if (player == null || dummy == null || hitbox == null) return;
             if (heading == null)
             {
@@ -29,11 +39,11 @@ namespace ParrySystem.Training
             float x = Screen.width / scale - 395;
             GUI.Box(new Rect(x, 20, 375, 320), GUIContent.none);
             GUI.Label(new Rect(x+18, 32, 340, 35), "M1 / COMBO PRACTICE", heading);
-            string attack = player.isAttacking ? player.CurrentAttackStateName : "Idle";
+            string attack = player.IsAttacking ? player.Combat.CurrentAttackStateName : "Idle";
             string rows = "Attack: " + attack + "\nHit window: " + (hitbox.HitWindowActive ? "ACTIVE" : "closed")
                 + "\nTotal hits: " + dummy.TotalHits
                 + "\nLast damage: " + dummy.LastDamage + "  /  Total: " + dummy.TotalDamage
-                + "\nDummy: " + (dummy.GetComponent<ParrySystem.Combat.EnemyDamageReaction>().IsAirborneForCombo ? "AIRBORNE" : "GROUND")
+                + "\nDummy: " + (dummy.GetComponent<CombatSystem.Combat.EnemyDamageReaction>().IsAirborneForCombo ? "AIRBORNE" : "GROUND")
                 + "\n\nLMB: combo 1-5 / W + LMB: Skill C\nC then LMB: upper + air combo 1-6\nQ / E / R / F: skills   Ctrl: dodge\nF5: reset dummy and counters";
             GUI.Label(new Rect(x+18, 78, 345, 250), rows, text);
             if (Time.time - dummy.LastHitTime < .8f && Camera.main != null)

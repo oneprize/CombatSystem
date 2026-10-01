@@ -1,20 +1,26 @@
 using UnityEngine;
 using Unity.Cinemachine;
-namespace ParrySystem.Player
+using CombatSystem.Data.Player;
+namespace CombatSystem.Player
 {
     public class ParryFeedback : MonoBehaviour
     {
         [SerializeField] private Camera targetCamera;
-        [SerializeField, Range(0.05f, 1f)] private float slowMotionScale = 0.1f;
-        [SerializeField, Min(0.01f)] private float zoomInDuration = 0.08f;
-        [SerializeField, Min(0f)] private float holdDuration = 0.22f;
-        [SerializeField, Min(0.01f)] private float recoveryDuration = 0.35f;
-        [SerializeField, Range(0.3f, 1f)] private float zoomMultiplier = 0.7f;
+        [SerializeField] private ParryFeedbackConfig config;
         private Camera activeCamera;
         private CinemachineCamera activeVirtualCamera;
         private float originalVirtualZoom;
         private float elapsed, originalScale, originalFixedStep, originalZoom;
         private bool active, orthographic;
+
+        private void Awake()
+        {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<ParryFeedbackConfig>();
+                Debug.LogWarning("ParryFeedback: no ParryFeedbackConfig assigned, using built-in defaults.", this);
+            }
+        }
 
         public void Play()
         {
@@ -37,31 +43,31 @@ namespace ParrySystem.Player
             }
             // Repeated parries restart the effect without overwriting the restore values.
             elapsed = 0f;
-            Time.timeScale = originalScale * slowMotionScale;
-            Time.fixedDeltaTime = originalFixedStep * slowMotionScale;
+            Time.timeScale = originalScale * config.slowMotionScale;
+            Time.fixedDeltaTime = originalFixedStep * config.slowMotionScale;
         }
         private void Update()
         {
             if (!active) return;
             elapsed += Time.unscaledDeltaTime;
-            float enter = Mathf.Max(0.01f, zoomInDuration);
-            float recovery = Mathf.Max(0.01f, recoveryDuration);
-            float endHold = enter + holdDuration;
+            float enter = Mathf.Max(0.01f, config.zoomInDuration);
+            float recovery = Mathf.Max(0.01f, config.recoveryDuration);
+            float endHold = enter + config.holdDuration;
             float zoomWeight = elapsed < enter ? Mathf.SmoothStep(0f, 1f, elapsed / enter) :
                 1f - Mathf.SmoothStep(0f, 1f, (elapsed - endHold) / recovery);
             float restore = Mathf.SmoothStep(0f, 1f, (elapsed - endHold) / recovery);
-            Time.timeScale = originalScale * Mathf.Lerp(slowMotionScale, 1f, restore);
-            Time.fixedDeltaTime = originalFixedStep * Mathf.Lerp(slowMotionScale, 1f, restore);
+            Time.timeScale = originalScale * Mathf.Lerp(config.slowMotionScale, 1f, restore);
+            Time.fixedDeltaTime = originalFixedStep * Mathf.Lerp(config.slowMotionScale, 1f, restore);
             if (activeCamera != null)
             {
-                float zoom = Mathf.Lerp(originalZoom, originalZoom * zoomMultiplier, zoomWeight);
+                float zoom = Mathf.Lerp(originalZoom, originalZoom * config.zoomMultiplier, zoomWeight);
                 if (orthographic) activeCamera.orthographicSize = zoom;
                 else activeCamera.fieldOfView = zoom;
             }
             // Drive Cinemachine's lens too, so its Brain cannot overwrite the zoom.
             if (activeVirtualCamera != null)
             {
-                float zoom = Mathf.Lerp(originalVirtualZoom, originalVirtualZoom * zoomMultiplier, zoomWeight);
+                float zoom = Mathf.Lerp(originalVirtualZoom, originalVirtualZoom * config.zoomMultiplier, zoomWeight);
                 if (orthographic) activeVirtualCamera.Lens.OrthographicSize = zoom;
                 else activeVirtualCamera.Lens.FieldOfView = zoom;
             }

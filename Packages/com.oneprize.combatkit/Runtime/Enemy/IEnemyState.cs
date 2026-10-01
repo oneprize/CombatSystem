@@ -1,4 +1,4 @@
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     public interface IEnemyState
     {

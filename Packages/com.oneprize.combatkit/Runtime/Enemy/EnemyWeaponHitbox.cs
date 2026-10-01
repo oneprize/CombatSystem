@@ -1,26 +1,30 @@
 using UnityEngine;
-using ParrySystem.Player;
+using CombatSystem.Player;
+using CombatSystem.Data.Enemy;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     [RequireComponent(typeof(BoxCollider))]
     public class EnemyWeaponHitbox : MonoBehaviour
     {
-        [SerializeField] private Vector2 combo1HitWindow = new Vector2(0.38f, 0.52f);
-        [SerializeField] private Vector2 combo2HitWindow = new Vector2(0.18f, 0.30f);
-        [SerializeField] private Vector2 combo3HitWindow = new Vector2(0.03f, 0.16f);
-        [SerializeField] private Vector2 combo4HitWindow = new Vector2(0.20f, 0.58f);
+        [SerializeField] private EnemyWeaponHitboxConfig config;
         private Animator animator;
         private EnemyStateMachine machine;
         private EnemyCombat combat;
         private BoxCollider hitbox;
         private int lastSequence = -1;
         private int lastCombo = -1;
-        private readonly System.Collections.Generic.HashSet<PlayerDamageReaction> hitPlayers =
-            new System.Collections.Generic.HashSet<PlayerDamageReaction>();
+        private readonly System.Collections.Generic.HashSet<PlayerCharacter> hitPlayers =
+            new System.Collections.Generic.HashSet<PlayerCharacter>();
 
         private void Awake()
         {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<EnemyWeaponHitboxConfig>();
+                Debug.LogWarning("EnemyWeaponHitbox: no EnemyWeaponHitboxConfig assigned, using built-in defaults.", this);
+            }
+
             animator = GetComponentInParent<Animator>();
             machine = GetComponentInParent<EnemyStateMachine>();
             combat = GetComponentInParent<EnemyCombat>();
@@ -48,8 +52,8 @@ namespace ParrySystem.Combat
                 if (nextCombo >= 0) { state = next; combo = nextCombo; }
             }
             if (combo < 0) { combat.SetParryWindowOpen(false); return; }
-            Vector2 window = combo == 0 ? combo1HitWindow : combo == 1 ? combo2HitWindow :
-                combo == 2 ? combo3HitWindow : combo4HitWindow;
+            Vector2 window = combo == 0 ? config.combo1HitWindow : combo == 1 ? config.combo2HitWindow :
+                combo == 2 ? config.combo3HitWindow : config.combo4HitWindow;
             bool active = state.normalizedTime >= window.x && state.normalizedTime <= window.y;
             combat.SetParryWindowOpen(active);
             if (!active) return;
@@ -69,9 +73,9 @@ namespace ParrySystem.Combat
             {
                 if (machine.CurrentState != machine.AttackState) break;
                 if (!(contact is CharacterController)) continue;
-                var player = contact.GetComponent<PlayerDamageReaction>();
+                var player = contact.GetComponent<PlayerCharacter>();
                 if (player != null && !hitPlayers.Contains(player) &&
-                    player.ReceiveHit(combo, machine.transform))
+                    player.Health.ReceiveHit(combo, machine.transform))
                     hitPlayers.Add(player);
             }
         }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     [RequireComponent(typeof(EnemyCombat))]
     public class EnemyStateMachine : MonoBehaviour
@@ -75,7 +75,7 @@ namespace ParrySystem.Combat
 
         public void ChangeState(IEnemyState next)
         {
-            var dummy = GetComponent<ParrySystem.Training.PracticeDummy>();
+            var dummy = GetComponent<CombatSystem.Training.PracticeDummy>();
             if (dummy != null && !(next is EnemyDamageReaction)) next = dummy.Idle;
             if (next == null || next == CurrentState)
             {

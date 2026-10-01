@@ -1,5 +1,5 @@
 using UnityEngine;
-namespace ParrySystem.Boss
+namespace CombatSystem.Boss
 {
     public sealed class BossPattern2State : IBossState
     {
@@ -109,7 +109,7 @@ namespace ParrySystem.Boss
                     movement.normalized,movement.magnitude,~0,QueryTriggerInteraction.Ignore))
                 {
                     if(hit.transform.IsChildOf(combat.transform) ||
-                       hit.collider.GetComponentInParent<ParrySystem.Player.PlayerCombat>()!=null ||
+                       hit.collider.GetComponentInParent<CombatSystem.Player.PlayerCharacter>()!=null ||
                        hit.rigidbody!=null || Mathf.Abs(hit.normal.y)>.6f) continue;
                     return false;
                 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace AILearning
+namespace CombatSystem.UI
 {
     /// <summary>
     /// 학습용 UI 를 코드로 만들기 위한 작은 도우미 모음.

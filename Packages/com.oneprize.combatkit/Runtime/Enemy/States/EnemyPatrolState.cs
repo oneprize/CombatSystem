@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// 플레이어가 감지 범위(detectionRange) 밖에 있는 동안 스폰 지점(HomePosition) 주변을

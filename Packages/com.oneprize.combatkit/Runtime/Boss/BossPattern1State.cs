@@ -1,4 +1,4 @@
-namespace ParrySystem.Boss
+namespace CombatSystem.Boss
 {
     public sealed class BossPattern1State : IBossState
     {

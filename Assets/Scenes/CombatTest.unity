@@ -879,7 +879,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a659ce6e1080bf4fb4dad5a241e567a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerCombat
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.PlayerCombat
   attackCooldown: 0.3
   attackAnimStateName: Attack
   guardAnimStateName: Guard

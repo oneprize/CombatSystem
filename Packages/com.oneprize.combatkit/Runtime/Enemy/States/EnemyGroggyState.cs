@@ -1,4 +1,4 @@
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// 패링당해서 경직된 상태. staggerDuration 동안 아무것도 못 하다가 Idle로 돌아간다.

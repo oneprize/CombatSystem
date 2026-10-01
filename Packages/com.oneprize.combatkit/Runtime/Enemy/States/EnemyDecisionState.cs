@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// Observe가 끝나면 한 프레임 안에서 플레이어 상태를 보고 다음 행동을 가중치 랜덤으로 고른다.

@@ -220,27 +220,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23fb3abc0ff738c4cbed71f5853cbaee, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerWeaponHitbox
-  hitWindow: {x: 0.25, y: 0.75}
-  combo2HitWindow: {x: 0.1, y: 0.25}
-  combo3HitWindow: {x: 0.25, y: 0.5}
-  skillFirstHitWindow: {x: 0.1, y: 0.18}
-  skillHitWindow: {x: 0.47, y: 0.57}
-  skillImpactCenter: {x: 0, y: -0.1, z: 1.2}
-  skillImpactSize: {x: 1.8, y: 2.2, z: 2.4}
-  skillAHitWindow: {x: 0.3333333, y: 0.35555553}
-  upperHitWindow: {x: 0.12, y: 0.21333334}
-  upperImpactCenter: {x: 0, y: -0.15, z: 1.2}
-  upperImpactSize: {x: 1.4, y: 2.2, z: 2}
-  airHitWindows:
-  - {x: 0.25, y: 0.5833333}
-  - {x: 0.25, y: 0.5833333}
-  - {x: 0.252, y: 0.588}
-  - {x: 0.26086956, y: 0.6086956}
-  - {x: 0.24545455, y: 0.57272726}
-  - {x: 0.225, y: 0.6}
-  airImpactCenter: {x: 0, y: -0.1, z: 1.25}
-  airImpactSize: {x: 1.8, y: 2.5, z: 2.5}
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.PlayerWeaponHitbox
+  config: {fileID: 11400000, guid: 0faf90da7e2b47af92a3cab02f37ed6a, type: 2}
 --- !u!1 &640601532458801681
 GameObject:
   m_ObjectHideFlags: 0
@@ -2524,14 +2505,8 @@ GameObject:
   - component: {fileID: 3064439059884556425}
   - component: {fileID: 1733199744942202404}
   - component: {fileID: 2314398119717514321}
-  - component: {fileID: 1629790216934925208}
-  - component: {fileID: 7582901709524083519}
-  - component: {fileID: 3276348212222416770}
-  - component: {fileID: 2308764583393674562}
-  - component: {fileID: 7863727665986794564}
+  - component: {fileID: 3309891952150241785}
   - component: {fileID: 1080214696322167235}
-  - component: {fileID: 7360429020688193638}
-  - component: {fileID: 1696184253843282892}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2605,7 +2580,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &1629790216934925208
+--- !u!114 &3309891952150241785
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2614,84 +2589,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 9026544333553245887}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a659ce6e1080bf4fb4dad5a241e567a, type: 3}
+  m_Script: {fileID: 11500000, guid: 8703c62db34a880498bec030ab6c9e52, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerCombat
-  attackAnimStateName: Attack
-  comboTransitionProgress: 0.5
-  attackTargetDistance: 3
-  attackTargetHeightTolerance: 2
-  parryInputWindow: 0.15
-  upperAirChainProgress: 0.22
-  airChainProgress: 0.95
-  guardAnimStateName: Guard
-  animator: {fileID: 2314398119717514321}
-  idleAnimStateName: Idle
-  crossFadeTime: 0.1
-  skillTargetDistance: 4
---- !u!114 &7582901709524083519
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7f3e212d189ae24aac5ac6fd1008491, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  walkSpeed: 3
-  runSpeed: 6
-  rotationSpeed: 720
-  jumpForce: 5
-  gravity: -9.81
-  groundCheckDistance: 0.2
-  animator: {fileID: 2314398119717514321}
-  cam: {fileID: 0}
-  playerCombat: {fileID: 1629790216934925208}
---- !u!114 &3276348212222416770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e872bcc647700364199eff7af83ba696, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerDamageReaction
---- !u!114 &2308764583393674562
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3133cd56ed4113d45880e694607ef1c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.CombatRootMotion
---- !u!114 &7863727665986794564
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a5a67a430271ba743898b2129a056030, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerAttackHeightOffset
-  heightOffset: 0.95
-  combo2HeightOffset: 0.95
-  combo3HeightOffset: 0.19
-  visualLowering: 0.12
-  guardHeightOffset: 0.23
-  guardAcceptHeightOffset: 0.25
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerCharacter
+  cameraTransform: {fileID: 0}
+  parryFeedback: {fileID: 1080214696322167235}
+  profile: {fileID: 11400000, guid: 07c3c0166a0e7d14daee6639c499d793, type: 2}
 --- !u!114 &1080214696322167235
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2703,44 +2606,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a69efda14051204d92975c772ce0774, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.ParryFeedback
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.ParryFeedback
   targetCamera: {fileID: 0}
-  slowMotionScale: 0.1
-  zoomInDuration: 0.08
-  holdDuration: 0.22
-  recoveryDuration: 0.35
-  zoomMultiplier: 0.7
---- !u!114 &7360429020688193638
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e96067834e690a4e8824998f04f91c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerLinkJump
-  activationDistance: 1.2
-  endpointHeightTolerance: 1
-  travelSpeed: 5
-  arcHeight: 1.6
-  takeoffTime: 0.18
---- !u!114 &1696184253843282892
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3091c4b5fb7e0df4991bc68dd1d374ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerDodge
-  crossFadeTime: 0.06
-  distanceMultiplier: 1
+  config: {fileID: 11400000, guid: 2a8907637eee4278bd82e29b5e0f96a0, type: 2}
 --- !u!1 &9095833428554535245
 GameObject:
   m_ObjectHideFlags: 0

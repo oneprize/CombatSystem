@@ -444,7 +444,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2d0dd06eeee184c41bf380fef127601b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AILearning.LabUI
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.UI.LabUI
   target: {fileID: 7673809941238296322}
 --- !u!4 &618633835
 Transform:
@@ -2062,14 +2062,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1629790216934925208, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airChainProgress
-      value: 0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1629790216934925208, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: comboTransitionProgress
-      value: 0.5
-      objectReference: {fileID: 0}
     - target: {fileID: 1733199744942202404, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       propertyPath: m_Material
       value: 
@@ -2114,66 +2106,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7582901709524083519, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: cam
-      value: 
-      objectReference: {fileID: 1220916616}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: upperHitWindow.x
-      value: 0.12
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: upperHitWindow.y
-      value: 0.21333334
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[0].x
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[0].y
-      value: 0.5833333
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[1].x
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[1].y
-      value: 0.5833333
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[2].x
-      value: 0.252
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[2].y
-      value: 0.588
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[3].x
-      value: 0.26086956
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[3].y
-      value: 0.6086956
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[4].x
-      value: 0.24545455
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[4].y
-      value: 0.57272726
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[5].x
-      value: 0.225
-      objectReference: {fileID: 0}
-    - target: {fileID: 8109761572581232288, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: airHitWindows.Array.data[5].y
-      value: 0.6
-      objectReference: {fileID: 0}
     - target: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       propertyPath: m_Name
       value: Player
@@ -2184,13 +2116,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8684835412468744278}
-    - targetCorrespondingSourceObject: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 8684835412468744277}
-    - targetCorrespondingSourceObject: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8684835412468744289}
   m_SourcePrefab: {fileID: 100100000, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
 --- !u!4 &5297373902802763354
 Transform:
@@ -7096,7 +7022,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 15107d78de53b9c4bb517a72fb8fed43, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.MonsterStateMachine
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.MonsterStateMachine
 --- !u!1001 &8042209887365000577
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7152,23 +7078,12 @@ PrefabInstance:
     - target: {fileID: 3037211393082614501, guid: d79841fef94b495479fd227f7dfc5043, type: 3}
       propertyPath: player
       value: 
-      objectReference: {fileID: 8684835412468744266}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d79841fef94b495479fd227f7dfc5043, type: 3}
---- !u!114 &8684835412468744266 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1629790216934925208, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-  m_PrefabInstance: {fileID: 3951719223837907892}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 705683905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a659ce6e1080bf4fb4dad5a241e567a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerCombat
 --- !u!114 &8684835412468744277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7180,37 +7095,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: af57c1a40bad52f4199e48498c391cf6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerStatusUI
---- !u!114 &8684835412468744278
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 705683905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3d3486bf5340e8458cae56c2bf5b395, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerHealth
-  playerName: Player
-  maxHealth: 100
-  weakAttackDamage: 10
-  strongAttackDamage: 20
---- !u!114 &8684835412468744289
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 705683905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3fdbaced71ecbbf448088b9f729d39e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerAirCombo
-  fallGravity: 18
-  maximumHoldTime: 10
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.PlayerStatusUI
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

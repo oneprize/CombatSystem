@@ -1,13 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
-using ParrySystem.Combat;
+using CombatSystem.Combat;
+using CombatSystem.Core;
 using System.Text;
 
-namespace AILearning
+namespace CombatSystem.UI
 {
     public class LabUI : MonoBehaviour
     {
         [SerializeField] private EnemyStateMachine target;
+        private void EnsureTargetLinked()
+        {
+            if (target != null) return;
+            var nearest = CombatRegistry.FindNearest(CombatTeam.Enemy, transform.position);
+            if (nearest != null) target = nearest.Transform.GetComponent<EnemyStateMachine>();
+        }
         private Canvas canvas;
         private Text enemyName, state, conditions, logs, hpText, duration;
         private Image hpFill, groggyFill;
@@ -28,7 +35,7 @@ namespace AILearning
         }
         private void Awake()
         {
-            if (target == null) target = FindFirstObjectByType<EnemyStateMachine>();
+            EnsureTargetLinked();
             var root = new GameObject("AI Monitor Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.transform.SetParent(transform, false);
             canvas = root.GetComponent<Canvas>();
@@ -63,6 +70,7 @@ namespace AILearning
         {
             if (Time.unscaledTime < refreshAt) return;
             refreshAt = Time.unscaledTime + 0.1f;
+            EnsureTargetLinked();
             if (target == null)
             {
                 enemyName.text = "No Enemy assigned";

@@ -1,20 +1,27 @@
 using UnityEngine;
-using ParrySystem.Player;
-namespace ParrySystem.Boss {
+using CombatSystem.Player;
+using CombatSystem.Core;
+using CombatSystem.Data.Boss;
+namespace CombatSystem.Boss {
 [DisallowMultipleComponent]
-public sealed class BossCombat : MonoBehaviour {
-[SerializeField] private PlayerCombat player;
-[SerializeField,Min(1)] private float maxHealth=500;
-[SerializeField,Min(0)] private float detectionRange=20, attackRange=15;
-[SerializeField, Min(.1f)] private float patternCooldown = 3f;
-[Header("Groggy")]
-[SerializeField, Min(1)] private int parriesToGroggy = 4;
-[SerializeField, Min(.1f)] private float groggyDuration = 10f;
-[SerializeField, Min(0)] private float damagePerPlayerHit = 10f;
+public sealed class BossCombat : MonoBehaviour, ICombatant {
+[SerializeField] private PlayerCharacter player;
+[SerializeField] private BossCombatConfig coreConfig;
+public Transform Transform => transform;
+public CombatTeam Team => CombatTeam.Enemy;
+private PlayerCharacter GetPlayer()
+{
+    if (player == null)
+    {
+        var nearest = CombatRegistry.FindNearest(CombatTeam.Player, transform.position);
+        if (nearest != null) player = nearest.Transform.GetComponent<PlayerCharacter>();
+    }
+    return player;
+}
 private float groggyEndsAt;
 private bool groggyActive;
 public int ParryCount { get; private set; }
-public int ParriesToGroggy => Mathf.Max(1, parriesToGroggy);
+public int ParriesToGroggy => Mathf.Max(1, coreConfig.parriesToGroggy);
 public bool GroggyReady => ParryCount >= ParriesToGroggy;
 public float GroggySecondsRemaining => groggyActive ? Mathf.Max(0, groggyEndsAt - Time.time) : 0;
 public bool IsGroggy => groggyActive && GroggySecondsRemaining > 0;
@@ -28,37 +35,50 @@ public void RegisterParry()
 public void BeginGroggy()
 {
     groggyActive = true;
-    groggyEndsAt = Time.time + Mathf.Max(.1f, groggyDuration);
+    groggyEndsAt = Time.time + Mathf.Max(.1f, coreConfig.groggyDuration);
     if (ActiveProjectile != null && !ActiveProjectile.Resolved) Destroy(ActiveProjectile.gameObject);
 }
 public void EndGroggy() { groggyActive = false; ParryCount = 0; }
 public bool TryReceivePlayerHit()
 {
     if (!CanTakeDamage) return false;
-    CurrentHealth = Mathf.Max(0, CurrentHealth - damagePerPlayerHit);
+    CurrentHealth = Mathf.Max(0, CurrentHealth - coreConfig.damagePerPlayerHit);
     return true;
 }
-public float PatternCooldown => patternCooldown;
+public float PatternCooldown => coreConfig.patternCooldown;
 public BossProjectile ActiveProjectile { get; private set; }
 public bool PlayerDetected { get { if(PlayerTransform==null)return false; var d=PlayerTransform.position-transform.position; d.y=0; return d.sqrMagnitude<=DetectionRange*DetectionRange; } }
-public float MaxHealth => Mathf.Max(1,maxHealth);
+public float MaxHealth => Mathf.Max(1,coreConfig.maxHealth);
 public float CurrentHealth {get; private set;}
-public float DetectionRange => detectionRange;
-public float AttackRange => attackRange;
-public Transform PlayerTransform => player!=null?player.transform:null;
-public bool IsPlayerGuarding => player!=null && player.IsGuarding;
-public bool IsPlayerAttacking => player!=null && player.isAttacking;
-private void Awake(){CurrentHealth=MaxHealth;if(player==null)player=FindFirstObjectByType<PlayerCombat>();}
+public float DetectionRange => coreConfig.detectionRange;
+public float AttackRange => coreConfig.attackRange;
+public Transform PlayerTransform { get { var p = GetPlayer(); return p != null ? p.transform : null; } }
+public bool IsPlayerGuarding { get { var p = GetPlayer(); return p != null && p.IsGuarding; } }
+public bool IsPlayerAttacking { get { var p = GetPlayer(); return p != null && p.IsAttacking; } }
+private void Awake(){
+if (coreConfig == null)
+{
+    coreConfig = ScriptableObject.CreateInstance<BossCombatConfig>();
+    Debug.LogWarning("BossCombat: no BossCombatConfig assigned, using built-in defaults.", this);
+}
+if (pattern1Config == null)
+{
+    pattern1Config = ScriptableObject.CreateInstance<BossPattern1Config>();
+    Debug.LogWarning("BossCombat: no BossPattern1Config assigned, using built-in defaults.", this);
+}
+if (pattern2Config == null)
+{
+    pattern2Config = ScriptableObject.CreateInstance<BossPattern2Config>();
+    Debug.LogWarning("BossCombat: no BossPattern2Config assigned, using built-in defaults.", this);
+}
+CurrentHealth=MaxHealth;}
+private void OnEnable() { CombatRegistry.Register(this); }
 
 [Header("Pattern 1 - Projectile")]
 [SerializeField] private Rigidbody projectilePrefab;
 [SerializeField] private Transform projectileSpawnPoint;
-[SerializeField] private Vector3 projectileSpawnOffset = new Vector3(0, 1.5f, 1.2f);
-[SerializeField, Min(.1f)] private float projectileSpeed = 12f;
-[SerializeField, Min(.05f)] private float projectileDiameter = .6f;
-[SerializeField, Min(.1f)] private float projectileLifetime = 8f;
-[SerializeField, Range(0f,1f)] private float throwReleaseProgress = 49f / 115f;
-public float ThrowReleaseProgress => throwReleaseProgress;
+[SerializeField] private BossPattern1Config pattern1Config;
+public float ThrowReleaseProgress => pattern1Config.throwReleaseProgress;
 private bool throwArmed;
 public bool ThrowReleased { get; private set; }
 public Vector3 LastThrowOrigin { get; private set; }
@@ -67,95 +87,79 @@ public void CancelThrow() { throwArmed=false; }
 private void LateUpdate()
 {
     // Sample after Animator evaluation so the spawn uses this frame's hand pose.
-    if (!throwArmed || BossAnimationProgress("Throw", -1f) < throwReleaseProgress) return;
+    if (!throwArmed || BossAnimationProgress("Throw", -1f) < pattern1Config.throwReleaseProgress) return;
     throwArmed=false; ThrowReleased=true; ThrowProjectile();
 }
-private void OnDisable() { CancelThrow(); }
+private void OnDisable() { CombatRegistry.Unregister(this); CancelThrow(); }
 public void ThrowProjectile()
 {
-    if (PlayerTransform == null) return;
+    var playerCombat = GetPlayer();
+    if (playerCombat == null) return;
     if (projectilePrefab == null) { Debug.LogWarning("Boss projectile prefab is not assigned.", this); return; }
     var animator = GetComponent<Animator>();
     Transform hand = projectileSpawnPoint != null ? projectileSpawnPoint :
         animator != null && animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightHand) : null;
-    Vector3 origin = hand != null ? hand.position : transform.position + transform.rotation * projectileSpawnOffset;
+    Vector3 origin = hand != null ? hand.position : transform.position + transform.rotation * pattern1Config.projectileSpawnOffset;
     LastThrowOrigin = origin;
-    var character = player.GetComponent<CharacterController>();
-    Vector3 target = character != null ? character.bounds.center : PlayerTransform.position + Vector3.up;
+    var character = playerCombat.GetComponent<CharacterController>();
+    Vector3 target = character != null ? character.bounds.center : playerCombat.transform.position + Vector3.up;
     // Snapshot aim once. Compensate gravity to reach that point after the estimated flight time.
-    float flightTime = Mathf.Max(.1f, Vector3.Distance(origin, target) / projectileSpeed);
+    float flightTime = Mathf.Max(.1f, Vector3.Distance(origin, target) / pattern1Config.projectileSpeed);
     Vector3 velocity = (target - origin) / flightTime - .5f * Physics.gravity * flightTime;
     var body = Instantiate(projectilePrefab, origin, Quaternion.identity);
     var ball = body.gameObject;
     ball.name = "Boss Pattern1 Projectile";
-    ball.transform.localScale = Vector3.one * projectileDiameter;
+    ball.transform.localScale = Vector3.one * pattern1Config.projectileDiameter;
     var ballCollider = ball.GetComponent<Collider>();
     foreach (var ownerCollider in GetComponentsInChildren<Collider>())
         Physics.IgnoreCollision(ballCollider, ownerCollider);
     ActiveProjectile = ball.GetComponent<BossProjectile>();
-    if(ActiveProjectile!=null) ActiveProjectile.Initialize(this, player);
+    if(ActiveProjectile!=null) ActiveProjectile.Initialize(this, playerCombat);
     body.linearVelocity = velocity;
-    Destroy(ball, projectileLifetime);
+    Destroy(ball, pattern1Config.projectileLifetime);
 }
 
 
 [Header("Pattern 2 - Charge and Jump")]
-[SerializeField, Min(0)] private float chargeWindup = .7f;
-[SerializeField, Min(.1f)] private float chargeSpeed = 12f;
-[SerializeField, Min(0)] private float jumpStartDistance = 3f;
-[SerializeField, Min(.1f)] private float jumpDuration = .8f;
-[SerializeField, Min(0)] private float jumpHeight = 3f;
-[SerializeField, Min(0)] private float landingRecovery = 1f;
-[SerializeField, Min(.1f)] private float impactRadius = 3f;
-[SerializeField, Min(.1f)] private float impactHeight = 2.5f;
-[Header("Charge Tracking")]
-[SerializeField, Min(.1f)] private float maxChargeDistance = 20f;
-[SerializeField, Min(.1f)] private float minTurnRadius = 12f;
-[SerializeField, Min(.1f)] private float trackingStopDistance = 5f;
-[SerializeField, Min(.1f)] private float maxChargeDuration = 1.5f;
-public float MaxChargeDistance => Mathf.Max(.1f,maxChargeDistance);
-public float MinTurnRadius => Mathf.Max(.1f,minTurnRadius);
-public float TrackingStopDistance => Mathf.Max(.1f,trackingStopDistance);
-public float MaxChargeDuration => Mathf.Max(.1f,maxChargeDuration);
+[SerializeField] private BossPattern2Config pattern2Config;
+public float MaxChargeDistance => Mathf.Max(.1f,pattern2Config.maxChargeDistance);
+public float MinTurnRadius => Mathf.Max(.1f,pattern2Config.minTurnRadius);
+public float TrackingStopDistance => Mathf.Max(.1f,pattern2Config.trackingStopDistance);
+public float MaxChargeDuration => Mathf.Max(.1f,pattern2Config.maxChargeDuration);
 public float ChargeDistanceTravelled { get; set; }
-public float ChargeWindup => chargeWindup;
-public float ChargeSpeed => chargeSpeed;
-public float JumpStartDistance => jumpStartDistance;
-public float JumpDuration => jumpDuration;
-public float JumpHeight => jumpHeight;
-public float LandingRecovery => landingRecovery;
+public float ChargeWindup => pattern2Config.chargeWindup;
+public float ChargeSpeed => pattern2Config.chargeSpeed;
+public float JumpStartDistance => pattern2Config.jumpStartDistance;
+public float JumpDuration => pattern2Config.jumpDuration;
+public float JumpHeight => pattern2Config.jumpHeight;
+public float LandingRecovery => pattern2Config.landingRecovery;
 public string Pattern2Phase { get; set; } = "-";
 public Vector3 LockedChargeTarget { get; set; }
 public void ApplyLandingHit()
 {
-    if(player==null)return;
-    var character=player.GetComponent<CharacterController>();
-    Vector3 nearest=character!=null?character.bounds.ClosestPoint(transform.position):player.transform.position;
+    var playerCombat = GetPlayer();
+    if(playerCombat==null)return;
+    var character=playerCombat.GetComponent<CharacterController>();
+    Vector3 nearest=character!=null?character.bounds.ClosestPoint(transform.position):playerCombat.transform.position;
     Vector3 delta=nearest-transform.position;
-    if(Mathf.Abs(delta.y)>impactHeight)return;
+    if(Mathf.Abs(delta.y)>pattern2Config.impactHeight)return;
     delta.y=0;
-    if(delta.sqrMagnitude<=impactRadius*impactRadius)
+    if(delta.sqrMagnitude<=pattern2Config.impactRadius*pattern2Config.impactRadius)
     {
-        var reaction=player.GetComponent<PlayerDamageReaction>();
-        if(reaction!=null)reaction.ReceiveHit(3,transform,true,true);
+        playerCombat.Health.ReceiveHit(3,transform,true,true);
     }
 }
 private void OnDrawGizmosSelected()
 {
     if(!Application.isPlaying || Pattern2Phase=="-")return;
     Gizmos.color=Color.red;
-    Gizmos.DrawWireSphere(LockedChargeTarget,impactRadius);
+    Gizmos.DrawWireSphere(LockedChargeTarget,pattern2Config.impactRadius);
     Gizmos.DrawLine(transform.position,LockedChargeTarget);
 }
 
-[Header("Pattern 2 Animation")]
-[SerializeField, Range(0, .9f)] private float jumpTakeoffTime = .2f;
-[SerializeField, Range(.1f, 1)] private float jumpLandingTime = .75f;
-[SerializeField, Min(.1f)] private float chargeHitRadius = 2f;
-[SerializeField] private float chargeHitHeight = 2f;
 private bool chargeHitConsumed;
-public float JumpTakeoffTime => jumpTakeoffTime;
-public float JumpLandingTime => Mathf.Max(jumpTakeoffTime+.05f,jumpLandingTime);
+public float JumpTakeoffTime => pattern2Config.jumpTakeoffTime;
+public float JumpLandingTime => Mathf.Max(pattern2Config.jumpTakeoffTime+.05f,pattern2Config.jumpLandingTime);
 public void ResetChargeHit(){chargeHitConsumed=false;}
 public void PlayBossAnimation(string state)
 {
@@ -177,13 +181,14 @@ public float BossAnimationProgress(string state, float fallback)
 }
 public void ApplyChargeHit(Vector3 from,Vector3 to)
 {
-    if(chargeHitConsumed || player==null)return;
-    foreach(var collider in Physics.OverlapCapsule(from+Vector3.up*chargeHitHeight,to+Vector3.up*chargeHitHeight,
-        chargeHitRadius,~0,QueryTriggerInteraction.Ignore))
+    var playerCombat = GetPlayer();
+    if(chargeHitConsumed || playerCombat==null)return;
+    foreach(var collider in Physics.OverlapCapsule(from+Vector3.up*pattern2Config.chargeHitHeight,to+Vector3.up*pattern2Config.chargeHitHeight,
+        pattern2Config.chargeHitRadius,~0,QueryTriggerInteraction.Ignore))
     {
-        var reaction=collider.GetComponentInParent<PlayerDamageReaction>();
-        if(reaction==null || reaction.gameObject!=player.gameObject)continue;
-        if(reaction.ReceiveHit(3,transform,true,true))chargeHitConsumed=true;
+        var hitPlayer=collider.GetComponentInParent<PlayerCharacter>();
+        if(hitPlayer==null || hitPlayer!=playerCombat)continue;
+        if(hitPlayer.Health.ReceiveHit(3,transform,true,true))chargeHitConsumed=true;
         break;
     }
 }

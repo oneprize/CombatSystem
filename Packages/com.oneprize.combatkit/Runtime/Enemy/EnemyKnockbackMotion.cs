@@ -1,16 +1,13 @@
 using UnityEngine;
+using CombatSystem.Data.Enemy;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     // Owns displacement only while a knockdown reaction is active.
     [DisallowMultipleComponent, RequireComponent(typeof(CapsuleCollider), typeof(Animator))]
     public sealed class EnemyKnockbackMotion : MonoBehaviour
     {
-        [SerializeField, Min(0)] private float launchSpeed = 6f;
-        [SerializeField, Min(0)] private float upwardSpeed = 4f;
-        [SerializeField, Min(.1f)] private float gravity = 18f;
-        [SerializeField, Min(0)] private float groundClearance = .02f;
-        [SerializeField] private LayerMask collisionMask = ~0;
+        [SerializeField] private EnemyKnockbackMotionConfig config;
         public bool Active { get; private set; }
         public bool Grounded { get; private set; }
         public float LastPoseCorrection { get; private set; }
@@ -23,6 +20,12 @@ namespace ParrySystem.Combat
 
         private void Awake()
         {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<EnemyKnockbackMotionConfig>();
+                Debug.LogWarning("EnemyKnockbackMotion: no EnemyKnockbackMotionConfig assigned, using built-in defaults.", this);
+            }
+
             capsule = GetComponent<CapsuleCollider>();
             animator = GetComponent<Animator>();
             if (animator.isHuman)
@@ -40,7 +43,7 @@ namespace ParrySystem.Combat
         {
             away.y = 0;
             if (away.sqrMagnitude < .001f) away = -transform.forward;
-            velocity = away.normalized * launchSpeed + Vector3.up * upwardSpeed;
+            velocity = away.normalized * config.launchSpeed + Vector3.up * config.upwardSpeed;
             Grounded = false;
             airHoldRemaining = 0;
             Active = true;
@@ -70,7 +73,7 @@ namespace ParrySystem.Combat
             float best = float.PositiveInfinity;
             foreach (var hit in Physics.CapsuleCastAll(bounds.center + Vector3.up * half,
                 bounds.center - Vector3.up * half, radius, direction, distance,
-                collisionMask, QueryTriggerInteraction.Ignore))
+                config.collisionMask, QueryTriggerInteraction.Ignore))
             {
                 if (hit.collider.transform.IsChildOf(transform) || hit.distance >= best) continue;
                 if (Vector3.Dot(direction, hit.normal) >= -.001f) continue;
@@ -110,7 +113,7 @@ namespace ParrySystem.Combat
                 float dt = Mathf.Min(.02f, remaining);
                 remaining -= dt;
                 MoveHorizontal(new Vector3(velocity.x, 0, velocity.z) * dt);
-                velocity.y -= gravity * dt;
+                velocity.y -= config.gravity * dt;
                 float dy = velocity.y * dt;
                 RaycastHit hit;
                 if (Sweep(dy > 0 ? Vector3.up : Vector3.down, Mathf.Abs(dy) + Skin + .005f, out hit))
@@ -157,7 +160,7 @@ namespace ParrySystem.Combat
                 if (bone != null) lowest = Mathf.Min(lowest, bone.position.y);
             if (float.IsPositiveInfinity(lowest)) return;
             // Remove authored body-height drift; the capsule follows the actual ballistic arc.
-            LastPoseCorrection = capsule.bounds.min.y + groundClearance - lowest;
+            LastPoseCorrection = capsule.bounds.min.y + config.groundClearance - lowest;
             if (!Active) LastPoseCorrection = Mathf.Max(0, LastPoseCorrection);
             animator.bodyPosition += Vector3.up * LastPoseCorrection;
         }

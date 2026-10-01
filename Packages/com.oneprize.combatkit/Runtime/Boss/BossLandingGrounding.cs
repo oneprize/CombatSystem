@@ -1,15 +1,21 @@
 using UnityEngine;
-namespace ParrySystem.Boss
+using CombatSystem.Data.Boss;
+namespace CombatSystem.Boss
 {
     [DisallowMultipleComponent, RequireComponent(typeof(Animator))]
     public sealed class BossLandingGrounding : MonoBehaviour
     {
-        [SerializeField, Min(0)] private float soleClearance = .02f;
+        [SerializeField] private BossLandingGroundingConfig config;
         private Animator animator;
         private Transform leftFoot, rightFoot, leftToes, rightToes;
         public float LastCorrection { get; private set; }
         private void Awake()
         {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<BossLandingGroundingConfig>();
+                Debug.LogWarning("BossLandingGrounding: no BossLandingGroundingConfig assigned, using built-in defaults.", this);
+            }
             animator=GetComponent<Animator>();
             if(!animator.isHuman) return;
             leftFoot=animator.GetBoneTransform(HumanBodyBones.LeftFoot);
@@ -30,7 +36,7 @@ namespace ParrySystem.Boss
             if(rightToes!=null)lowest=Mathf.Min(lowest,rightToes.position.y);
             // The movement state places the boss pivot on the landing plane.
             // Correct only the animated body; never move the gameplay root or edit clip curves.
-            float floor=transform.position.y+soleClearance*Mathf.Abs(transform.lossyScale.y);
+            float floor=transform.position.y+config.soleClearance*Mathf.Abs(transform.lossyScale.y);
             LastCorrection=Mathf.Max(0,floor-lowest);
             animator.bodyPosition+=Vector3.up*LastCorrection;
         }

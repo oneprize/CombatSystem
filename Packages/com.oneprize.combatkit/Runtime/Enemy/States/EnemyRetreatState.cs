@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// Decision이 "후퇴"를 선택했을 때 잠깐 플레이어 반대 방향으로 물러난다.

@@ -279,10 +279,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7582901709524083519, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      propertyPath: cam
-      value: 
-      objectReference: {fileID: 1836999207}
     - target: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       propertyPath: m_Name
       value: Player
@@ -293,22 +289,8 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1644559978}
-    - targetCorrespondingSourceObject: {fileID: 9026544333553245887, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1644559977}
   m_SourcePrefab: {fileID: 100100000, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
---- !u!114 &508720143 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1629790216934925208, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
-  m_PrefabInstance: {fileID: 508720142}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1644559966}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a659ce6e1080bf4fb4dad5a241e567a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerCombat
 --- !u!1 &638669521
 GameObject:
   m_ObjectHideFlags: 0
@@ -778,23 +760,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: af57c1a40bad52f4199e48498c391cf6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerStatusUI
---- !u!114 &1644559978
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1644559966}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3d3486bf5340e8458cae56c2bf5b395, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerHealth
-  playerName: Player
-  maxHealth: 100
-  weakAttackDamage: 10
-  strongAttackDamage: 20
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.PlayerStatusUI
 --- !u!1 &1836999201
 GameObject:
   m_ObjectHideFlags: 0
@@ -1262,7 +1228,7 @@ PrefabInstance:
     - target: {fileID: 7474427732490724820, guid: 08d58d41ef1f9ae4d9fb2df22fe38d53, type: 3}
       propertyPath: player
       value: 
-      objectReference: {fileID: 508720143}
+      objectReference: {fileID: 0}
     - target: {fileID: 8160702212791096956, guid: 08d58d41ef1f9ae4d9fb2df22fe38d53, type: 3}
       propertyPath: m_Name
       value: Boss

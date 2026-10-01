@@ -4273,7 +4273,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3c723effa64c5294bb38b3bb350904b3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.MonsterCombat
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.MonsterCombat
   idleDuration: 2
   staggerDuration: 1
   comboSteps:
@@ -4337,7 +4337,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 15107d78de53b9c4bb517a72fb8fed43, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Combat.MonsterStateMachine
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.MonsterStateMachine
 --- !u!4 &1365456801
 Transform:
   m_ObjectHideFlags: 0

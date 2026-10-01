@@ -1,4 +1,4 @@
-namespace ParrySystem.Boss {
+namespace CombatSystem.Boss {
 public sealed class BossIdleState : IBossState {
 private readonly BossStateMachine machine; private readonly BossCombat combat; private float wait;
 public BossIdleState(BossStateMachine machine,BossCombat combat){this.machine=machine;this.combat=combat;}

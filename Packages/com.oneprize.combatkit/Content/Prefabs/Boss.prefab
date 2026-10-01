@@ -2040,7 +2040,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f52dc2d4e1f216b43b5c7cac407dcab2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Boss.BossCombat
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Boss.BossCombat
   player: {fileID: 0}
   maxHealth: 500
   detectionRange: 50
@@ -2072,6 +2072,9 @@ MonoBehaviour:
   jumpLandingTime: 0.75
   chargeHitRadius: 2
   chargeHitHeight: 2
+  coreConfig: {fileID: 11400000, guid: d3b04177e74f4b91a9a8d26ab6b62303, type: 2}
+  pattern1Config: {fileID: 11400000, guid: 7e953aa7e29f4e1eb00e0a93a419f87b, type: 2}
+  pattern2Config: {fileID: 11400000, guid: 04f5b93f277549f5a5e4d7f8122d87de, type: 2}
 --- !u!114 &8037830514584089894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2083,7 +2086,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c59df5c0361e04a912accb15b1fd64, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Boss.BossStateMachine
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Boss.BossStateMachine
 --- !u!114 &8727445868932221365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2095,7 +2098,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30ba1bb7cfdaf7541b3ac8bcb299238f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AILearning.BossMonitorUI
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.UI.BossMonitorUI
   target: {fileID: 0}
 --- !u!114 &1244849515607024194
 MonoBehaviour:
@@ -2108,8 +2111,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e5eb5150d48d5547a217a4eb813f42b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Boss.BossLandingGrounding
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Boss.BossLandingGrounding
   soleClearance: 0.02
+  config: {fileID: 11400000, guid: d7ba045ccec049e9bf1629029a086673, type: 2}
 --- !u!136 &8208699492151668059
 CapsuleCollider:
   m_ObjectHideFlags: 0

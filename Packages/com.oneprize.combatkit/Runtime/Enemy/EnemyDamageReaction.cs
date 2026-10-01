@@ -1,20 +1,20 @@
 using UnityEngine;
-namespace ParrySystem.Combat
+using CombatSystem.Data.Enemy;
+namespace CombatSystem.Combat
 {
     [RequireComponent(typeof(EnemyStateMachine), typeof(Animator))]
     public class EnemyDamageReaction : MonoBehaviour, IEnemyState
     {
-        [SerializeField, Min(1f)] private float maxHealth = 100f;
-        [SerializeField, Min(0f)] private float damagePerHit = 10f;
+        [SerializeField] private EnemyDamageReactionConfig config;
         public event System.Action<float> DamageReceived;
         public void RestoreHealth() { CurrentHealth = MaxHealth; }
         private void ApplyDamage()
         {
-            float damage = Mathf.Min(CurrentHealth, damagePerHit);
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
+            float damage = Mathf.Min(CurrentHealth, config.damagePerHit);
+            CurrentHealth = Mathf.Max(0f, CurrentHealth - config.damagePerHit);
             DamageReceived?.Invoke(damage);
         }
-        public float MaxHealth => Mathf.Max(1f, maxHealth);
+        public float MaxHealth => Mathf.Max(1f, config.maxHealth);
         public float CurrentHealth { get; private set; }
         private EnemyStateMachine machine;
         private EnemyCombat combat;
@@ -39,24 +39,26 @@ namespace ParrySystem.Combat
         private bool piercingReaction;
         private int piercingStep;
         private float piercingElapsed;
-        [SerializeField, Min(.05f)] private float piercingHitInterval = .12f;
         public bool IsGroundComboReaction { get; private set; }
         private Vector3 groundPushDirection;
-        [SerializeField, Min(0)] private float groundReactionMotionScale = .55f;
         public void ApplyGroundReactionMotion(Vector3 delta)
         {
             float backward = Mathf.Max(0, Vector3.Dot(delta, groundPushDirection));
-            knockback.ApplyGroundMotion(groundPushDirection * backward * groundReactionMotionScale);
+            knockback.ApplyGroundMotion(groundPushDirection * backward * config.groundReactionMotionScale);
         }
         private EnemyKnockbackMotion knockback;
         private bool physicalKnockdown;
         private float downElapsed;
-        [SerializeField, Min(0)] private float downDuration = 1f;
         public bool HasPhysicalKnockdown => physicalKnockdown;
         public bool IsKnockdownGrounded => knockback != null && knockback.Grounded;
-        [SerializeField, Min(0f)] private float aerialHitBlendTime = 0.1f;
         private void Awake()
         {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<EnemyDamageReactionConfig>();
+                Debug.LogWarning("EnemyDamageReaction: no EnemyDamageReactionConfig assigned, using built-in defaults.", this);
+            }
+
             CurrentHealth = MaxHealth;
             machine = GetComponent<EnemyStateMachine>();
             combat = GetComponent<EnemyCombat>();
@@ -121,9 +123,6 @@ namespace ParrySystem.Combat
             else machine.ChangeState(this);
         }
 
-        [Header("Upper attack reaction")]
-        [SerializeField, Min(0)] private float upperLiftSpeed = 8f;
-        [SerializeField, Min(0)] private float upperPushSpeed = 1.5f;
         public void ReceiveUpperHit(Transform attacker)
         {
             ApplyDamage();
@@ -134,7 +133,7 @@ namespace ParrySystem.Combat
             aerialReaction = physicalKnockdown = true;
             reactionState = "Base Layer.UpperHit";
             downElapsed = 0;
-            knockback.LaunchUpper(away, upperLiftSpeed, upperPushSpeed);
+            knockback.LaunchUpper(away, config.upperLiftSpeed, config.upperPushSpeed);
             if (machine.CurrentState == this) Enter();
             else machine.ChangeState(this);
         }
@@ -170,7 +169,7 @@ namespace ParrySystem.Combat
         public void Enter()
         {
             combat.SetParryWindowOpen(false);
-            animator.CrossFadeInFixedTime(reactionState, aerialReaction ? aerialHitBlendTime : 0.05f, 0, 0f);
+            animator.CrossFadeInFixedTime(reactionState, aerialReaction ? config.aerialHitBlendTime : 0.05f, 0, 0f);
         }
         public void Tick(float deltaTime)
         {
@@ -185,9 +184,9 @@ namespace ParrySystem.Combat
             if (piercingReaction && piercingStep < 2)
             {
                 piercingElapsed += deltaTime;
-                if (piercingElapsed >= piercingHitInterval)
+                if (piercingElapsed >= config.piercingHitInterval)
                 {
-                    piercingElapsed -= piercingHitInterval; piercingStep++;
+                    piercingElapsed -= config.piercingHitInterval; piercingStep++;
                     reactionState = piercingStep == 1 ? "Base Layer.PiercingHitB" : "Base Layer.PiercingHitC";
                     animator.CrossFadeInFixedTime(reactionState, .035f, 0, 0);
                 }
@@ -208,7 +207,7 @@ namespace ParrySystem.Combat
                 if (reactionState == "Base Layer.KnockDownGrounded")
                 {
                     downElapsed += deltaTime;
-                    if (downElapsed >= downDuration)
+                    if (downElapsed >= config.downDuration)
                     {
                         reactionState = "Base Layer.AerialGetUp";
                         animator.CrossFadeInFixedTime(reactionState, .12f, 0, 0f);

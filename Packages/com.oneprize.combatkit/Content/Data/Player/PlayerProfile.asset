@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 246f38f5ac545a44f88110bd93c0b013, type: 3}
+  m_Name: PlayerProfile
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Data.Player.PlayerProfile
+  combat:
+    attackAnimStateName: Attack
+    comboTransitionProgress: 0.5
+    attackTargetDistance: 10
+    attackTargetHeightTolerance: 2
+    parryInputWindow: 0.15
+    upperAirChainProgress: 0.22
+    airChainProgress: 0.95
+    skillAttackInputBuffer: 0.4
+    skillGFollowUpProgress: 0.75
+    skillAFollowUpProgress: 0.65
+    skillBFollowUpProgress: 0.65
+    skillFollowUpBlendTime: 0.08
+    normalSkillInputBuffer: 0.4
+    normalSkillTransitionProgress: 0.6
+    normalSkillBlendTime: 0.08
+    guardAnimStateName: Guard
+    idleAnimStateName: Idle
+    crossFadeTime: 0.1
+    skillTargetDistance: 10
+  locomotion:
+    walkSpeed: 3
+    runSpeed: 6
+    rotationSpeed: 720
+    jumpForce: 5
+    gravity: -9.81
+    groundCheckDistance: 0.2
+    turningHoldTime: 0.2
+  health:
+    playerName: Player
+    maxHealth: 100
+    weakAttackDamage: 10
+    strongAttackDamage: 20
+  dodge:
+    crossFadeTime: 0.06
+    distanceMultiplier: 1
+  linkJump:
+    activationDistance: 1.2
+    endpointHeightTolerance: 1
+    travelSpeed: 5
+    arcHeight: 1.6
+    takeoffTime: 0.18
+  airCombo:
+    fallGravity: 18
+    maximumHoldTime: 10
+  piercingDash:
+    distance: 5
+    duration: 0.22
+    startProgress: 0.33333334
+    hitRadius: 0.7
+    skillBDistance: 5
+    skillBDuration: 0.28
+    skillBStartProgress: 0.32
+  gatherSkill:
+    recallProgress: 0.36
+    range: 5
+    halfAngle: 30
+    pullDuration: 0.35
+    gatherDistance: 1.5
+    spacing: 0.9
+    heightTolerance: 2
+  attackHeightOffset:
+    heightOffset: 0.95
+    combo2HeightOffset: 0.95
+    combo3HeightOffset: 0.19
+    visualLowering: 0.12
+    guardHeightOffset: 0.23
+    guardAcceptHeightOffset: 0.25

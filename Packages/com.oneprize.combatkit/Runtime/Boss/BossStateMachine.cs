@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
-namespace ParrySystem.Boss {
+namespace CombatSystem.Boss {
 [DisallowMultipleComponent,RequireComponent(typeof(BossCombat))]
 public sealed class BossStateMachine : MonoBehaviour {
 public sealed class MonitorEntry {public string State,Phase;public float Time;public int Count=1;}

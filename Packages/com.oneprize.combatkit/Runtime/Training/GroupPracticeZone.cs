@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using ParrySystem.Combat;
-namespace ParrySystem.Training
+using CombatSystem.Combat;
+using CombatSystem.Core;
+using CombatSystem.Data.Training;
+namespace CombatSystem.Training
 {
     [DefaultExecutionOrder(-100)]
     public sealed class GroupPracticeZone : MonoBehaviour
@@ -14,8 +16,7 @@ namespace ParrySystem.Training
         public GameObject controls;
         public Button addButton, removeButton;
         public Text countLabel, helpLabel;
-        [Range(0,20)] public int initialCount=3;
-        public Vector2 halfSize=new Vector2(14,14);
+        [SerializeField] private GroupPracticeZoneConfig config;
         public int Count { get; private set; }
         public bool Engaged { get; private set; }
         public bool Editing { get; private set; }
@@ -27,8 +28,34 @@ namespace ParrySystem.Training
         private bool previousVisible;
         private readonly Dictionary<Behaviour,bool> inputStates=new Dictionary<Behaviour,bool>();
         private bool initialized;
+        void Awake()
+        {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<GroupPracticeZoneConfig>();
+                Debug.LogWarning("GroupPracticeZone: no GroupPracticeZoneConfig assigned, using built-in defaults.", this);
+            }
+        }
+        void EnsurePlayerLinked()
+        {
+            if (player != null) return;
+            var nearest = CombatRegistry.FindNearest(CombatTeam.Player, transform.position);
+            if (nearest != null) player = nearest.Transform;
+        }
+        void EnsureOpponentsLinked()
+        {
+            if (opponents != null && opponents.Count > 0) return;
+            if (opponents == null) opponents = new List<EnemyStateMachine>();
+            foreach (var combatant in CombatRegistry.GetAll(CombatTeam.Enemy))
+            {
+                var machine = combatant.Transform.GetComponent<EnemyStateMachine>();
+                if (machine != null) opponents.Add(machine);
+            }
+        }
         void Start()
         {
+            EnsurePlayerLinked();
+            EnsureOpponentsLinked();
             spawns=new Vector3[opponents.Count];rotations=new Quaternion[opponents.Count];
             defeatedAt=new float[opponents.Count];
             for(int i=0;i<opponents.Count;i++) {
@@ -36,7 +63,7 @@ namespace ParrySystem.Training
                 defeatedAt[i]=-1;
             }
             initialized=true;
-            Count=Mathf.Clamp(initialCount,0,Mathf.Min(20,opponents.Count));
+            Count=Mathf.Clamp(config.initialCount,0,Mathf.Min(20,opponents.Count));
             for(int i=0;i<opponents.Count;i++) ApplySlot(i);
             addButton.onClick.AddListener(AddEnemy);
             removeButton.onClick.AddListener(RemoveEnemy);
@@ -46,7 +73,7 @@ namespace ParrySystem.Training
         bool Inside(Vector3 point)
         {
             var p=point-transform.position;
-            return Mathf.Abs(p.x)<halfSize.x && Mathf.Abs(p.z)<halfSize.y;
+            return Mathf.Abs(p.x)<config.halfSize.x && Mathf.Abs(p.z)<config.halfSize.y;
         }
         void ApplySlot(int i)
         {
@@ -84,6 +111,7 @@ namespace ParrySystem.Training
         }
         void Update()
         {
+            EnsurePlayerLinked();
             if(!initialized||player==null)return;
             bool inside=Inside(player.position);
             if(inside!=Engaged) {
@@ -115,11 +143,8 @@ namespace ParrySystem.Training
             if(value){
                 previousTimeScale=Time.timeScale;previousLock=Cursor.lockState;previousVisible=Cursor.visible;
                 inputStates.Clear();
-                foreach(var b in player.GetComponents<Behaviour>()){
-                    string n=b.GetType().Name;
-                    if(n=="PlayerCombat"||n=="PlayerController"||n=="PlayerDodge"||n=="PlayerLinkJump")
-                        inputStates[b]=b.enabled;
-                }
+                var character=player.GetComponent<CombatSystem.Player.PlayerCharacter>();
+                if(character!=null)inputStates[character]=character.enabled;
                 foreach(var root in gameObject.scene.GetRootGameObjects())
                     foreach(var b in root.GetComponentsInChildren<Behaviour>(true)){
                         string n=b.GetType().Name;

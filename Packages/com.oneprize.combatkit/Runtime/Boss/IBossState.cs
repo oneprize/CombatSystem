@@ -1,1 +1,1 @@
-namespace ParrySystem.Boss { public interface IBossState { string Name { get; } void Enter(); void Tick(float deltaTime); void Exit(); } }
+namespace CombatSystem.Boss { public interface IBossState { string Name { get; } void Enter(); void Tick(float deltaTime); void Exit(); } }

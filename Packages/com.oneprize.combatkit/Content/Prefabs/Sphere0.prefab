@@ -1013,9 +1013,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e37a710f238253b47959d334514810e5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Boss.BossProjectile
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Boss.BossProjectile
   parryDistance: 4
   parryDuration: 2
   slowScale: 0.03
   fragmentImpulse: 4
   fragmentLifetime: 4
+  config: {fileID: 11400000, guid: ca1dc7447c224191a0effad8428bda18, type: 2}

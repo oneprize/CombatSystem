@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-using ParrySystem.Boss;
+using CombatSystem.Boss;
 using System.Text;
 
-namespace AILearning
+namespace CombatSystem.UI
 {
     public class BossMonitorUI : MonoBehaviour
     {

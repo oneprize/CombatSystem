@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ParrySystem.Combat
+namespace CombatSystem.Combat
 {
     /// <summary>
     /// 콤보 1~4를 순서대로 이어간다 (1~3 약공격, 4 강공격).

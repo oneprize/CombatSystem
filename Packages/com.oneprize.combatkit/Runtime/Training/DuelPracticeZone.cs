@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using ParrySystem.Combat;
-namespace ParrySystem.Training
+using CombatSystem.Combat;
+using CombatSystem.Core;
+using CombatSystem.Data.Training;
+namespace CombatSystem.Training
 {
     [DefaultExecutionOrder(-100)]
     public sealed class DuelPracticeZone : MonoBehaviour
@@ -9,8 +11,8 @@ namespace ParrySystem.Training
         public Transform player;
         public EnemyStateMachine opponent;
         public PracticeMonitor dummyMonitor;
-        public AILearning.LabUI enemyMonitor;
-        public Vector2 halfSize = new Vector2(14,14);
+        public CombatSystem.UI.LabUI enemyMonitor;
+        [SerializeField] private DuelPracticeZoneConfig config;
         private EnemyCombat combat;
         private EnemyDamageReaction health;
         private EnemyWeaponHitbox[] weapons;
@@ -19,25 +21,52 @@ namespace ParrySystem.Training
         private bool engaged;
         private float defeatTime = -1;
         public bool Engaged => engaged;
+        private void Awake()
+        {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<DuelPracticeZoneConfig>();
+                Debug.LogWarning("DuelPracticeZone: no DuelPracticeZoneConfig assigned, using built-in defaults.", this);
+            }
+        }
+        private void EnsurePlayerLinked()
+        {
+            if (player != null) return;
+            var nearest = CombatRegistry.FindNearest(CombatTeam.Player, transform.position);
+            if (nearest != null) player = nearest.Transform;
+        }
+        private void EnsureOpponentLinked()
+        {
+            if (opponent == null)
+            {
+                var nearest = CombatRegistry.FindNearest(CombatTeam.Enemy, transform.position);
+                if (nearest != null) opponent = nearest.Transform.GetComponent<EnemyStateMachine>();
+            }
+            if (opponent != null && combat == null)
+            {
+                combat=opponent.GetComponent<EnemyCombat>();
+                health=opponent.GetComponent<EnemyDamageReaction>();
+                weapons=opponent.GetComponentsInChildren<EnemyWeaponHitbox>(true);
+                spawn=opponent.transform.position; facing=opponent.transform.rotation;
+            }
+        }
         private void Start()
         {
-            combat=opponent.GetComponent<EnemyCombat>();
-            health=opponent.GetComponent<EnemyDamageReaction>();
-            weapons=opponent.GetComponentsInChildren<EnemyWeaponHitbox>(true);
-            spawn=opponent.transform.position; facing=opponent.transform.rotation;
+            EnsurePlayerLinked();
+            EnsureOpponentLinked();
             SetEngaged(false);
         }
         private bool Inside(Vector3 p)
         {
             p-=transform.position;
-            return Mathf.Abs(p.x)<halfSize.x && Mathf.Abs(p.z)<halfSize.y;
+            return Mathf.Abs(p.x)<config.halfSize.x && Mathf.Abs(p.z)<config.halfSize.y;
         }
         private void SetEngaged(bool value)
         {
             engaged=value;
             if(enemyMonitor!=null) enemyMonitor.gameObject.SetActive(value);
-            opponent.enabled=value;
-            foreach(var w in weapons) w.enabled=value;
+            if(opponent!=null) opponent.enabled=value;
+            if(weapons!=null) foreach(var w in weapons) w.enabled=value;
             if(dummyMonitor!=null) dummyMonitor.enabled=!value;
         }
         public void ResetOpponent()
@@ -50,6 +79,8 @@ namespace ParrySystem.Training
         }
         private void Update()
         {
+            EnsurePlayerLinked();
+            EnsureOpponentLinked();
             if(player==null || opponent==null || combat==null) return;
             bool inside=Inside(player.position);
             if(inside!=engaged) { ResetOpponent(); SetEngaged(inside); }
