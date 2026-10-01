@@ -57,14 +57,29 @@ private void Awake(){CurrentHealth=MaxHealth;if(player==null)player=FindFirstObj
 [SerializeField, Min(.1f)] private float projectileSpeed = 12f;
 [SerializeField, Min(.05f)] private float projectileDiameter = .6f;
 [SerializeField, Min(.1f)] private float projectileLifetime = 8f;
-[SerializeField, Range(0f,1f)] private float throwReleaseProgress = .55f;
+[SerializeField, Range(0f,1f)] private float throwReleaseProgress = 49f / 115f;
 public float ThrowReleaseProgress => throwReleaseProgress;
+private bool throwArmed;
+public bool ThrowReleased { get; private set; }
+public Vector3 LastThrowOrigin { get; private set; }
+public void ArmThrow() { throwArmed=true; ThrowReleased=false; }
+public void CancelThrow() { throwArmed=false; }
+private void LateUpdate()
+{
+    // Sample after Animator evaluation so the spawn uses this frame's hand pose.
+    if (!throwArmed || BossAnimationProgress("Throw", -1f) < throwReleaseProgress) return;
+    throwArmed=false; ThrowReleased=true; ThrowProjectile();
+}
+private void OnDisable() { CancelThrow(); }
 public void ThrowProjectile()
 {
     if (PlayerTransform == null) return;
     if (projectilePrefab == null) { Debug.LogWarning("Boss projectile prefab is not assigned.", this); return; }
-    Vector3 origin = projectileSpawnPoint != null ? projectileSpawnPoint.position :
-        transform.position + transform.rotation * projectileSpawnOffset;
+    var animator = GetComponent<Animator>();
+    Transform hand = projectileSpawnPoint != null ? projectileSpawnPoint :
+        animator != null && animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightHand) : null;
+    Vector3 origin = hand != null ? hand.position : transform.position + transform.rotation * projectileSpawnOffset;
+    LastThrowOrigin = origin;
     var character = player.GetComponent<CharacterController>();
     Vector3 target = character != null ? character.bounds.center : PlayerTransform.position + Vector3.up;
     // Snapshot aim once. Compensate gravity to reach that point after the estimated flight time.

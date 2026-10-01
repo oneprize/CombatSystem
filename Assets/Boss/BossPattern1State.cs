@@ -9,13 +9,13 @@ namespace ParrySystem.Boss
         public string Name => "PATTERN 1";
         private bool released, animationDone;
         private float elapsed;
-        public void Enter() { released=false; animationDone=false; elapsed=0; FacePlayer(); combat.PlayBossAnimation("Throw"); }
+        public void Enter() { released=false; animationDone=false; elapsed=0; FacePlayer(); combat.ArmThrow(); combat.PlayBossAnimation("Throw"); }
         public void Tick(float deltaTime)
         {
-            FacePlayer();
+            if (!combat.ThrowReleased) FacePlayer();
             elapsed+=deltaTime;
             float progress=combat.BossAnimationProgress("Throw",elapsed/3.833333f);
-            if(!released && progress>=combat.ThrowReleaseProgress){ released=true; combat.ThrowProjectile(); }
+            released = combat.ThrowReleased;
             if(!animationDone && progress>=1){animationDone=true;combat.PlayBossAnimation("Idle");}
             if (released && animationDone && (combat.ActiveProjectile == null || combat.ActiveProjectile.Resolved))
                 machine.ChangeState(machine.IdleState);
@@ -28,6 +28,6 @@ namespace ParrySystem.Boss
             if(direction.sqrMagnitude>.0001f)
                 combat.transform.rotation=UnityEngine.Quaternion.LookRotation(direction);
         }
-        public void Exit() { combat.PlayBossAnimation("Idle"); }
+        public void Exit() { combat.CancelThrow(); combat.PlayBossAnimation("Idle"); }
     }
 }

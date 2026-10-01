@@ -75,6 +75,8 @@ namespace ParrySystem.Combat
 
         public void ChangeState(IEnemyState next)
         {
+            var dummy = GetComponent<ParrySystem.Training.PracticeDummy>();
+            if (dummy != null && !(next is EnemyDamageReaction)) next = dummy.Idle;
             if (next == null || next == CurrentState)
             {
                 return;

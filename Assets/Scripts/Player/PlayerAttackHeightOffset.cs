@@ -32,7 +32,7 @@ namespace ParrySystem.Player
                 nextState.IsName("BossKnockDown") || nextState.IsName("BossStandUpFront") || nextState.IsName("BossStandUpBack");
             var airCombo = GetComponent<PlayerAirCombo>();
             // Keep the visual body aligned during the entire fall and landing, too.
-            if(groundedReaction || (airCombo != null && airCombo.Active) || currentState.IsTag("AirCombo") || nextState.IsTag("AirCombo") ||
+            if(currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo") || groundedReaction || (airCombo != null && airCombo.Active) || currentState.IsTag("AirCombo") || nextState.IsTag("AirCombo") ||
                 currentState.IsName("UpperAttack") || nextState.IsName("UpperAttack"))
             {
                 var character=GetComponent<CharacterController>();

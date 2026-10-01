@@ -6,6 +6,14 @@ namespace ParrySystem.Combat
     {
         [SerializeField, Min(1f)] private float maxHealth = 100f;
         [SerializeField, Min(0f)] private float damagePerHit = 10f;
+        public event System.Action<float> DamageReceived;
+        public void RestoreHealth() { CurrentHealth = MaxHealth; }
+        private void ApplyDamage()
+        {
+            float damage = Mathf.Min(CurrentHealth, damagePerHit);
+            CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
+            DamageReceived?.Invoke(damage);
+        }
         public float MaxHealth => Mathf.Max(1f, maxHealth);
         public float CurrentHealth { get; private set; }
         private EnemyStateMachine machine;
@@ -13,6 +21,33 @@ namespace ParrySystem.Combat
         private Animator animator;
         private string reactionState = "Base Layer.Hit";
         private bool aerialReaction;
+        public bool IsBeingGathered { get; private set; }
+        private Vector3 gatherTarget;
+        private float gatherRemaining;
+        public bool BeginGather(Vector3 destination, Transform attacker, float duration)
+        {
+            if (physicalKnockdown) return false;
+            if (machine.CurrentState == this) Exit();
+            gatherTarget = destination; gatherRemaining = Mathf.Max(.05f, duration);
+            reactionState = "Base Layer.Hit";
+            Vector3 face = attacker.position - transform.position; face.y=0;
+            if (face.sqrMagnitude>.001f) transform.rotation=Quaternion.LookRotation(face);
+            if (machine.CurrentState == this) Enter(); else machine.ChangeState(this);
+            IsBeingGathered = true;
+            return true;
+        }
+        private bool piercingReaction;
+        private int piercingStep;
+        private float piercingElapsed;
+        [SerializeField, Min(.05f)] private float piercingHitInterval = .12f;
+        public bool IsGroundComboReaction { get; private set; }
+        private Vector3 groundPushDirection;
+        [SerializeField, Min(0)] private float groundReactionMotionScale = .55f;
+        public void ApplyGroundReactionMotion(Vector3 delta)
+        {
+            float backward = Mathf.Max(0, Vector3.Dot(delta, groundPushDirection));
+            knockback.ApplyGroundMotion(groundPushDirection * backward * groundReactionMotionScale);
+        }
         private EnemyKnockbackMotion knockback;
         private bool physicalKnockdown;
         private float downElapsed;
@@ -31,7 +66,7 @@ namespace ParrySystem.Combat
         }
         public void ReceiveHit()
         {
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
+            ApplyDamage();
             // Attacks and an existing groggy are not interrupted by ordinary damage.
             if (aerialReaction || machine.CurrentState == machine.AttackState ||
                 machine.CurrentState == machine.GroggyState) return;
@@ -39,9 +74,40 @@ namespace ParrySystem.Combat
             if (machine.CurrentState == this) Enter();
             else machine.ChangeState(this);
         }
+        public void ReceivePiercingHit(Transform attacker, Vector3 dashDirection)
+        {
+            ApplyDamage();
+            if (aerialReaction) return;
+            if (machine.CurrentState == this) Exit();
+            IsGroundComboReaction = false;
+            piercingReaction = true; piercingStep = 0; piercingElapsed = 0;
+            dashDirection.y = 0;
+            if (dashDirection.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(-dashDirection);
+            reactionState = "Base Layer.PiercingHitA";
+            if (machine.CurrentState == this) Enter(); else machine.ChangeState(this);
+        }
+
+        public void ReceiveGroundComboHit(Transform attacker, int comboIndex)
+        {
+            // Keep attack armour and existing airborne/down reactions.
+            if (aerialReaction || machine.CurrentState == machine.AttackState || machine.CurrentState == machine.GroggyState)
+            { ApplyDamage(); return; }
+            if (comboIndex >= 4) { ReceiveSkillHit(attacker); return; }
+            ApplyDamage();
+            Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
+            away.y = 0;
+            if (away.sqrMagnitude < .001f) away = -transform.forward;
+            groundPushDirection = away.normalized;
+            transform.rotation = Quaternion.LookRotation(-groundPushDirection);
+            IsGroundComboReaction = true;
+            reactionState = comboIndex == 0 ? "Base Layer.GroundHitA" : comboIndex == 2 ? "Base Layer.GroundHitC" : "Base Layer.GroundHitB";
+            if (machine.CurrentState == this) Enter();
+            else machine.ChangeState(this);
+        }
+
         public void ReceiveSkillHit(Transform attacker = null)
         {
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
+            ApplyDamage();
             if (aerialReaction) return;
             aerialReaction = true;
             reactionState = "Base Layer.SkillAKnockDown";
@@ -60,7 +126,7 @@ namespace ParrySystem.Combat
         [SerializeField, Min(0)] private float upperPushSpeed = 1.5f;
         public void ReceiveUpperHit(Transform attacker)
         {
-            CurrentHealth = Mathf.Max(0, CurrentHealth - damagePerHit);
+            ApplyDamage();
             if (aerialReaction) return;
             Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
             away.y = 0;
@@ -78,7 +144,7 @@ namespace ParrySystem.Combat
         {
             // Air attacks do not launch a grounded enemy or bypass the existing down state.
             if (!IsAirborneForCombo) return;
-            CurrentHealth = Mathf.Max(0, CurrentHealth - damagePerHit);
+            ApplyDamage();
             var toward = attacker.position - transform.position;
             toward.y = 0;
             if (toward.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(toward);
@@ -89,8 +155,8 @@ namespace ParrySystem.Combat
 
         public void ReceiveAerialHit(Transform attacker, int strikeIndex = 0)
         {
-            if (physicalKnockdown) { CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit); return; }
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - damagePerHit);
+            if (physicalKnockdown) { ApplyDamage(); return; }
+            ApplyDamage();
             Vector3 direction = attacker.position - transform.position;
             direction.y = 0f;
             if (direction.sqrMagnitude > 0.0001f)
@@ -108,6 +174,25 @@ namespace ParrySystem.Combat
         }
         public void Tick(float deltaTime)
         {
+            if (IsBeingGathered)
+            {
+                Vector3 move=(gatherTarget-transform.position)*Mathf.Clamp01(deltaTime/Mathf.Max(.001f,gatherRemaining));
+                knockback.ApplyGroundMotion(move);
+                gatherRemaining-=deltaTime;
+                if(gatherRemaining<=0) IsBeingGathered=false;
+                return;
+            }
+            if (piercingReaction && piercingStep < 2)
+            {
+                piercingElapsed += deltaTime;
+                if (piercingElapsed >= piercingHitInterval)
+                {
+                    piercingElapsed -= piercingHitInterval; piercingStep++;
+                    reactionState = piercingStep == 1 ? "Base Layer.PiercingHitB" : "Base Layer.PiercingHitC";
+                    animator.CrossFadeInFixedTime(reactionState, .035f, 0, 0);
+                }
+                return;
+            }
             if (physicalKnockdown)
             {
                 knockback.Tick(deltaTime);
@@ -143,6 +228,6 @@ namespace ParrySystem.Combat
                 else machine.ChangeState(machine.ObserveState);
             }
         }
-        public void Exit() { aerialReaction = false; physicalKnockdown = false; if (knockback != null) knockback.Stop(); }
+        public void Exit() { IsBeingGathered = false; piercingReaction = false; IsGroundComboReaction = false; aerialReaction = false; physicalKnockdown = false; if (knockback != null) knockback.Stop(); }
     }
 }

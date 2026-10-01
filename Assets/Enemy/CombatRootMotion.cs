@@ -13,9 +13,11 @@ namespace ParrySystem.Combat
         private CharacterController character;
         private PlayerCombat player;
         private EnemyDamageReaction enemyReaction;
+        private bool practiceDummy;
 
         private void Awake()
         {
+            practiceDummy = GetComponent<ParrySystem.Training.PracticeDummy>() != null;
             dodge = GetComponent<PlayerDodge>();
             animator = GetComponent<Animator>();
             enemy = GetComponent<EnemyStateMachine>();
@@ -25,14 +27,24 @@ namespace ParrySystem.Combat
             player = GetComponent<PlayerCombat>();
         }
 
-        private static bool HasEnemyReactionMotion(AnimatorStateInfo state)
+        private bool HasEnemyReactionMotion(AnimatorStateInfo state)
         {
-            return state.IsName("Base Layer.AerialGetUp") ||
+            return (practiceDummy && (state.IsName("Base Layer.Hit") ||
+                    state.IsName("Base Layer.AerialHit") || state.IsName("Base Layer.AerialHit2"))) ||
+                   state.IsName("Base Layer.AerialGetUp") ||
                    state.IsName("Base Layer.SkillAKnockDown");
         }
 
         private void OnAnimatorMove()
         {
+            if (player != null && player.IsUsingSkillI) return;
+            if (enemyReaction != null && enemyReaction.IsBeingGathered) return;
+            if (player != null && player.IsUsingPiercingSkill)
+            {
+                var dash = GetComponent<PlayerPiercingDash>();
+                if (dash != null) dash.TickAnimation();
+                return;
+            }
             if (enemyReaction != null && enemyReaction.HasPhysicalKnockdown)
             {
                 var motion = GetComponent<EnemyKnockbackMotion>();
@@ -40,6 +52,11 @@ namespace ParrySystem.Combat
                 if (motion != null && animator.applyRootMotion &&
                     state.IsName("Base Layer.AerialGetUp") && !animator.IsInTransition(0))
                     motion.ApplyRecoveryMotion(animator.deltaPosition);
+                return;
+            }
+            if (enemyReaction != null && enemy != null && enemy.CurrentState == enemyReaction && enemyReaction.IsGroundComboReaction)
+            {
+                if (animator.applyRootMotion) enemyReaction.ApplyGroundReactionMotion(animator.deltaPosition);
                 return;
             }
             if (dodge != null && dodge.IsDodging)

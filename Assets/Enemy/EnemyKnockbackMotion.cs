@@ -132,6 +132,9 @@ namespace ParrySystem.Combat
             }
         }
 
+        public void ApplyGroundMotion(Vector3 delta)
+        { delta.y = 0; MoveHorizontal(delta); }
+
         public void ApplyRecoveryMotion(Vector3 delta)
         {
             if (!Active || !Grounded) return;
