@@ -1,0 +1,15 @@
+{
+  "name": "com.oneprize.combatkit",
+  "version": "0.1.0",
+  "displayName": "Combat Kit",
+  "description": "Parry-based melee combat: player, enemy, boss, training zones, animations and prefabs.",
+  "unity": "6000.3",
+  "author": { "name": "oneprize" },
+  "dependencies": {
+    "com.unity.inputsystem": "1.20.0",
+    "com.unity.cinemachine": "3.1.7",
+    "com.unity.ai.navigation": "2.0.14",
+    "com.unity.ugui": "2.0.0",
+    "com.unity.render-pipelines.universal": "17.3.0"
+  }
+}

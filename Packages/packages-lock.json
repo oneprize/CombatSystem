@@ -17,6 +17,18 @@
       },
       "hash": "30d22075093d1d35dfb0091c1c7550e9ad948577"
     },
+    "com.oneprize.combatkit": {
+      "version": "file:com.oneprize.combatkit",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.inputsystem": "1.20.0",
+        "com.unity.cinemachine": "3.1.7",
+        "com.unity.ai.navigation": "2.0.14",
+        "com.unity.ugui": "2.0.0",
+        "com.unity.render-pipelines.universal": "17.3.0"
+      }
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.14",
       "depth": 0,
