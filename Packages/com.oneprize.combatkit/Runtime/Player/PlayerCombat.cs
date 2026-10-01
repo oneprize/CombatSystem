@@ -7,7 +7,7 @@ namespace ParrySystem.Player
     {
         [Header("Attack")]
         [SerializeField] private string attackAnimStateName = "Attack";
-        [SerializeField, Range(0f, 1f)] private float comboTransitionProgress = 0.85f;
+        [SerializeField, Range(0f, 1f)] private float comboTransitionProgress = 0.5f;
         [Header("Attack Facing")]
         [SerializeField, Min(0f)] private float attackTargetDistance = 10f;
         [SerializeField, Min(0f)] private float attackTargetHeightTolerance = 2f;

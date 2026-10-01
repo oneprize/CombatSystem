@@ -2064,7 +2064,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1629790216934925208, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       propertyPath: airChainProgress
-      value: 0.95
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 1629790216934925208, guid: 6c7b1147e3e11a74da6579abd5fe8235, type: 3}
       propertyPath: comboTransitionProgress

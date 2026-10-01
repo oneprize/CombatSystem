@@ -229,6 +229,18 @@ MonoBehaviour:
   skillImpactCenter: {x: 0, y: -0.1, z: 1.2}
   skillImpactSize: {x: 1.8, y: 2.2, z: 2.4}
   skillAHitWindow: {x: 0.3333333, y: 0.35555553}
+  upperHitWindow: {x: 0.12, y: 0.21333334}
+  upperImpactCenter: {x: 0, y: -0.15, z: 1.2}
+  upperImpactSize: {x: 1.4, y: 2.2, z: 2}
+  airHitWindows:
+  - {x: 0.25, y: 0.5833333}
+  - {x: 0.25, y: 0.5833333}
+  - {x: 0.252, y: 0.588}
+  - {x: 0.26086956, y: 0.6086956}
+  - {x: 0.24545455, y: 0.57272726}
+  - {x: 0.225, y: 0.6}
+  airImpactCenter: {x: 0, y: -0.1, z: 1.25}
+  airImpactSize: {x: 1.8, y: 2.5, z: 2.5}
 --- !u!1 &640601532458801681
 GameObject:
   m_ObjectHideFlags: 0
@@ -2606,10 +2618,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.PlayerCombat
   attackAnimStateName: Attack
-  comboTransitionProgress: 0.85
+  comboTransitionProgress: 0.5
   attackTargetDistance: 3
   attackTargetHeightTolerance: 2
   parryInputWindow: 0.15
+  upperAirChainProgress: 0.22
+  airChainProgress: 0.95
   guardAnimStateName: Guard
   animator: {fileID: 2314398119717514321}
   idleAnimStateName: Idle
@@ -2691,11 +2705,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParrySystem.Player.ParryFeedback
   targetCamera: {fileID: 0}
-  slowMotionScale: 0.2
+  slowMotionScale: 0.1
   zoomInDuration: 0.08
-  holdDuration: 0.12
-  recoveryDuration: 0.25
-  zoomMultiplier: 0.85
+  holdDuration: 0.22
+  recoveryDuration: 0.35
+  zoomMultiplier: 0.7
 --- !u!114 &7360429020688193638
 MonoBehaviour:
   m_ObjectHideFlags: 0

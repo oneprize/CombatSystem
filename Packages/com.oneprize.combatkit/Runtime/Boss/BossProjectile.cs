@@ -61,6 +61,8 @@ namespace ParrySystem.Boss
             var reaction=player.GetComponent<PlayerDamageReaction>();
             if(reaction!=null)reaction.PlayProjectileParry();
             resolved=true; RestoreTime();
+            var feedback = player.GetComponent<ParryFeedback>();
+            if (feedback != null) feedback.Play();
             if(owner!=null)owner.RegisterParry();
             shell.enabled=false; body.isKinematic=true;
             var fragments=GetComponentsInChildren<MeshFilter>();
