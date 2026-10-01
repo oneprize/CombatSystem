@@ -132,6 +132,7 @@ namespace ParrySystem.Combat
         {
             stateMachine = GetComponent<EnemyStateMachine>();
             HomePosition = transform.position;
+            if (player == null) player = FindFirstObjectByType<PlayerCombat>();
         }
 
         public ComboStep GetComboStep(int index) => comboSteps[index];
