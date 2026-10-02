@@ -32,6 +32,8 @@ namespace CombatSystem.Player
         public CombatTeam Team => CombatTeam.Player;
 
         public PlayerContext Context { get; private set; }
+        /// <summary>The character's controls: an IPlayerInput on this GameObject, else no input.</summary>
+        public IPlayerInput Controls { get; private set; } = NullPlayerInput.Instance;
         public HealthModule Health { get; private set; }
         public CombatModule Combat { get; private set; }
         public LocomotionModule Locomotion { get; private set; }
@@ -114,6 +116,10 @@ namespace CombatSystem.Player
 
         private void Awake()
         {
+            var controls = GetComponent<IPlayerInput>();
+            // Compare as UnityEngine.Object so Unity's "missing component" null is treated as null.
+            if (controls as UnityEngine.Object != null) Controls = controls;
+            else Debug.LogWarning("PlayerCharacter: no IPlayerInput component (e.g. PlayerInputReader); the character will ignore input.", this);
             Context = new PlayerContext(this);
             Health = new HealthModule();
             Combat = new CombatModule();

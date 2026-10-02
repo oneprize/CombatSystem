@@ -2506,6 +2506,7 @@ GameObject:
   - component: {fileID: 1733199744942202404}
   - component: {fileID: 2314398119717514321}
   - component: {fileID: 3309891952150241785}
+  - component: {fileID: 2683331307229246501}
   - component: {fileID: 1080214696322167235}
   m_Layer: 0
   m_Name: Player
@@ -2595,6 +2596,20 @@ MonoBehaviour:
   cameraTransform: {fileID: 0}
   parryFeedback: {fileID: 1080214696322167235}
   profile: {fileID: 11400000, guid: 07c3c0166a0e7d14daee6639c499d793, type: 2}
+--- !u!114 &2683331307229246501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1ecc3d5ca9e4e5c9e317008f6d7ac38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerInputReader
+  actions: {fileID: -944628639613478452, guid: 7163974acce87ae47b30d1e78271b020, type: 3}
+  mapName: Combat
 --- !u!114 &1080214696322167235
 MonoBehaviour:
   m_ObjectHideFlags: 0

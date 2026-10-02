@@ -45,12 +45,13 @@ namespace CombatSystem.Player
                 velocity = Vector3.zero;
                 return;
             }
-            if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl))
+            if (Player.Controls.DodgePressed)
             {
                 Transform basis = Player.CameraTransform;
                 Vector3 forward = basis.forward; forward.y = 0f; forward.Normalize();
                 Vector3 right = basis.right; right.y = 0f; right.Normalize();
-                Vector3 input = forward * Input.GetAxisRaw("Vertical") + right * Input.GetAxisRaw("Horizontal");
+                Vector2 move = Player.Controls.Move;
+                Vector3 input = forward * move.y + right * move.x;
                 if (dodge.TryBegin(input)) { velocity = Vector3.zero; return; }
             }
             var linkJump = Player.LinkJump;
@@ -61,7 +62,7 @@ namespace CombatSystem.Player
                 jumpCount = 0;
                 return;
             }
-            if (Input.GetKeyDown(KeyCode.Space) && linkJump.TryBegin())
+            if (Player.Controls.JumpPressed && linkJump.TryBegin())
             {
                 velocity = Vector3.zero;
                 jumpCount = 0;
@@ -102,10 +103,11 @@ namespace CombatSystem.Player
             Transform cam = Player.CameraTransform;
             Vector3 inputDir = GetInputDirection();
             bool isMoving = inputDir.magnitude > 0.1f;
-            bool isRunning = isMoving && Input.GetKey(KeyCode.LeftShift);
+            bool isRunning = isMoving && Player.Controls.RunHeld;
 
             // 현재 이동 방향을 계산합니다.
-            Vector3 currentMoveDirection = cam.forward * Input.GetAxisRaw("Vertical") + cam.right * Input.GetAxisRaw("Horizontal");
+            Vector2 move = Player.Controls.Move;
+            Vector3 currentMoveDirection = cam.forward * move.y + cam.right * move.x;
             currentMoveDirection.y = 0f;
             currentMoveDirection.Normalize();
 
@@ -174,7 +176,7 @@ namespace CombatSystem.Player
 
             animator.SetBool("isGrounded", IsGrounded);
 
-            if (!Player.IsHitReacting && Input.GetKeyDown(KeyCode.Space) && jumpCount < MaxJumps)
+            if (!Player.IsHitReacting && Player.Controls.JumpPressed && jumpCount < MaxJumps)
             {
                 velocity.y = config.jumpForce;
                 IsJumping = true;
@@ -188,11 +190,10 @@ namespace CombatSystem.Player
             character.Move(velocity * dt);
         }
 
-        private static Vector3 GetInputDirection()
+        private Vector3 GetInputDirection()
         {
-            float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
-            return new Vector3(h, 0, v).normalized;
+            Vector2 move = Player.Controls.Move;
+            return new Vector3(move.x, 0, move.y).normalized;
         }
 
         private static Vector2 TransformToLocalInput(Vector3 input, Transform cam)

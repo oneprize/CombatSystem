@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraRig : MonoBehaviour
 {
@@ -9,6 +10,8 @@ public class CameraRig : MonoBehaviour
     public float maxPitch = 70f;
 
     [Header("Optional")]
+    [Tooltip("Look action (Vector2 delta). Empty = read the mouse directly.")]
+    public InputActionReference look;
     public bool lockCursor = true;
 
     float yaw;
@@ -28,8 +31,11 @@ public class CameraRig : MonoBehaviour
 
     void LateUpdate()
     {
-        float mx = Input.GetAxis("Mouse X");
-        float my = Input.GetAxis("Mouse Y");
+        // x0.1 matches the legacy "Mouse X/Y" axis sensitivity this rig was tuned with.
+        Vector2 delta = look != null && look.action != null ? look.action.ReadValue<Vector2>()
+            : Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
+        float mx = delta.x * 0.1f;
+        float my = delta.y * 0.1f;
 
         yaw += mx * sensitivityX * Time.deltaTime;
         pitch -= my * sensitivityY * Time.deltaTime;

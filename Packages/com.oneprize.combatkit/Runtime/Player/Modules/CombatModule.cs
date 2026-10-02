@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using CombatSystem.Core;
 using CombatSystem.Data.Player;
 
@@ -83,31 +82,27 @@ namespace CombatSystem.Player
         {
             if (Player.IsHitReacting || Player.IsLinkJumping || Player.IsDodging || airCombo.Recovering) return;
             UpdateAttackProgress();
-            if (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame)
+            var controls = Player.Controls;
+            if (controls.SkillGPressed)
                 TrySkill();
-            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            if (controls.SkillAPressed)
                 TrySkillA();
-            if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+            if (controls.SkillBPressed)
                 TrySkillB();
-            if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
+            if (controls.SkillIPressed)
                 TrySkillI();
-            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
+            if (controls.UpperAttackPressed)
                 TryUpperAttack();
 
-            if (Mouse.current == null)
-            {
-                return;
-            }
-
-            if (Mouse.current.rightButton.isPressed && !IsGuarding && !Player.IsAirComboActive)
+            if (controls.GuardHeld && !IsGuarding && !Player.IsAirComboActive)
                 StartGuard();
-            else if (!Mouse.current.rightButton.isPressed && IsGuarding)
+            else if (!controls.GuardHeld && IsGuarding)
                 StopGuard();
 
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (controls.AttackPressed)
             {
                 RegisterParryInput();
-                if (Keyboard.current != null && Keyboard.current.wKey.isPressed && !Player.IsAirComboActive && !IsUsingUpperAttack)
+                if (controls.SkillCModifierHeld && !Player.IsAirComboActive && !IsUsingUpperAttack)
                     TrySkillC();
                 else
                     TryAttack();

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using CombatSystem.Player;
 using CombatSystem.Data.Boss;
 namespace CombatSystem.Boss
@@ -51,7 +50,7 @@ namespace CombatSystem.Boss
         {
             if(!windowActive || resolved) return;
             if(player!=null && !player.IsDodging && !player.IsHitReacting &&
-                Mouse.current!=null && Mouse.current.leftButton.wasPressedThisFrame)
+                player.Controls.AttackPressed)
             { TryParry(); return; }
             remaining-=Time.unscaledDeltaTime;
             if(remaining<=0) RestoreTime();

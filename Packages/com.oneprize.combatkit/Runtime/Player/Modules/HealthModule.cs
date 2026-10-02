@@ -45,7 +45,8 @@ namespace CombatSystem.Player
 
         private void ReadStandUpInput()
         {
-            Vector3 input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+            Vector2 move = Player.Controls.Move;
+            Vector3 input = new Vector3(move.x, 0, move.y);
             if (input.sqrMagnitude < .01f) return;
             Transform basis = Player.CameraTransform;
             Vector3 forward = basis.forward; forward.y = 0; forward.Normalize();
