@@ -19,13 +19,60 @@ namespace CombatSystem.Data.Player
         public PiercingDashSettings piercingDash = new PiercingDashSettings();
         public GatherSkillSettings gatherSkill = new GatherSkillSettings();
         public AttackHeightOffsetSettings attackHeightOffset = new AttackHeightOffsetSettings();
+        public LockOnSettings lockOn = new LockOnSettings();
+        public PowerAttackSettings powerAttack = new PowerAttackSettings();
+
+        [Serializable]
+        public class PowerAttackSettings
+        {
+            [Header("Gauge (1.0 = one stage)")]
+            [Min(1)] public int stages = 3;
+            [Tooltip("Gauge gained per enemy hit by a normal attack (ground/air combo, upper, chase).")]
+            [Min(0f)] public float gainPerHit = .125f;
+            [Tooltip("Gauge gained per enemy hit by a skill (G, A, B, C, I).")]
+            [Min(0f)] public float gainPerSkillHit = .2f;
+            [Header("Charge")]
+            [Tooltip("Seconds the attack button must stay held before the charge starts.")]
+            [Min(0f)] public float holdThreshold = .3f;
+            [Tooltip("Stages drained per second while charging.")]
+            [Min(.01f)] public float drainPerSecond = 1f / .7f;
+            [Tooltip("Once this many stages have been drained, hits deal damage but no longer interrupt the charge.")]
+            [Min(0f)] public float armorAfterStages = 1f;
+            [Header("Release")]
+            [Tooltip("Damage multiplier per attack level (stages drained, rounded up).")]
+            public float[] damageMultipliers = { 2f, 3.5f, 5f };
+            [Tooltip("Normalized time of the dash slashes in PowerAttackEnd.")]
+            public Vector2 dashHitWindow = new Vector2(.03f, .36f);
+            [Min(.1f)] public float dashHitRadius = 1.2f;
+            [Tooltip("Normalized time of the closing slam in PowerAttackEnd.")]
+            public Vector2 slamHitWindow = new Vector2(.42f, .50f);
+            [Min(.1f)] public float slamHitRadius = 3f;
+        }
+
+        [Serializable]
+        public class LockOnSettings
+        {
+            [Tooltip("Enemies within this distance can be locked on to.")]
+            [Min(0f)] public float acquireRange = 20f;
+            [Tooltip("The lock breaks (or moves to the nearest other enemy) beyond this distance.")]
+            [Min(0f)] public float keepRange = 25f;
+        }
 
         [Serializable]
         public class CombatSettings
         {
             [Header("Attack")]
             public string attackAnimStateName = "Attack";
+            [Tooltip("Fallback chain point for steps without an entry in comboChainProgress.")]
             [Range(0f, 1f)] public float comboTransitionProgress = 0.5f;
+            [Tooltip("Normalized time per ground combo step at which a queued attack chains into the next step. " +
+                     "Set to where the clip's pose matches the next clip's first frame (before the recovery).")]
+            public float[] comboChainProgress = { .25f, .30f, .30f };
+            [Tooltip("Blend time (seconds) from one ground combo step into the next.")]
+            [Min(0f)] public float comboCrossFadeTime = .1f;
+            [Header("Attack to dodge")]
+            [Tooltip("Normalized time per ground combo step after which a dodge may cancel the attack (end of the swing).")]
+            public float[] dodgeCancelProgress = { .25f, .30f, .30f, .40f };
             [Header("Attack Facing")]
             [Min(0f)] public float attackTargetDistance = 10f;
             [Min(0f)] public float attackTargetHeightTolerance = 2f;
@@ -33,7 +80,18 @@ namespace CombatSystem.Data.Player
             [Min(0f)] public float parryInputWindow = 0.15f;
             [Header("Air combo")]
             [Range(0, 1)] public float upperAirChainProgress = .22f;
+            [Tooltip("Fallback chain point for air steps without an entry in airComboChainProgress.")]
             [Range(0, 1)] public float airChainProgress = .95f;
+            [Tooltip("Normalized time per air combo step at which a queued attack chains into the next step. " +
+                     "Set to where the clip's pose matches the next clip's first frame (before the recovery).")]
+            public float[] airComboChainProgress = { .40f, .33f, .40f };
+            [Tooltip("Horizontal gap kept to an airborne attack target; root motion closer than this pushes the target along.")]
+            [Min(0f)] public float airAttackContactDistance = 1.1f;
+            [Header("Skill C chase (launch -> leap -> air combo)")]
+            [Tooltip("Skill C progress from which a buffered attack leaps after the launched enemy (just after the launch hit).")]
+            [Range(0, 1)] public float skillCChaseProgress = .45f;
+            [Tooltip("Chase leap progress from which a queued attack chains into air combo step 1.")]
+            [Range(0, 1)] public float chaseAirChainProgress = .75f;
             [Header("Skill to normal attack")]
             [Min(0f)] public float skillAttackInputBuffer = .4f;
             [Range(0f, 1f)] public float skillGFollowUpProgress = .75f;
@@ -61,7 +119,9 @@ namespace CombatSystem.Data.Player
             public float rotationSpeed = 720f;
             public float jumpForce = 5f;
             public float gravity = -9.81f;
-            public float groundCheckDistance = 0.2f; // 바닥 체크용 거리
+            public float groundCheckDistance = 0.2f; // 바닥 체크용 거리 (캡슐 바닥 기준)
+            [Tooltip("Seconds airborne without jumping (walking off a ledge) before the fall animation plays and the first jump counts as used.")]
+            [Min(0f)] public float fallStartDelay = 0.15f;
             public float turningHoldTime = 0.2f;
         }
 
@@ -79,6 +139,10 @@ namespace CombatSystem.Data.Player
         {
             [Min(0f)] public float crossFadeTime = 0.06f;
             [Min(0f)] public float distanceMultiplier = 1f;
+            [Header("Dodge to attack")]
+            [Tooltip("Normalized dodge time at which an attack pressed during the dodge starts the ground combo.")]
+            [Range(0f, 1f)] public float attackCancelProgress = .7f;
+            [Min(0f)] public float attackBlendTime = .15f;
         }
 
         [Serializable]

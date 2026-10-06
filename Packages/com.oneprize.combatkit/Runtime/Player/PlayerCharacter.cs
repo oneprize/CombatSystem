@@ -20,7 +20,7 @@ namespace CombatSystem.Player
     [RequireComponent(typeof(Animator), typeof(CharacterController))]
     public sealed class PlayerCharacter : MonoBehaviour, ICombatant
     {
-        [Tooltip("Basis for camera-relative movement. Falls back to Camera.main.")]
+        [Tooltip("Basis for camera-relative movement. A Cinemachine camera resolves to the Unity camera it drives. Falls back to Camera.main.")]
         [SerializeField] private Transform cameraTransform;
         [Tooltip("Slow-motion/zoom played on a successful parry. Optional; may live on the camera.")]
         [SerializeField] private ParryFeedback parryFeedback;
@@ -44,6 +44,8 @@ namespace CombatSystem.Player
         public GatherSkillModule GatherSkill { get; private set; }
         public AttackHeightOffsetModule AttackHeightOffset { get; private set; }
         public RootMotionModule RootMotion { get; private set; }
+        public LockOnModule LockOn { get; private set; }
+        public PowerGaugeModule PowerGauge { get; private set; }
 
         public PlayerProfile Profile
         {
@@ -58,11 +60,23 @@ namespace CombatSystem.Player
             }
         }
 
+        /// <summary>
+        /// The camera the player actually sees, used as the basis for camera-relative input.
+        /// A Cinemachine virtual camera assigned here is resolved to the Unity camera its brain
+        /// drives: when another virtual camera (e.g. lock-on) is live, the assigned one keeps
+        /// its own orientation off-screen and would no longer match what is shown.
+        /// </summary>
         public Transform CameraTransform
         {
             get
             {
-                if (cameraTransform != null) return cameraTransform;
+                if (cameraTransform != null)
+                {
+                    var virtualCamera = cameraTransform.GetComponent<Unity.Cinemachine.CinemachineVirtualCameraBase>();
+                    if (virtualCamera == null) return cameraTransform;
+                    var brain = Unity.Cinemachine.CinemachineCore.FindPotentialTargetBrain(virtualCamera);
+                    if (brain != null) return brain.transform;
+                }
                 var main = Camera.main;
                 return main != null ? main.transform : transform;
             }
@@ -104,6 +118,7 @@ namespace CombatSystem.Player
                 case PlayerAction.Attack: return true;
                 case PlayerAction.Skill: return !IsAirComboActive;
                 case PlayerAction.UpperAttack: return !IsAttacking;
+                case PlayerAction.Dodge: return !IsAirComboActive && (!IsAttacking || Combat.CanDodgeCancel);
                 default: return !IsAttacking && !IsAirComboActive;
             }
         }
@@ -131,6 +146,8 @@ namespace CombatSystem.Player
             GatherSkill = new GatherSkillModule();
             AttackHeightOffset = new AttackHeightOffsetModule();
             RootMotion = new RootMotionModule();
+            LockOn = new LockOnModule();
+            PowerGauge = new PowerGaugeModule();
             foreach (var module in Modules()) module.Bind(Context);
         }
 
@@ -146,6 +163,8 @@ namespace CombatSystem.Player
             yield return GatherSkill;
             yield return AttackHeightOffset;
             yield return RootMotion;
+            yield return LockOn;
+            yield return PowerGauge;
         }
 
         private void OnEnable() { CombatRegistry.Register(this); }
@@ -165,8 +184,10 @@ namespace CombatSystem.Player
         {
             float dt = Time.deltaTime;
             Health.Tick();
+            LockOn.Tick(); // before Combat so a new attack faces the current lock target
             Combat.Tick();
             Locomotion.Tick(dt); // also ticks the active air combo / dodge / link jump
+            AirCombo.TickEnemyCollision();
             PiercingDash.Tick();
         }
 

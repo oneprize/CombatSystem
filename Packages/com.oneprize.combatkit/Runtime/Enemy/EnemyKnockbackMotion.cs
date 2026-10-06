@@ -76,6 +76,8 @@ namespace CombatSystem.Combat
                 config.collisionMask, QueryTriggerInteraction.Ignore))
             {
                 if (hit.collider.transform.IsChildOf(transform) || hit.distance >= best) continue;
+                // Bodies the player has switched off against this enemy (air combo, piercing dash) do not block it either.
+                if (Physics.GetIgnoreCollision(capsule, hit.collider)) continue;
                 if (Vector3.Dot(direction, hit.normal) >= -.001f) continue;
                 nearest = hit;
                 best = hit.distance;
@@ -133,6 +135,15 @@ namespace CombatSystem.Combat
                 }
                 Physics.SyncTransforms();
             }
+        }
+
+        /// <summary>Moves horizontally by <paramref name="offset"/>, stopping at walls. Returns the displacement actually applied.</summary>
+        public Vector3 Push(Vector3 offset)
+        {
+            offset.y = 0;
+            Vector3 before = transform.position;
+            MoveHorizontal(offset);
+            return transform.position - before;
         }
 
         public void ApplyGroundMotion(Vector3 delta)

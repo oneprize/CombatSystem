@@ -8,11 +8,27 @@ namespace CombatSystem.Combat
         [SerializeField] private EnemyDamageReactionConfig config;
         public event System.Action<float> DamageReceived;
         public void RestoreHealth() { CurrentHealth = MaxHealth; }
+        private float damageScale = 1f;
         private void ApplyDamage()
         {
-            float damage = Mathf.Min(CurrentHealth, config.damagePerHit);
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - config.damagePerHit);
+            float amount = config.damagePerHit * damageScale;
+            float damage = Mathf.Min(CurrentHealth, amount);
+            CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
             DamageReceived?.Invoke(damage);
+        }
+        /// <summary>
+        /// Player power attack: <paramref name="damageMultiplier"/> x the normal hit damage. The dash slashes
+        /// react like a ground combo hit; the closing slam knocks the enemy down.
+        /// </summary>
+        public void ReceivePowerHit(Transform attacker, float damageMultiplier, bool slam)
+        {
+            damageScale = Mathf.Max(0f, damageMultiplier);
+            try
+            {
+                if (slam) ReceiveSkillHit(attacker);
+                else ReceiveGroundComboHit(attacker, 1, false);
+            }
+            finally { damageScale = 1f; }
         }
         public float MaxHealth => Mathf.Max(1f, config.maxHealth);
         public float CurrentHealth { get; private set; }
@@ -89,12 +105,12 @@ namespace CombatSystem.Combat
             if (machine.CurrentState == this) Enter(); else machine.ChangeState(this);
         }
 
-        public void ReceiveGroundComboHit(Transform attacker, int comboIndex)
+        public void ReceiveGroundComboHit(Transform attacker, int comboIndex, bool finisher)
         {
             // Keep attack armour and existing airborne/down reactions.
             if (aerialReaction || machine.CurrentState == machine.AttackState || machine.CurrentState == machine.GroggyState)
             { ApplyDamage(); return; }
-            if (comboIndex >= 4) { ReceiveSkillHit(attacker); return; }
+            if (finisher) { ReceiveSkillHit(attacker); return; }
             ApplyDamage();
             Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
             away.y = 0;
@@ -139,7 +155,11 @@ namespace CombatSystem.Combat
         }
 
         public bool IsAirborneForCombo => physicalKnockdown && knockback != null && knockback.Active && !knockback.Grounded;
-        public void ReceiveAirComboHit(Transform attacker, int comboIndex)
+        /// <summary>Freezes a launched enemy at its current height (same hang as an air combo hit) so a chase can reach it.</summary>
+        public void HoldInAir() { if (IsAirborneForCombo) knockback.AirComboImpact(false); }
+        /// <summary>Pushes an air-combo-held enemy along with the attacker. Returns the displacement actually applied.</summary>
+        public Vector3 PushAirborne(Vector3 offset) => IsAirborneForCombo ? knockback.Push(offset) : Vector3.zero;
+        public void ReceiveAirComboHit(Transform attacker, int comboIndex, bool finisher)
         {
             // Air attacks do not launch a grounded enemy or bypass the existing down state.
             if (!IsAirborneForCombo) return;
@@ -148,7 +168,7 @@ namespace CombatSystem.Combat
             toward.y = 0;
             if (toward.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(toward);
             reactionState = "Base Layer.AirComboHitB";
-            knockback.AirComboImpact(comboIndex == 5);
+            knockback.AirComboImpact(finisher);
             animator.CrossFadeInFixedTime(reactionState, .05f, 0, 0);
         }
 

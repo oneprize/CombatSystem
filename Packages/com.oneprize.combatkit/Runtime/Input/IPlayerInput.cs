@@ -18,6 +18,8 @@ namespace CombatSystem.Player
         bool DodgePressed { get; }
         /// <summary>Also the parry input.</summary>
         bool AttackPressed { get; }
+        /// <summary>Attack button kept down (charges the power attack).</summary>
+        bool AttackHeld { get; }
         bool GuardHeld { get; }
         bool SkillGPressed { get; }
         bool SkillAPressed { get; }
@@ -26,6 +28,10 @@ namespace CombatSystem.Player
         bool UpperAttackPressed { get; }
         /// <summary>Held together with Attack to trigger Skill C.</summary>
         bool SkillCModifierHeld { get; }
+        /// <summary>Toggles lock-on.</summary>
+        bool LockOnPressed { get; }
+        /// <summary>Switches the lock-on target clockwise around the player.</summary>
+        bool LockOnNextPressed { get; }
     }
 
     /// <summary>No input at all. Used when the character has no IPlayerInput component.</summary>
@@ -37,6 +43,7 @@ namespace CombatSystem.Player
         public bool JumpPressed => false;
         public bool DodgePressed => false;
         public bool AttackPressed => false;
+        public bool AttackHeld => false;
         public bool GuardHeld => false;
         public bool SkillGPressed => false;
         public bool SkillAPressed => false;
@@ -44,5 +51,7 @@ namespace CombatSystem.Player
         public bool SkillIPressed => false;
         public bool UpperAttackPressed => false;
         public bool SkillCModifierHeld => false;
+        public bool LockOnPressed => false;
+        public bool LockOnNextPressed => false;
     }
 }

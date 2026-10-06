@@ -75,7 +75,11 @@ namespace CombatSystem.Player
             foreach (var col in Physics.OverlapCapsule(from + Vector3.down * .1f, to + Vector3.down * .1f, config.hitRadius, ~0, QueryTriggerInteraction.Ignore))
             {
                 var enemy = col.GetComponentInParent<EnemyDamageReaction>();
-                if (enemy != null && struck.Add(enemy)) enemy.ReceivePiercingHit(transform, direction);
+                if (enemy != null && struck.Add(enemy))
+                {
+                    enemy.ReceivePiercingHit(transform, direction);
+                    Player.PowerGauge.RegisterHit(true);
+                }
                 var boss = col.GetComponentInParent<CombatSystem.Boss.BossCombat>();
                 if (boss != null && bosses.Add(boss)) boss.TryReceivePlayerHit();
             }

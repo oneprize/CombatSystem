@@ -15,11 +15,26 @@ MonoBehaviour:
   combat:
     attackAnimStateName: Attack
     comboTransitionProgress: 0.5
+    comboChainProgress:
+    - 0.25
+    - 0.3
+    - 0.3
+    comboCrossFadeTime: 0.1
+    dodgeCancelProgress:
+    - 0.25
+    - 0.3
+    - 0.3
+    - 0.4
     attackTargetDistance: 10
     attackTargetHeightTolerance: 2
     parryInputWindow: 0.15
     upperAirChainProgress: 0.22
     airChainProgress: 0.95
+    airComboChainProgress:
+    - 0.4
+    - 0.33
+    - 0.4
+    airAttackContactDistance: 1.1
     skillAttackInputBuffer: 0.4
     skillGFollowUpProgress: 0.75
     skillAFollowUpProgress: 0.65
@@ -36,9 +51,10 @@ MonoBehaviour:
     walkSpeed: 3
     runSpeed: 6
     rotationSpeed: 720
-    jumpForce: 5
+    jumpForce: 7
     gravity: -9.81
     groundCheckDistance: 0.2
+    fallStartDelay: 0.15
     turningHoldTime: 0.2
   health:
     playerName: Player
@@ -48,6 +64,8 @@ MonoBehaviour:
   dodge:
     crossFadeTime: 0.06
     distanceMultiplier: 1
+    attackCancelProgress: 0.7
+    attackBlendTime: 0.15
   linkJump:
     activationDistance: 1.2
     endpointHeightTolerance: 1

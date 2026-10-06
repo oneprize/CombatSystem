@@ -100,8 +100,14 @@ namespace CombatSystem.Player
             ApplyDamage(comboIndex);
             DamageReceived?.Invoke(comboIndex);
             if (bossDown) return true;
+            if (combat.IsChargingPower)
+            {
+                // Past the armor point the charge takes the damage without flinching or being knocked down;
+                // before it, any hit cancels the charge (the drained gauge is not refunded).
+                if (combat.IsPowerArmored) return true;
+            }
             // Only an ongoing player attack resists interruption by weak hits.
-            if (comboIndex < 3 && combat.IsAttacking) return true;
+            else if (comboIndex < 3 && combat.IsAttacking) return true;
             bossDown = knockDown; awaitingStandUp = false;
             stateName = knockDown ? "Base Layer.BossKnockDown" : "Base Layer.Damage" + (comboIndex + 1);
             if (!animator.HasState(0, Animator.StringToHash(stateName))) return false;

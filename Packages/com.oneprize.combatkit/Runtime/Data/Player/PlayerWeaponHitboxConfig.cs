@@ -17,20 +17,24 @@ namespace CombatSystem.Data.Player
         public Vector2 upperHitWindow = new Vector2(9f / 75f, 16f / 75f);
         public Vector3 upperImpactCenter = new Vector3(0, -.15f, 1.2f);
         public Vector3 upperImpactSize = new Vector3(1.4f, 2.2f, 2f);
-        [Header("Air combo")]
-        // Attach clips omit recovery frames; preserve the hit times in seconds.
+        [Header("Air combo (Combo_Attack_Air_06_01-04)")]
+        // Normalized time per step. Estimated from the right-arm swing in each clip; tune in play mode.
         public Vector2[] airHitWindows = {
-            new Vector2(6f/24f,14f/24f), new Vector2(4.5f/18f,10.5f/18f), new Vector2(6.3f/25f,14.7f/25f),
-            new Vector2(6f/23f,14f/23f), new Vector2(5.4f/22f,12.6f/22f), new Vector2(6.75f/30f,18f/30f) };
+            new Vector2(.12f, .32f), new Vector2(.02f, .30f), new Vector2(.18f, .32f), new Vector2(.02f, .36f) };
         public Vector3 airImpactCenter = new Vector3(0, -.1f, 1.25f);
         public Vector3 airImpactSize = new Vector3(1.8f, 2.5f, 2.5f);
-        [Header("Ground 5 combo")]
+        [Header("Ground combo (Combo_Attack_04_01-04)")]
+        // Normalized time per step. Estimated from the right-arm swing in each clip; tune in play mode.
         public Vector2[] groundHitWindows = {
-            new Vector2(.2f,.55f), new Vector2(.2f,.55f), new Vector2(.2f,.55f),
-            new Vector2(.2f,.55f), new Vector2(.2f,.55f) };
-        [Header("Ground combo 3 - right-foot kick")]
+            new Vector2(.05f, .20f), new Vector2(.12f, .25f), new Vector2(.02f, .15f), new Vector2(.18f, .35f) };
+        [Header("Ground combo right-foot kick")]
+        [Tooltip("Ground combo step (0-based) that hits with the right foot instead of the sword. -1 = none.")]
+        public int groundKickComboIndex = -1;
         public Vector2 groundKickWindow = new Vector2(.25f, .46f);
         [Min(.01f)] public float groundKickRadius = .3f;
+        [Header("Skill C chase leap (Attack_Up_Floor_To_Air_02)")]
+        // Normalized time of the rising slash; uses the air combo impact box.
+        public Vector2 chaseHitWindow = new Vector2(.45f, .80f);
         [Header("Skill C launcher")]
         public Vector2 skillCHitWindow = new Vector2(.30f, .44f);
         public Vector3 skillCImpactCenter = new Vector3(0f, -.1f, 1.1f);

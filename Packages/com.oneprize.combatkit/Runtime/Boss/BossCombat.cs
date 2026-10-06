@@ -39,10 +39,10 @@ public void BeginGroggy()
     if (ActiveProjectile != null && !ActiveProjectile.Resolved) Destroy(ActiveProjectile.gameObject);
 }
 public void EndGroggy() { groggyActive = false; ParryCount = 0; }
-public bool TryReceivePlayerHit()
+public bool TryReceivePlayerHit(float damageMultiplier = 1f)
 {
     if (!CanTakeDamage) return false;
-    CurrentHealth = Mathf.Max(0, CurrentHealth - coreConfig.damagePerPlayerHit);
+    CurrentHealth = Mathf.Max(0, CurrentHealth - coreConfig.damagePerPlayerHit * Mathf.Max(0f, damageMultiplier));
     return true;
 }
 public float PatternCooldown => coreConfig.patternCooldown;

@@ -18,12 +18,14 @@ namespace CombatSystem.Player
         private InputActionMap map;
         private InputAction move, run, jump, dodge, attack, guard;
         private InputAction skillG, skillA, skillB, skillI, upperAttack, skillCModifier;
+        private InputAction lockOn, lockOnNext;
 
         public Vector2 Move => move != null ? move.ReadValue<Vector2>() : Vector2.zero;
         public bool RunHeld => Held(run);
         public bool JumpPressed => Pressed(jump);
         public bool DodgePressed => Pressed(dodge);
         public bool AttackPressed => Pressed(attack);
+        public bool AttackHeld => Held(attack);
         public bool GuardHeld => Held(guard);
         public bool SkillGPressed => Pressed(skillG);
         public bool SkillAPressed => Pressed(skillA);
@@ -31,6 +33,8 @@ namespace CombatSystem.Player
         public bool SkillIPressed => Pressed(skillI);
         public bool UpperAttackPressed => Pressed(upperAttack);
         public bool SkillCModifierHeld => Held(skillCModifier);
+        public bool LockOnPressed => Pressed(lockOn);
+        public bool LockOnNextPressed => Pressed(lockOnNext);
 
         private void Awake()
         {
@@ -53,6 +57,8 @@ namespace CombatSystem.Player
             skillI = map.FindAction("SkillI", true);
             upperAttack = map.FindAction("UpperAttack", true);
             skillCModifier = map.FindAction("SkillCModifier", true);
+            lockOn = map.FindAction("LockOn", true);
+            lockOnNext = map.FindAction("LockOnNext", true);
         }
 
         private void OnEnable() { map?.Enable(); }

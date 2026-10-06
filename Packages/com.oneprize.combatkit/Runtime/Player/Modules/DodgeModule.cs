@@ -3,13 +3,14 @@ using CombatSystem.Data.Player;
 
 namespace CombatSystem.Player
 {
-    /// <summary>Forward dodge whose distance comes from the dodge clip's root motion.</summary>
+    /// <summary>Forward dodge that moves exactly as the dodge clip's root motion does.</summary>
     public sealed class DodgeModule : PlayerModule
     {
         public bool IsDodging { get; private set; }
         public string CurrentStateName { get; private set; }
         private PlayerProfile.DodgeSettings config;
         private Vector3 direction;
+        private bool attackBuffered;
 
         protected override void OnInitialize()
         {
@@ -23,6 +24,8 @@ namespace CombatSystem.Player
             direction = worldInput.sqrMagnitude > .001f ? worldInput.normalized : transform.forward;
             CurrentStateName = "Base Layer.DodgeFront";
             if (!animator.HasState(0, Animator.StringToHash(CurrentStateName))) return false;
+            if (Player.IsAttacking) Player.Combat.CancelForDodge();
+            attackBuffered = false;
             // Face the movement direction so the forward dodge matches its displacement.
             direction.y = 0f;
             direction.Normalize();
@@ -40,10 +43,20 @@ namespace CombatSystem.Player
         {
             if (!IsDodging) return;
             if (Player.IsHitReacting) { IsDodging = false; return; }
+            // CombatModule does not tick while dodging, so attack input is read here.
+            if (Player.Controls.AttackPressed) attackBuffered = true;
             character.Move(Vector3.down * 2f * dt);
             if (animator.IsInTransition(0)) return;
             var state = animator.GetCurrentAnimatorStateInfo(0);
-            if (state.IsName(CurrentStateName) && state.normalizedTime < 1f) return;
+            bool playing = state.IsName(CurrentStateName) && state.normalizedTime < 1f;
+            if (attackBuffered && (!playing || state.normalizedTime >= config.attackCancelProgress))
+            {
+                IsDodging = false;
+                attackBuffered = false;
+                Player.Combat.BeginAttackFromDodge(config.attackBlendTime);
+                if (Player.IsAttacking) return;
+            }
+            if (playing && IsDodging) return;
             IsDodging = false;
             animator.CrossFadeInFixedTime("Base Layer.Idle", .1f);
         }
@@ -51,8 +64,10 @@ namespace CombatSystem.Player
         public void ApplyRootMotion(Vector3 delta)
         {
             if (!IsDodging || !character.enabled) return;
+            // The character already faces the dodge direction, so the clip's own horizontal
+            // displacement (including any sideways drift) is applied as authored.
             delta.y = 0f;
-            character.Move(direction * (delta.magnitude * config.distanceMultiplier));
+            character.Move(delta * config.distanceMultiplier);
         }
 
         public override void OnDisable() { IsDodging = false; }

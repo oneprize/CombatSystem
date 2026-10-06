@@ -432,6 +432,26 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""LockOn"",
+                    ""type"": ""Button"",
+                    ""id"": ""4b6f2d1e-8a3c-4f57-9e21-7c0d5a9b3e64"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""LockOnNext"",
+                    ""type"": ""Button"",
+                    ""id"": ""9e3a7c52-1d4b-4b86-a0f9-2e6c8d1b5a73"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -676,6 +696,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""SkillCModifier"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c7d15e2a-6b9f-4e03-8a4d-1f2b7e9c6d58"",
+                    ""path"": ""<Keyboard>/z"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LockOn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2f8b4d6c-3e1a-4c79-b5d2-8a6e0f3c9b17"",
+                    ""path"": ""<Mouse>/scroll/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LockOnNext"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -705,6 +747,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Combat_SkillI = m_Combat.FindAction("SkillI", throwIfNotFound: true);
         m_Combat_UpperAttack = m_Combat.FindAction("UpperAttack", throwIfNotFound: true);
         m_Combat_SkillCModifier = m_Combat.FindAction("SkillCModifier", throwIfNotFound: true);
+        m_Combat_LockOn = m_Combat.FindAction("LockOn", throwIfNotFound: true);
+        m_Combat_LockOnNext = m_Combat.FindAction("LockOnNext", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -960,6 +1004,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Combat_SkillI;
     private readonly InputAction m_Combat_UpperAttack;
     private readonly InputAction m_Combat_SkillCModifier;
+    private readonly InputAction m_Combat_LockOn;
+    private readonly InputAction m_Combat_LockOnNext;
     /// <summary>
     /// Provides access to input actions defined in input action map "Combat".
     /// </summary>
@@ -1019,6 +1065,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Combat/SkillCModifier".
         /// </summary>
         public InputAction @SkillCModifier => m_Wrapper.m_Combat_SkillCModifier;
+        /// <summary>
+        /// Provides access to the underlying input action "Combat/LockOn".
+        /// </summary>
+        public InputAction @LockOn => m_Wrapper.m_Combat_LockOn;
+        /// <summary>
+        /// Provides access to the underlying input action "Combat/LockOnNext".
+        /// </summary>
+        public InputAction @LockOnNext => m_Wrapper.m_Combat_LockOnNext;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1081,6 +1135,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SkillCModifier.started += instance.OnSkillCModifier;
             @SkillCModifier.performed += instance.OnSkillCModifier;
             @SkillCModifier.canceled += instance.OnSkillCModifier;
+            @LockOn.started += instance.OnLockOn;
+            @LockOn.performed += instance.OnLockOn;
+            @LockOn.canceled += instance.OnLockOn;
+            @LockOnNext.started += instance.OnLockOnNext;
+            @LockOnNext.performed += instance.OnLockOnNext;
+            @LockOnNext.canceled += instance.OnLockOnNext;
         }
 
         /// <summary>
@@ -1128,6 +1188,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SkillCModifier.started -= instance.OnSkillCModifier;
             @SkillCModifier.performed -= instance.OnSkillCModifier;
             @SkillCModifier.canceled -= instance.OnSkillCModifier;
+            @LockOn.started -= instance.OnLockOn;
+            @LockOn.performed -= instance.OnLockOn;
+            @LockOn.canceled -= instance.OnLockOn;
+            @LockOnNext.started -= instance.OnLockOnNext;
+            @LockOnNext.performed -= instance.OnLockOnNext;
+            @LockOnNext.canceled -= instance.OnLockOnNext;
         }
 
         /// <summary>
@@ -1309,5 +1375,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSkillCModifier(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "LockOn" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnLockOn(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "LockOnNext" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnLockOnNext(InputAction.CallbackContext context);
     }
 }

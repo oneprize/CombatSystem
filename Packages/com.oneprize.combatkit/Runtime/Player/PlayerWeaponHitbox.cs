@@ -30,7 +30,46 @@ namespace CombatSystem.Player
         {
             var boss = other.GetComponentInParent<CombatSystem.Boss.BossCombat>();
             var struck = secondStrike ? secondBossHits : bossHits;
-            if (boss != null && struck.Add(boss)) boss.TryReceivePlayerHit();
+            if (boss != null && struck.Add(boss)) boss.TryReceivePlayerHit(combat.IsReleasingPower ? combat.PowerDamageMultiplier : 1f);
+        }
+        /// <summary>Marks the enemy as hit by this attack; a first hit also fills the power gauge.</summary>
+        private bool Struck(System.Collections.Generic.HashSet<EnemyDamageReaction> set, EnemyDamageReaction enemy)
+        {
+            if (!set.Add(enemy)) return false;
+            player.PowerGauge.RegisterHit(combat.IsUsingSkill || combat.IsUsingPiercingSkill || combat.IsUsingSkillI || combat.IsUsingSkillC);
+            return true;
+        }
+        private float previousPowerProgress;
+        private Vector3 previousPowerPosition;
+        /// <summary>Power attack release: dash slashes sweep the travelled path, then the slam hits all around.</summary>
+        private void UpdatePowerHits(AnimatorStateInfo state)
+        {
+            var power = player.Profile.powerAttack;
+            Transform owner = player.transform;
+            float progress = state.normalizedTime;
+            float multiplier = combat.PowerDamageMultiplier;
+            if (progress >= power.dashHitWindow.x && previousPowerProgress <= power.dashHitWindow.y)
+            {
+                HitWindowActive = true;
+                foreach (var other in Physics.OverlapCapsule(previousPowerPosition, owner.position, power.dashHitRadius, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    var enemy = other.GetComponentInParent<EnemyDamageReaction>();
+                    if (enemy != null && hits.Add(enemy)) enemy.ReceivePowerHit(owner, multiplier, false);
+                    HitBoss(other, false);
+                }
+            }
+            if (progress >= power.slamHitWindow.x && previousPowerProgress <= power.slamHitWindow.y)
+            {
+                HitWindowActive = true;
+                foreach (var other in Physics.OverlapSphere(owner.position, power.slamHitRadius, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    var enemy = other.GetComponentInParent<EnemyDamageReaction>();
+                    if (enemy != null && secondSkillHits.Add(enemy)) enemy.ReceivePowerHit(owner, multiplier, true);
+                    HitBoss(other, true);
+                }
+            }
+            previousPowerProgress = progress;
+            previousPowerPosition = owner.position;
         }
         private void Awake()
         {
@@ -71,6 +110,8 @@ namespace CombatSystem.Player
                 bossHits.Clear();
                 secondBossHits.Clear();
                 secondSkillHits.Clear();
+                previousPowerProgress = 0;
+                previousPowerPosition = player.transform.position;
                 sequence = combat.AttackSequence;
                 combo = index;
             }
@@ -82,6 +123,8 @@ namespace CombatSystem.Player
                 if (next.IsName(name)) state = next;
             }
             if (!state.IsName(name)) return;
+            if (combat.IsChargingPower) return;
+            if (combat.IsReleasingPower) { UpdatePowerHits(state); return; }
             if (combat.IsUsingSkillC)
             {
                 float progress=state.normalizedTime;
@@ -93,8 +136,30 @@ namespace CombatSystem.Player
                 foreach(var other in Physics.OverlapBox(owner.TransformPoint(config.skillCImpactCenter),config.skillCImpactSize*.5f,owner.rotation,~0,QueryTriggerInteraction.Ignore))
                 {
                     var enemy=other.GetComponentInParent<EnemyDamageReaction>();
-                    if(enemy!=null && hits.Add(enemy))enemy.ReceiveUpperHit(owner);
+                    if(enemy!=null && Struck(hits, enemy))
+                    {
+                        enemy.ReceiveUpperHit(owner);
+                        if (enemy.IsAirborneForCombo) combat.RegisterLaunch(enemy);
+                    }
                     HitBoss(other,false);
+                }
+                return;
+            }
+            if (combat.IsUsingChaseAttack)
+            {
+                float progress = state.normalizedTime;
+                bool active = progress >= config.chaseHitWindow.x && previousAirProgress <= config.chaseHitWindow.y;
+                previousAirProgress = progress;
+                if (!active) return;
+                HitWindowActive = true;
+                Transform owner = player.transform;
+                foreach (var other in Physics.OverlapBox(owner.TransformPoint(config.airImpactCenter),
+                    config.airImpactSize * .5f, owner.rotation, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    var enemy = other.GetComponentInParent<EnemyDamageReaction>();
+                    if (enemy != null && enemy.IsAirborneForCombo && Struck(hits, enemy))
+                        enemy.ReceiveAirComboHit(owner, 0, false);
+                    HitBoss(other, false);
                 }
                 return;
             }
@@ -113,8 +178,8 @@ namespace CombatSystem.Player
                     config.airImpactSize * .5f, owner.rotation, ~0, QueryTriggerInteraction.Ignore))
                 {
                     var enemy = other.GetComponentInParent<EnemyDamageReaction>();
-                    if (enemy != null && enemy.IsAirborneForCombo && hits.Add(enemy))
-                        enemy.ReceiveAirComboHit(owner, airIndex);
+                    if (enemy != null && enemy.IsAirborneForCombo && Struck(hits, enemy))
+                        enemy.ReceiveAirComboHit(owner, airIndex, combat.IsAirComboFinisher);
                     HitBoss(other, false);
                 }
                 return;
@@ -131,7 +196,7 @@ namespace CombatSystem.Player
                     config.upperImpactSize * .5f, owner.rotation, ~0, QueryTriggerInteraction.Ignore))
                 {
                     var enemy = other.GetComponentInParent<EnemyDamageReaction>();
-                    if (enemy != null && hits.Add(enemy)) enemy.ReceiveUpperHit(owner);
+                    if (enemy != null && Struck(hits, enemy)) enemy.ReceiveUpperHit(owner);
                     HitBoss(other, false);
                 }
                 return;
@@ -149,12 +214,12 @@ namespace CombatSystem.Player
                     config.skillImpactSize * 0.5f, owner.rotation, ~0, QueryTriggerInteraction.Ignore))
                 {
                     var enemy = other.GetComponentInParent<EnemyDamageReaction>();
-                    if (enemy != null && struck.Add(enemy)) enemy.ReceiveAerialHit(owner, strike);
+                    if (enemy != null && Struck(struck, enemy)) enemy.ReceiveAerialHit(owner, strike);
                     HitBoss(other, strike == 1);
                 }
                 return;
             }
-            if (combat.IsUsingGroundCombo && index == 2 && kickFoot != null)
+            if (combat.IsUsingGroundCombo && index == config.groundKickComboIndex && kickFoot != null)
             {
                 float progress = state.normalizedTime;
                 bool active = progress >= config.groundKickWindow.x && previousGroundProgress <= config.groundKickWindow.y;
@@ -165,7 +230,7 @@ namespace CombatSystem.Player
                 {
                     HitBoss(other, false);
                     var enemy = other.GetComponentInParent<EnemyDamageReaction>();
-                    if (enemy != null && hits.Add(enemy)) enemy.ReceiveGroundComboHit(player.transform, index);
+                    if (enemy != null && Struck(hits, enemy)) enemy.ReceiveGroundComboHit(player.transform, index, combat.IsGroundComboFinisher);
                 }
                 return;
             }
@@ -188,10 +253,10 @@ namespace CombatSystem.Player
             {
                 var enemy = other.GetComponentInParent<EnemyDamageReaction>();
                 HitBoss(other, false);
-                if (enemy != null && hits.Add(enemy))
+                if (enemy != null && Struck(hits, enemy))
                 {
                     if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(player.transform);
-                    else if (combat.IsUsingGroundCombo) enemy.ReceiveGroundComboHit(player.transform, index);
+                    else if (combat.IsUsingGroundCombo) enemy.ReceiveGroundComboHit(player.transform, index, combat.IsGroundComboFinisher);
                     else enemy.ReceiveHit();
                 }
             }

@@ -326,6 +326,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "LockOn",
+                    "type": "Button",
+                    "id": "4b6f2d1e-8a3c-4f57-9e21-7c0d5a9b3e64",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LockOnNext",
+                    "type": "Button",
+                    "id": "9e3a7c52-1d4b-4b86-a0f9-2e6c8d1b5a73",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -568,6 +586,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "SkillCModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c7d15e2a-6b9f-4e03-8a4d-1f2b7e9c6d58",
+                    "path": "<Keyboard>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LockOn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2f8b4d6c-3e1a-4c79-b5d2-8a6e0f3c9b17",
+                    "path": "<Mouse>/scroll/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LockOnNext",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
