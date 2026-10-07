@@ -48,7 +48,7 @@ namespace CombatSystem.Training
         {
             private readonly EnemyCombat combat;
             public DummyIdle(EnemyCombat combat) { this.combat = combat; }
-            public void Enter() { combat.SetParryWindowOpen(false); combat.PlayIdleAnim(); }
+            public void Enter() { combat.PlayIdleAnim(); }
             public void Tick(float dt) { }
             public void Exit() { }
         }

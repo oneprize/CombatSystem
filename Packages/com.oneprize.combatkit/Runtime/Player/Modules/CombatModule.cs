@@ -5,25 +5,66 @@ using CombatSystem.Data.Player;
 namespace CombatSystem.Player
 {
     /// <summary>
-    /// Ground combo, skills, upper/air attack chaining, guard and parry input.
+    /// Ground combo, skills, upper/air attack chaining, guard input.
     /// </summary>
     public sealed class CombatModule : PlayerModule
     {
         private const int GroundComboCount = 4;
         private const int AirComboCount = 4;
-        private const int SkillGIndex = 5, SkillAIndex = 6, UpperIndex = 7, AirStartIndex = 8, SkillBIndex = 14, SkillIIndex = 15, SkillCIndex = 16, ChaseIndex = 17, PowerChargeIndex = 18, PowerReleaseIndex = 19;
+        private const int SkillGIndex = 5, SkillAIndex = 6, UpperIndex = 7, AirStartIndex = 8, SkillBIndex = 14, SkillIIndex = 15, SkillCIndex = 16, ChaseIndex = 17, PowerChargeIndex = 18, PowerReleaseIndex = 19, EFollowUpIndex = 20;
 
         private PlayerProfile.CombatSettings config;
-        private float lastParryInput = float.NegativeInfinity;
         private int attackIndex;
         private bool queuedAttack;
+        private float eFollowUpUntil = float.NegativeInfinity;
+        private bool eFollowUpQueued;
+        private Transform eFollowUpTarget;
+        public bool IsUsingEFollowUp => IsAttacking && attackIndex == EFollowUpIndex;
+
+        public void RegisterPiercingHit(Transform target)
+        {
+            if (!IsUsingSkillA) return;
+            eFollowUpTarget = target;
+            eFollowUpUntil = Time.time + config.eFollowUpInputWindow;
+        }
+
+        private void ClearEFollowUp()
+        {
+            eFollowUpQueued = false;
+            eFollowUpUntil = float.NegativeInfinity;
+            eFollowUpTarget = null;
+        }
+
+        private void BeginEFollowUp()
+        {
+            Transform target = eFollowUpTarget;
+            ClearEFollowUp();
+            ClearGroundAttackInput();
+            queuedAttack = false;
+            bufferedSkillIndex = -1;
+            skillAttackBufferedUntil = float.NegativeInfinity;
+            attackIndex = EFollowUpIndex;
+            IsAttacking = true;
+            AttackSequence++;
+            FaceNearbyEnemy();
+            if (target != null)
+            {
+                Vector3 direction = target.position - transform.position;
+                direction.y = 0f;
+                if (direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction);
+                AttackTarget = target.GetComponent<CombatSystem.Combat.EnemyDamageReaction>();
+            }
+            animator.CrossFadeInFixedTime("Base Layer.EFollowUp", .08f, 0, 0f);
+        }
         private int bufferedSkillIndex = -1;
         private float bufferedSkillUntil = float.NegativeInfinity;
         private float skillAttackBufferedUntil = float.NegativeInfinity;
         private CombatSystem.Combat.EnemyDamageReaction launchedEnemy;
         private PlayerProfile.PowerAttackSettings powerConfig;
         private float attackPressedAt = float.NegativeInfinity;
-        private bool holdUsed;
+        private bool groundInputPending, groundInputReleased, groundInputSkillC;
+        private float groundInputReleasedAt;
+        private int capturedInputFrame = -1;
 
         public bool IsGuarding { get; private set; }
         public bool IsAttacking { get; private set; }
@@ -33,7 +74,6 @@ namespace CombatSystem.Player
         public CombatSystem.Combat.EnemyDamageReaction AttackTarget { get; private set; }
         public float AirAttackContactDistance => config.airAttackContactDistance;
 
-        public bool IsParryInputActive => !Player.IsHitReacting && Time.time - lastParryInput <= config.parryInputWindow;
         public bool IsUsingGroundCombo => IsAttacking && attackIndex >= 0 && attackIndex < GroundComboCount;
         public bool IsUsingAirCombo => IsAttacking && attackIndex >= AirStartIndex && attackIndex < AirStartIndex + AirComboCount;
         public int AirComboIndex => IsUsingAirCombo ? attackIndex - AirStartIndex : -1;
@@ -50,28 +90,20 @@ namespace CombatSystem.Player
         public bool IsUsingUpperAttack => IsAttacking && attackIndex == UpperIndex;
         /// <summary>The leap after an enemy launched by Skill C.</summary>
         public bool IsUsingChaseAttack => IsAttacking && attackIndex == ChaseIndex;
-        /// <summary>Holding the attack button: PowerAttackStart/Loop while the gauge drains.</summary>
+        /// <summary>Holding the attack button: PowerAttackStart followed by PowerAttackLoop.</summary>
         public bool IsChargingPower => IsAttacking && attackIndex == PowerChargeIndex;
-        /// <summary>The released power attack (PowerAttackEnd).</summary>
         public bool IsReleasingPower => IsAttacking && attackIndex == PowerReleaseIndex;
         public bool IsUsingPowerAttack => IsChargingPower || IsReleasingPower;
-        /// <summary>Stages drained by the current charge.</summary>
-        public float PowerDrained { get; private set; }
-        /// <summary>Attack level of the current charge or release: stages drained, rounded up (1..stages).</summary>
-        public int PowerLevel => Mathf.Clamp(Mathf.CeilToInt(PowerDrained - .0001f), 1, Player.PowerGauge.Stages);
-        /// <summary>While charging, hits past this point deal damage but do not interrupt.</summary>
-        public bool IsPowerArmored => IsChargingPower && PowerDrained >= powerConfig.armorAfterStages - .0001f;
-        public float PowerDamageMultiplier
-        {
-            get
-            {
-                var multipliers = powerConfig.damageMultipliers;
-                if (multipliers == null || multipliers.Length == 0) return 1f;
-                return multipliers[Mathf.Min(PowerLevel, multipliers.Length) - 1];
-            }
-        }
+        /// <summary>Total button hold duration, capped at the maximum damage time.</summary>
+        public float PowerChargeSeconds { get; private set; }
+        public float PowerChargeNormalized => Mathf.InverseLerp(powerConfig.holdThreshold,
+            Mathf.Max(powerConfig.holdThreshold + .01f, powerConfig.maxChargeDuration), PowerChargeSeconds);
+        public bool IsPowerArmored => IsChargingPower &&
+            PowerChargeSeconds >= powerConfig.holdThreshold + powerConfig.armorAfterSeconds;
+        public float PowerDamageMultiplier => Mathf.Lerp(powerConfig.minDamageMultiplier,
+            Mathf.Max(powerConfig.minDamageMultiplier, powerConfig.maxDamageMultiplier), PowerChargeNormalized);
         public string CurrentAttackStateName => AttackStateName;
-        private string AttackStateName => attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillIIndex ? "Skill_I" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillIIndex ? "Skill_I" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
 
         private AirComboModule airCombo => Player.AirCombo;
 
@@ -81,23 +113,12 @@ namespace CombatSystem.Player
             powerConfig = Player.Profile.powerAttack;
         }
 
-        public void RegisterParryInput()
-        {
-            if (!Player.IsHitReacting) lastParryInput = Time.time;
-        }
-
-        public bool TryConsumeParry()
-        {
-            if (!IsParryInputActive) return false;
-            lastParryInput = float.NegativeInfinity;
-            return true;
-        }
-
         public void CancelForDamage()
         {
+            ClearEFollowUp();
+            ClearGroundAttackInput();
             bufferedSkillIndex = -1;
             bufferedSkillUntil = float.NegativeInfinity;
-            lastParryInput = float.NegativeInfinity;
             IsAttacking = false;
             IsGuarding = false;
             queuedAttack = false;
@@ -115,8 +136,27 @@ namespace CombatSystem.Player
 
         public void Tick()
         {
-            if (Player.IsHitReacting || Player.IsLinkJumping || Player.IsDodging || airCombo.Recovering) return;
+            if (Player.IsHitReacting || Player.IsLinkJumping)
+            {
+                ClearGroundAttackInput();
+                return;
+            }
+            if (airCombo.Recovering)
+            {
+                if (airCombo.AllowsLandingFollowUp) CaptureGroundAttackInput(Player.Controls);
+                else ClearGroundAttackInput();
+                return;
+            }
+            if (Player.IsDodging) return;
             var controls = Player.Controls;
+            bool followUpPress = controls.AttackPressed && (IsUsingSkillA || !IsAttacking) &&
+                eFollowUpTarget != null && Time.time <= eFollowUpUntil && Player.CanStartAction(PlayerAction.Attack);
+            if (followUpPress)
+            {
+                eFollowUpQueued = true;
+                ClearGroundAttackInput();
+            }
+            if (eFollowUpQueued && !IsAttacking) BeginEFollowUp();
             if (IsChargingPower)
             {
                 // Charging owns the input: nothing else starts until the button is released.
@@ -140,48 +180,122 @@ namespace CombatSystem.Player
             else if (!controls.GuardHeld && IsGuarding)
                 StopGuard();
 
+            bool airborneAttack = Player.IsAirComboActive || IsUsingUpperAttack || IsUsingChaseAttack ||
+                (!Player.Locomotion.IsGrounded && !IsUsingGroundCombo);
+            if (airborneAttack)
+            {
+                ClearGroundAttackInput();
+                if (controls.AttackPressed) TryAttack();
+            }
+            else
+            {
+                if (!followUpPress && Player.CanStartAction(PlayerAction.Attack)) CaptureGroundAttackInput(controls);
+                ProcessGroundAttackInput();
+            }
+        }
+
+        private void ClearGroundAttackInput()
+        {
+            groundInputPending = false;
+            groundInputReleased = false;
+        }
+
+        // Also called by DodgeModule, which owns input during a dodge.
+        public void CaptureGroundAttackInput(IPlayerInput controls)
+        {
+            if (capturedInputFrame == Time.frameCount) return;
+            capturedInputFrame = Time.frameCount;
             if (controls.AttackPressed)
             {
                 attackPressedAt = Time.time;
-                holdUsed = false;
-                RegisterParryInput();
-                if (controls.SkillCModifierHeld && !Player.IsAirComboActive && !IsUsingUpperAttack)
-                    TrySkillC();
-                else
-                    TryAttack();
+                groundInputPending = true;
+                groundInputReleased = false;
+                groundInputSkillC = controls.SkillCModifierHeld;
             }
-            // The press already started a normal attack (and counted as a parry input);
-            // keeping it held long enough turns it into the power charge.
-            if (!holdUsed && controls.AttackHeld && Time.time - attackPressedAt >= powerConfig.holdThreshold && CanBeginPowerCharge())
-                BeginPowerCharge();
+            if (groundInputPending && !groundInputReleased && !controls.AttackHeld)
+            {
+                groundInputReleased = true;
+                groundInputReleasedAt = Time.time;
+            }
+        }
+
+        private float GroundHoldSeconds => Mathf.Max(0f,
+            (groundInputReleased ? groundInputReleasedAt : Time.time) - attackPressedAt);
+        public bool GroundAttackInputReady => groundInputPending &&
+            (groundInputReleased || GroundHoldSeconds >= powerConfig.holdThreshold);
+
+        private void ProcessGroundAttackInput()
+        {
+            if (!groundInputPending) return;
+            if (!Player.CanStartAction(PlayerAction.Attack)) { ClearGroundAttackInput(); return; }
+            if (groundInputReleased && Time.time - groundInputReleasedAt > config.skillAttackInputBuffer)
+            {
+                ClearGroundAttackInput();
+                return;
+            }
+            if (GroundHoldSeconds >= powerConfig.holdThreshold)
+            {
+                if (CanBeginPowerCharge())
+                {
+                    float held = GroundHoldSeconds;
+                    bool released = groundInputReleased;
+                    BeginPowerCharge();
+                    PowerChargeSeconds = Mathf.Min(held, powerConfig.maxChargeDuration);
+                    if (released) ReleasePower();
+                }
+                return;
+            }
+            if (!groundInputReleased) return;
+            bool skillC = groundInputSkillC;
+            ClearGroundAttackInput();
+            if (skillC) TrySkillC(); else TryAttack();
+        }
+
+        public bool TryLandingFollowUp()
+        {
+            if (!GroundAttackInputReady) return false;
+            if (groundInputReleased && Time.time - groundInputReleasedAt > Player.Profile.airCombo.landingAttackBuffer)
+            {
+                ClearGroundAttackInput();
+                return false;
+            }
+            ProcessGroundAttackInput();
+            return IsAttacking;
         }
 
         private bool CanBeginPowerCharge()
         {
-            return Player.PowerGauge.FilledStages >= 1 && Player.CanStartAction(PlayerAction.Skill) &&
-                   Player.Locomotion.IsGrounded && (!IsAttacking || IsUsingGroundCombo);
+            if (!Player.CanStartAction(PlayerAction.Skill) || !Player.Locomotion.IsGrounded) return false;
+            if (!IsAttacking) return true;
+            if (IsUsingGroundCombo) return CurrentAttackProgress() >= GroundChainProgress(attackIndex);
+            if (IsUsingSkill || IsUsingPiercingSkill || IsUsingSkillI || IsUsingSkillC)
+            {
+                float followUp = IsUsingSkill ? config.skillGFollowUpProgress :
+                    IsUsingSkillA ? config.skillAFollowUpProgress : IsUsingSkillB ? config.skillBFollowUpProgress : .75f;
+                return CurrentAttackProgress() >= followUp && (!IsUsingPiercingSkill || !Player.PiercingDash.IsDashing);
+            }
+            return false;
         }
 
         private void BeginPowerCharge()
         {
-            holdUsed = true;
+            ClearGroundAttackInput();
             bufferedSkillIndex = -1;
             bufferedSkillUntil = float.NegativeInfinity;
             skillAttackBufferedUntil = float.NegativeInfinity;
-            lastParryInput = float.NegativeInfinity;
             queuedAttack = false;
             attackIndex = PowerChargeIndex;
             IsAttacking = true;
             AttackSequence++;
-            PowerDrained = 0f;
+            PowerChargeSeconds = 0f;
             FaceNearbyEnemy();
             animator.CrossFadeInFixedTime("Base Layer.PowerAttackStart", .1f, 0, 0f);
         }
 
         private void TickPowerCharge(IPlayerInput controls)
         {
-            PowerDrained += Player.PowerGauge.Drain(powerConfig.drainPerSecond * Time.deltaTime);
-            if (!controls.AttackHeld || Player.PowerGauge.Value <= 0f) ReleasePower();
+            PowerChargeSeconds = Mathf.Clamp(Time.time - attackPressedAt, 0f, powerConfig.maxChargeDuration);
+            if (!controls.AttackHeld) ReleasePower();
         }
 
         private void ReleasePower()
@@ -216,13 +330,14 @@ namespace CombatSystem.Player
 
         private void BeginSkill(int index, float blendTime)
         {
+            ClearEFollowUp();
+            ClearGroundAttackInput();
             launchedEnemy = null;
             bufferedSkillIndex = -1;
             bufferedSkillUntil = float.NegativeInfinity;
             attackIndex = index;
             queuedAttack = false;
             skillAttackBufferedUntil = float.NegativeInfinity;
-            lastParryInput = float.NegativeInfinity;
             FaceNearbyEnemy(config.skillTargetDistance);
             AttackSequence++;
             IsAttacking = true;
@@ -233,11 +348,11 @@ namespace CombatSystem.Player
         {
             if (!Player.CanStartAction(PlayerAction.UpperAttack)) return false;
             if (!animator.HasState(0, Animator.StringToHash("Base Layer.UpperAttack"))) return false;
+            ClearGroundAttackInput();
             airCombo.BeginUpperMotion();
             attackIndex = UpperIndex;
             queuedAttack = false;
             skillAttackBufferedUntil = float.NegativeInfinity;
-            lastParryInput = float.NegativeInfinity;
             FaceNearbyEnemy(config.attackTargetDistance);
             AttackSequence++;
             IsAttacking = true;
@@ -250,6 +365,7 @@ namespace CombatSystem.Player
             if (!Player.CanStartAction(PlayerAction.Attack)) return;
             if (IsAttacking)
             {
+                if (IsUsingEFollowUp) { queuedAttack = true; return; }
                 if (IsUsingSkill || IsUsingPiercingSkill || IsUsingSkillI || IsUsingSkillC)
                 {
                     skillAttackBufferedUntil = Time.time + config.skillAttackInputBuffer;
@@ -264,11 +380,11 @@ namespace CombatSystem.Player
             BeginGroundCombo(config.crossFadeTime);
         }
 
-        /// <summary>Starts ground combo step 1 out of a dodge (called by DodgeModule at its attack cancel point).</summary>
+        /// <summary>Resolves the buffered short/long attack out of a dodge at its attack cancel point.</summary>
         public void BeginAttackFromDodge(float blendTime)
         {
             if (IsAttacking || !Player.CanStartAction(PlayerAction.Attack)) return;
-            BeginGroundCombo(blendTime);
+            ProcessGroundAttackInput();
         }
 
         private void BeginGroundCombo(float blendTime)
@@ -299,6 +415,8 @@ namespace CombatSystem.Player
         /// <summary>Drops the current ground attack so a dodge can take over this frame.</summary>
         public void CancelForDodge()
         {
+            ClearEFollowUp();
+            ClearGroundAttackInput();
             bufferedSkillIndex = -1;
             bufferedSkillUntil = float.NegativeInfinity;
             IsAttacking = false;
@@ -329,7 +447,6 @@ namespace CombatSystem.Player
             queuedAttack = false;
             skillAttackBufferedUntil = float.NegativeInfinity;
             IsAttacking = true;
-            lastParryInput = float.NegativeInfinity;
             AttackSequence++;
             FaceNearbyEnemy(config.skillTargetDistance);
             animator.CrossFadeInFixedTime("Base Layer." + AttackStateName, .08f, 0, 0);
@@ -353,7 +470,6 @@ namespace CombatSystem.Player
             attackIndex = ChaseIndex;
             queuedAttack = false;
             skillAttackBufferedUntil = float.NegativeInfinity;
-            lastParryInput = float.NegativeInfinity;
             AttackSequence++;
             Vector3 toTarget = target.transform.position - transform.position;
             toTarget.y = 0f;
@@ -378,8 +494,9 @@ namespace CombatSystem.Player
         public void EndAirCombo()
         {
             if (!Player.IsAirComboActive) return;
+            bool finisher = IsAirComboFinisher;
             IsAttacking = false; queuedAttack = false; attackIndex = 0;
-            airCombo.Fall();
+            airCombo.Fall(finisher);
         }
 
         private void FaceNearbyEnemy(float targetDistance = -1f)
@@ -430,6 +547,17 @@ namespace CombatSystem.Player
                 if (next.IsName(expected)) info = next;
             }
             if (!info.IsName(expected)) return;
+            if (IsUsingSkillA && eFollowUpQueued && !Player.PiercingDash.IsDashing &&
+                info.normalizedTime >= config.skillAFollowUpProgress)
+            {
+                BeginEFollowUp();
+                return;
+            }
+            if (IsUsingEFollowUp && queuedAttack && info.normalizedTime >= config.eFollowUpComboProgress)
+            {
+                BeginGroundCombo(config.skillFollowUpBlendTime);
+                return;
+            }
 
             if (bufferedSkillIndex >= 0 && Time.time > bufferedSkillUntil) bufferedSkillIndex = -1;
             if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && info.normalizedTime >= config.normalSkillTransitionProgress)
@@ -494,12 +622,13 @@ namespace CombatSystem.Player
             }
             else if (info.normalizedTime >= 1f)
             {
+                float idleBlend = IsUsingGroundCombo ? config.groundAttackIdleBlendTime : config.crossFadeTime;
                 bufferedSkillIndex = -1;
                 IsAttacking = false;
                 queuedAttack = false;
                 skillAttackBufferedUntil = float.NegativeInfinity;
                 attackIndex = 0;
-                PlayAnimState(config.idleAnimStateName);
+                animator.CrossFadeInFixedTime(config.idleAnimStateName, idleBlend, 0);
             }
         }
 
@@ -534,6 +663,15 @@ namespace CombatSystem.Player
         {
             if (!IsGuarding) return;
             animator.CrossFadeInFixedTime("Base Layer.GuardAccept", 0.04f, 0, 0f);
+        }
+
+        public override void OnDisable()
+        {
+            ClearEFollowUp();
+            ClearGroundAttackInput();
+            IsAttacking = false;
+            IsGuarding = false;
+            queuedAttack = false;
         }
 
         private void PlayAnimState(string stateName)

@@ -51,11 +51,10 @@ namespace CombatSystem.Combat
                 int nextCombo = FindCombo(next);
                 if (nextCombo >= 0) { state = next; combo = nextCombo; }
             }
-            if (combo < 0) { combat.SetParryWindowOpen(false); return; }
+            if (combo < 0) { return; }
             Vector2 window = combo == 0 ? config.combo1HitWindow : combo == 1 ? config.combo2HitWindow :
                 combo == 2 ? config.combo3HitWindow : config.combo4HitWindow;
             bool active = state.normalizedTime >= window.x && state.normalizedTime <= window.y;
-            combat.SetParryWindowOpen(active);
             if (!active) return;
             if (sequence != lastSequence || combo != lastCombo)
             {

@@ -29,7 +29,7 @@ public class EnemyFsmGraphWindow : EditorWindow
     private List<Edge> edges;
     private double nextRepaint;
 
-    [MenuItem("Tools/Parry System/FSM Graph")]
+    [MenuItem("Tools/Combat System/FSM Graph")]
     public static void Open()
     {
         var window = GetWindow<EnemyFsmGraphWindow>("Enemy FSM Graph");
@@ -75,7 +75,6 @@ public class EnemyFsmGraphWindow : EditorWindow
             new Node("OBSERVE", "거리 유지 / 전투 위치 재선택", 940, 255),
             new Node("DECISION", "가중치에 따른 다음 행동 선택", 640, 450),
             new Node("RETREAT", "잠시 후퇴", 940, 645),
-            new Node("GROGGY", "패링 게이지 충족 / 경직", 340, 645),
             new Node("HIT", "일반 피격 / 스킬 넉다운 / 기상", 40, 450)
         };
         edges = new List<Edge>
@@ -91,8 +90,6 @@ public class EnemyFsmGraphWindow : EditorWindow
             new Edge("DECISION","OBSERVE","계속 관찰 또는 위치 변경 선택"),
             new Edge("DECISION","RETREAT","후퇴 선택"),
             new Edge("RETREAT","OBSERVE","RetreatDuration 경과 / 목표 재선택"),
-            new Edge("ATTACK","GROGGY","패링 누적 게이지 ≥ 최대치"),
-            new Edge("GROGGY","IDLE","StaggerDuration 경과 / 게이지 초기화"),
             new Edge("HIT","OBSERVE","피격 완료 또는 넉다운 → 기상 완료")
         };
     }
@@ -243,7 +240,6 @@ public class EnemyFsmGraphWindow : EditorWindow
         Value("Detection / Attack Range",c.DetectionRange+" m / "+c.AttackRange+" m");
         Value("Observe Distance",c.CombatMinDistance+" – "+c.CombatMaxDistance+" m");
         Value("HealthPercent",live && health!=null?(health.CurrentHealth/health.MaxHealth*100).ToString("0")+"%":"—");
-        Value("Groggy",live?c.GroggyGauge+" / "+c.MaxGroggyGauge:"—");
         Value("PlayerGuarding",live?c.IsPlayerGuarding.ToString():"—");
         Value("PlayerAttacking",live?c.IsPlayerAttacking.ToString():"—");
     }
@@ -265,7 +261,6 @@ public class EnemyFsmGraphWindow : EditorWindow
             {
                 EditorGUILayout.LabelField("감지 / 공격",c.DetectionRange+" m / "+c.AttackRange+" m");
                 EditorGUILayout.LabelField("Observe 거리",c.CombatMinDistance+" – "+c.CombatMaxDistance+" m");
-                if(Application.isPlaying) EditorGUILayout.LabelField("그로기",c.GroggyGauge+" / "+c.MaxGroggyGauge);
                 if(GUILayout.Button("Enemy Inspector 선택")) Selection.activeGameObject=target.gameObject;
             }
         }
@@ -278,7 +273,7 @@ public class EnemyFsmGraphWindow : EditorWindow
             foreach(var edge in edges)
                 if(edge.from==selected) EditorGUILayout.HelpBox("→ "+edge.to+"\n"+edge.condition,MessageType.None);
             if(selected=="HIT")
-                EditorGUILayout.HelpBox("외부 피격 진입: 일반 공격은 Attack/Groggy/넉다운 중 모션 유지. Skill_A는 넉다운 중이면 피해만 적용. Skill_G는 피격 상태로 진입/재시작. 넉다운과 기상은 이 상태 내부에서 처리.",MessageType.None);
+                EditorGUILayout.HelpBox("외부 피격 진입: 일반 공격은 Attack/넉다운 중 모션 유지. Skill_A는 넉다운 중이면 피해만 적용. Skill_G는 피격 상태로 진입/재시작. 넉다운과 기상은 이 상태 내부에서 처리.",MessageType.None);
             if(selected=="DECISION")
                 EditorGUILayout.HelpBox("Enter 안에서 즉시 분기합니다. 공격 선택도 먼저 Chase로 이동합니다. 짧은 상태는 최근 진입 표시와 로그에서 확인하세요.",MessageType.None);
         }

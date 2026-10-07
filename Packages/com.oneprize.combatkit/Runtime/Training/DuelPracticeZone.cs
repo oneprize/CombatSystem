@@ -72,7 +72,7 @@ namespace CombatSystem.Training
         public void ResetOpponent()
         {
             opponent.ChangeState(opponent.IdleState);
-            combat.SetParryWindowOpen(false); combat.ResetGroggyGauge();
+
             opponent.transform.SetPositionAndRotation(spawn,facing);
             health.RestoreHealth(); defeatTime=-1;
             Physics.SyncTransforms();

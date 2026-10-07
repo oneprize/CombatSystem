@@ -12,3 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba73c1eb73894849b586b9f7f473272c, type: 3}
   m_Name: EnemyDamageReactionConfig
   m_EditorClassIdentifier: 
+  maxHealth: 100
+  damagePerHit: 10
+  piercingHitInterval: 0.12
+  groundReactionMotionScale: 0.55
+  thirdHitTargetDistance: 4
+  thirdHitMaxExtraPush: 3.4
+  thirdHitPushDuration: 0.2
+  downDuration: 1
+  aerialHitBlendTime: 0.1
+  slamBounceHeight: 0.8
+  slamFollowUpWindow: 0.8
+  upperLiftSpeed: 8
+  upperPushSpeed: 1.5

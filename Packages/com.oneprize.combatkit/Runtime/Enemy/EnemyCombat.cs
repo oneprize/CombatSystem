@@ -20,9 +20,7 @@ namespace CombatSystem.Combat
         public CombatTeam Team => CombatTeam.Enemy;
 
         public float IdleDuration => config.idleDuration;
-        public float StaggerDuration => config.staggerDuration;
 
-        public bool IsParryWindowOpen { get; private set; }
 
         /// <summary>
         /// 플레이어가 우클릭 방어를 유지하고 있는지. 실제 방어는 무기 접촉 시 처리한다.
@@ -106,29 +104,7 @@ namespace CombatSystem.Combat
         public ComboStep GetComboStep(int index) => config.comboSteps[index];
         public int ComboStepCount => config.comboSteps.Length;
 
-        public void SetParryWindowOpen(bool open)
-        {
-            IsParryWindowOpen = open;
-        }
-
-        public float GroggyGauge { get; private set; }
-        public float MaxGroggyGauge => Mathf.Max(1f, config.maxGroggyGauge);
-
-        public void RegisterParry()
-        {
-            if (stateMachine.CurrentState != stateMachine.AttackState) return;
-            GroggyGauge = Mathf.Min(MaxGroggyGauge, GroggyGauge + config.groggyPerParry);
-            if (GroggyGauge >= MaxGroggyGauge)
-            {
-                SetParryWindowOpen(false);
-                stateMachine.ChangeState(stateMachine.GroggyState);
-            }
-        }
-
-        public void ResetGroggyGauge() { GroggyGauge = 0f; }
-
         public void PlayIdleAnim() => PlayAnimState(config.idleAnimStateName);
-        public void PlayGroggyAnim() => PlayAnimState(config.groggyAnimStateName);
         public void PlayMoveAnim() => PlayAnimState(config.moveAnimStateName);
         public void PlayPatrolAnim() => PlayAnimState(config.patrolAnimStateName);
         public void PlayObserveAnim()

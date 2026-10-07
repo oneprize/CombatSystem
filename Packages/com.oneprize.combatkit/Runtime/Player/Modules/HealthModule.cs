@@ -3,15 +3,15 @@ using CombatSystem.Data.Player;
 
 namespace CombatSystem.Player
 {
-    public enum PlayerHitResult { None, Blocked, Parried, Damaged, Evaded }
+    public enum PlayerHitResult { None, Blocked, Damaged, Evaded }
 
     /// <summary>
-    /// Incoming hits: dodge/parry/guard resolution, HP, hit-reaction animations and the
+    /// Incoming hits: dodge/guard resolution, HP, hit-reaction animations and the
     /// boss knockdown with directional stand-up.
     /// </summary>
     public sealed class HealthModule : PlayerModule
     {
-        /// <summary>Raised for every hit that actually lands. Blocked/parried hits never raise it.</summary>
+        /// <summary>Raised for every hit that actually lands. Blocked hits never raise it.</summary>
         public event System.Action<int> DamageReceived;
 
         private PlayerProfile.HealthSettings config;
@@ -32,15 +32,6 @@ namespace CombatSystem.Player
         {
             config = Player.Profile.health;
             CurrentHealth = MaxHealth;
-        }
-
-        public void PlayProjectileParry()
-        {
-            if (bossDown) return;
-            Player.Combat.CancelForDamage();
-            stateName = "Base Layer.ProjectileParry";
-            IsReacting = true; entered = false;
-            animator.CrossFadeInFixedTime(stateName, .05f, 0, 0);
         }
 
         private void ReadStandUpInput()
@@ -67,7 +58,7 @@ namespace CombatSystem.Player
             return true;
         }
 
-        public bool ReceiveHit(int comboIndex, Transform attacker, bool allowParry = true, bool knockDown = false)
+        public bool ReceiveHit(int comboIndex, Transform attacker, bool knockDown = false)
         {
             if (comboIndex < 0 || comboIndex > 3)
                 return false;
@@ -78,18 +69,7 @@ namespace CombatSystem.Player
                 LastResult = PlayerHitResult.Evaded;
                 return true;
             }
-            var enemy = attacker != null ? attacker.GetComponent<CombatSystem.Combat.EnemyCombat>() : null;
             LastComboIndex = comboIndex;
-            if (allowParry && combat.TryConsumeParry())
-            {
-                LastResult = PlayerHitResult.Parried;
-                if (enemy != null) enemy.RegisterParry();
-                var boss = attacker != null ? attacker.GetComponentInParent<CombatSystem.Boss.BossCombat>() : null;
-                if (boss != null) boss.RegisterParry();
-                Player.PlayParryFeedback();
-                Debug.Log($"[Parry Success] 패링 성공 | Enemy: {(attacker != null ? attacker.name : "Unknown")} | Combo: {comboIndex + 1}", Player);
-                return true;
-            }
             if (combat.IsGuarding)
             {
                 LastResult = PlayerHitResult.Blocked;
@@ -103,7 +83,7 @@ namespace CombatSystem.Player
             if (combat.IsChargingPower)
             {
                 // Past the armor point the charge takes the damage without flinching or being knocked down;
-                // before it, any hit cancels the charge (the drained gauge is not refunded).
+                // before it, any hit cancels the charge.
                 if (combat.IsPowerArmored) return true;
             }
             // Only an ongoing player attack resists interruption by weak hits.

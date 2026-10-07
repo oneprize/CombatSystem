@@ -16,7 +16,7 @@ namespace CombatSystem.Player
         bool RunHeld { get; }
         bool JumpPressed { get; }
         bool DodgePressed { get; }
-        /// <summary>Also the parry input.</summary>
+        /// <summary>Primary attack input.</summary>
         bool AttackPressed { get; }
         /// <summary>Attack button kept down (charges the power attack).</summary>
         bool AttackHeld { get; }

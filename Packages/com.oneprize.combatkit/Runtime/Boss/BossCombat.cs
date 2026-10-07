@@ -18,27 +18,7 @@ private PlayerCharacter GetPlayer()
     }
     return player;
 }
-private float groggyEndsAt;
-private bool groggyActive;
-public int ParryCount { get; private set; }
-public int ParriesToGroggy => Mathf.Max(1, coreConfig.parriesToGroggy);
-public bool GroggyReady => ParryCount >= ParriesToGroggy;
-public float GroggySecondsRemaining => groggyActive ? Mathf.Max(0, groggyEndsAt - Time.time) : 0;
-public bool IsGroggy => groggyActive && GroggySecondsRemaining > 0;
-public bool CanTakeDamage => IsGroggy && CurrentHealth > 0;
-public void RegisterParry()
-{
-    if (groggyActive || CurrentHealth <= 0 || GroggyReady) return;
-    ParryCount++;
-    Debug.Log("[Boss Parry] " + ParryCount + "/" + ParriesToGroggy, this);
-}
-public void BeginGroggy()
-{
-    groggyActive = true;
-    groggyEndsAt = Time.time + Mathf.Max(.1f, coreConfig.groggyDuration);
-    if (ActiveProjectile != null && !ActiveProjectile.Resolved) Destroy(ActiveProjectile.gameObject);
-}
-public void EndGroggy() { groggyActive = false; ParryCount = 0; }
+public bool CanTakeDamage => CurrentHealth > 0;
 public bool TryReceivePlayerHit(float damageMultiplier = 1f)
 {
     if (!CanTakeDamage) return false;
@@ -114,7 +94,7 @@ public void ThrowProjectile()
     foreach (var ownerCollider in GetComponentsInChildren<Collider>())
         Physics.IgnoreCollision(ballCollider, ownerCollider);
     ActiveProjectile = ball.GetComponent<BossProjectile>();
-    if(ActiveProjectile!=null) ActiveProjectile.Initialize(this, playerCombat);
+    if(ActiveProjectile!=null) ActiveProjectile.Initialize(this);
     body.linearVelocity = velocity;
     Destroy(ball, pattern1Config.projectileLifetime);
 }
@@ -146,7 +126,7 @@ public void ApplyLandingHit()
     delta.y=0;
     if(delta.sqrMagnitude<=pattern2Config.impactRadius*pattern2Config.impactRadius)
     {
-        playerCombat.Health.ReceiveHit(3,transform,true,true);
+        playerCombat.Health.ReceiveHit(3,transform,knockDown: true);
     }
 }
 private void OnDrawGizmosSelected()
@@ -188,7 +168,7 @@ public void ApplyChargeHit(Vector3 from,Vector3 to)
     {
         var hitPlayer=collider.GetComponentInParent<PlayerCharacter>();
         if(hitPlayer==null || hitPlayer!=playerCombat)continue;
-        if(hitPlayer.Health.ReceiveHit(3,transform,true,true))chargeHitConsumed=true;
+        if(hitPlayer.Health.ReceiveHit(3,transform,knockDown: true))chargeHitConsumed=true;
         break;
     }
 }

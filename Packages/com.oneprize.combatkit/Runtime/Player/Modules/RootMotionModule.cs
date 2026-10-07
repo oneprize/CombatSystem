@@ -8,6 +8,38 @@ namespace CombatSystem.Player
     /// </summary>
     public sealed class RootMotionModule : PlayerModule
     {
+
+        // Lowest-foot trajectory of Player_Combo04_4, sampled at its 57 authored frames.
+        // Human-scale units keep the jump consistent when the avatar is retargeted.
+        private static readonly float[] GroundFinisherHeights = { 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.135146f, 0.264373f, 0.391571f, 0.516572f, 0.635510f, 0.695620f, 0.734403f, 0.719226f, 0.570821f, 0.307487f, 0.008205f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f, 0.000000f };
+        private int finisherSequence = -1;
+        private float previousFinisherHeight;
+
+        private void ApplyGroundFinisher(Vector3 delta)
+        {
+            if (!animator.applyRootMotion || character == null || !character.enabled) return;
+            var combat = Player.Combat;
+            if (finisherSequence != combat.AttackSequence)
+            {
+                finisherSequence = combat.AttackSequence;
+                previousFinisherHeight = 0f;
+            }
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            if (animator.IsInTransition(0))
+            {
+                var next = animator.GetNextAnimatorStateInfo(0);
+                if (next.IsName("Base Layer.Attack4")) state = next;
+            }
+            if (!state.IsName("Base Layer.Attack4")) return;
+            float sample = Mathf.Clamp01(state.normalizedTime) * (GroundFinisherHeights.Length - 1);
+            int index = Mathf.Min(Mathf.FloorToInt(sample), GroundFinisherHeights.Length - 2);
+            float height = Mathf.Lerp(GroundFinisherHeights[index], GroundFinisherHeights[index + 1],
+                sample - index) * animator.humanScale;
+            delta.y = height - previousFinisherHeight;
+            previousFinisherHeight = height;
+            character.Move(delta);
+        }
+
         public void Apply(Vector3 delta)
         {
             var combat = Player.Combat;
@@ -30,6 +62,11 @@ namespace CombatSystem.Player
             if (combat.IsUsingChaseAttack)
             {
                 Player.AirCombo.ApplyChaseMotion();
+                return;
+            }
+            if (combat.IsGroundComboFinisher)
+            {
+                ApplyGroundFinisher(delta);
                 return;
             }
             if (combat.IsReleasingPower)

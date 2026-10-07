@@ -81,7 +81,7 @@ namespace CombatSystem.Player
                 return;
             }
             HandleMovement(dt);
-            if (Player.Combat.IsUsingUpperAttack || Player.Combat.IsUsingChaseAttack || Player.Combat.IsReleasingPower)
+            if (Player.Combat.IsUsingUpperAttack || Player.Combat.IsUsingChaseAttack || Player.Combat.IsReleasingPower || Player.Combat.IsGroundComboFinisher)
             {
                 // UpperAttack owns vertical movement through collision-aware root motion.
                 // Do not add normal jump gravity or accept Space during this animation.
@@ -91,6 +91,14 @@ namespace CombatSystem.Player
                 return;
             }
             HandleJump(dt);
+        }
+
+        public void OnCombatLanded()
+        {
+            IsGrounded = true;
+            velocity = Vector3.zero;
+            ResetJumpState();
+            animator.SetBool("isGrounded", true);
         }
 
         private void HandleMovement(float dt)

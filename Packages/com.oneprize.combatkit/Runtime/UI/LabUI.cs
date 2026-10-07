@@ -17,8 +17,7 @@ namespace CombatSystem.UI
         }
         private Canvas canvas;
         private Text enemyName, state, conditions, logs, hpText, duration;
-        private Image hpFill, groggyFill;
-        private Text groggyText;
+        private Image hpFill;
         private float refreshAt;
 
         private Text Label(Transform parent, string name, float y, float height, int size, Color color)
@@ -47,7 +46,7 @@ namespace CombatSystem.UI
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
             var panel = LabUIKit.Panel(root.transform, "AI MONITOR", LabUIKit.PanelBg);
-            LabUIKit.TopRight(panel, 18, -18, 400, 780);
+            LabUIKit.TopRight(panel, 18, -18, 400, 700);
             Label(panel, "Title", 16, 36, LabUIKit.FsHead, LabUIKit.Accent).text = "AI MONITOR";
             enemyName = Label(panel, "Enemy", 55, 32, LabUIKit.FsBody, LabUIKit.TextMain);
             hpFill = LabUIKit.Bar(panel, "Health", 20, -96, 360, 12, LabUIKit.PanelEdge, LabUIKit.Good);
@@ -58,10 +57,8 @@ namespace CombatSystem.UI
             LabUIKit.HLine(panel, 20, -258, 360, LabUIKit.PanelEdge, 1);
             Label(panel, "Conditions Heading", 272, 32, LabUIKit.FsHead, LabUIKit.TextMain).text = "CONDITION";
             conditions = Label(panel, "Conditions", 310, 205, LabUIKit.FsSmall, LabUIKit.TextMain);
-            groggyFill = LabUIKit.Bar(panel, "Groggy", 20, -526, 360, 10, LabUIKit.PanelEdge, LabUIKit.AccentWarm);
-            groggyText = Label(panel, "Groggy Value", 540, 28, LabUIKit.FsSmall, LabUIKit.TextMain);
-            Label(panel, "Log Heading", 577, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
-            logs = Label(panel, "Logs", 617, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
+            Label(panel, "Log Heading", 497, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
+            logs = Label(panel, "Logs", 537, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
         }
         private void OnEnable() { if (canvas != null) canvas.gameObject.SetActive(true); }
         private void OnDisable() { if (canvas != null) canvas.gameObject.SetActive(false); }
@@ -89,20 +86,18 @@ namespace CombatSystem.UI
             hpText.text = health != null ? string.Format("HP  {0:0} / {1:0}   ({2:0}%)", health.CurrentHealth, health.MaxHealth, hpFill.fillAmount * 100) : "HP —";
             if (combat != null)
             {
-                groggyFill.fillAmount = combat.GroggyGauge / combat.MaxGroggyGauge;
-                groggyText.text = string.Format("GROGGY  {0:0} / {1:0}", combat.GroggyGauge, combat.MaxGroggyGauge);
                 bool hasPlayer = combat.PlayerTransform != null;
                 Vector3 delta = hasPlayer ? combat.PlayerTransform.position - target.transform.position : Vector3.zero;
                 delta.y = 0f;
                 float distance = hasPlayer ? delta.magnitude : float.PositiveInfinity;
                 conditions.text = string.Format(
-                    "Player distance     {0}\nDetected (≤ {1:0.0}m)     {2}\nAttack range (≤ {3:0.0}m)     {4}\nObserve distance     {5:0.0} – {6:0.0}m\nPlayer guarding     {7}\nPlayer attacking     {8}\nParry window     {9}\nLow HP (≤ 30%)     {10}",
+                    "Player distance     {0}\nDetected (≤ {1:0.0}m)     {2}\nAttack range (≤ {3:0.0}m)     {4}\nObserve distance     {5:0.0} – {6:0.0}m\nPlayer guarding     {7}\nPlayer attacking     {8}\nLow HP (≤ 30%)     {9}",
                     hasPlayer ? distance.ToString("0.00") + "m" : "N/A",
                     combat.DetectionRange, Flag(hasPlayer && distance <= combat.DetectionRange),
                     combat.AttackRange, Flag(hasPlayer && distance <= combat.AttackRange),
                     combat.CombatMinDistance, combat.CombatMaxDistance,
                     Flag(combat.IsPlayerGuarding), Flag(combat.IsPlayerAttacking),
-                    Flag(combat.IsParryWindowOpen), Flag(health != null && hpFill.fillAmount <= .3f));
+                    Flag(health != null && hpFill.fillAmount <= .3f));
             }
             var sb = new StringBuilder();
             var entries = target.MonitorLog;

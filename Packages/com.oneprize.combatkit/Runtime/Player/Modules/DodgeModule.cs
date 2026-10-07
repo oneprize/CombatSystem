@@ -10,7 +10,6 @@ namespace CombatSystem.Player
         public string CurrentStateName { get; private set; }
         private PlayerProfile.DodgeSettings config;
         private Vector3 direction;
-        private bool attackBuffered;
 
         protected override void OnInitialize()
         {
@@ -24,8 +23,7 @@ namespace CombatSystem.Player
             direction = worldInput.sqrMagnitude > .001f ? worldInput.normalized : transform.forward;
             CurrentStateName = "Base Layer.DodgeFront";
             if (!animator.HasState(0, Animator.StringToHash(CurrentStateName))) return false;
-            if (Player.IsAttacking) Player.Combat.CancelForDodge();
-            attackBuffered = false;
+            Player.Combat.CancelForDodge();
             // Face the movement direction so the forward dodge matches its displacement.
             direction.y = 0f;
             direction.Normalize();
@@ -44,15 +42,14 @@ namespace CombatSystem.Player
             if (!IsDodging) return;
             if (Player.IsHitReacting) { IsDodging = false; return; }
             // CombatModule does not tick while dodging, so attack input is read here.
-            if (Player.Controls.AttackPressed) attackBuffered = true;
+            Player.Combat.CaptureGroundAttackInput(Player.Controls);
             character.Move(Vector3.down * 2f * dt);
             if (animator.IsInTransition(0)) return;
             var state = animator.GetCurrentAnimatorStateInfo(0);
             bool playing = state.IsName(CurrentStateName) && state.normalizedTime < 1f;
-            if (attackBuffered && (!playing || state.normalizedTime >= config.attackCancelProgress))
+            if (Player.Combat.GroundAttackInputReady && (!playing || state.normalizedTime >= config.attackCancelProgress))
             {
                 IsDodging = false;
-                attackBuffered = false;
                 Player.Combat.BeginAttackFromDodge(config.attackBlendTime);
                 if (Player.IsAttacking) return;
             }

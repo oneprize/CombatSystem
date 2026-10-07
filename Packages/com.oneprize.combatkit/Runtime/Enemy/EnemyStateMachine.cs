@@ -42,7 +42,6 @@ namespace CombatSystem.Combat
         public EnemyObserveState ObserveState { get; private set; }
         public EnemyDecisionState DecisionState { get; private set; }
         public EnemyRetreatState RetreatState { get; private set; }
-        public EnemyGroggyState GroggyState { get; private set; }
 
         private void Awake()
         {
@@ -55,7 +54,6 @@ namespace CombatSystem.Combat
             ObserveState = new EnemyObserveState(this, combat);
             DecisionState = new EnemyDecisionState(this, combat);
             RetreatState = new EnemyRetreatState(this, combat);
-            GroggyState = new EnemyGroggyState(this, combat);
         }
 
         private void Start()

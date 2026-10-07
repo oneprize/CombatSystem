@@ -64,6 +64,14 @@ namespace CombatSystem.Combat
             velocity = finisher ? Vector3.down * 8f : Vector3.zero;
         }
 
+        public void Bounce(float height)
+        {
+            velocity = Vector3.up * Mathf.Sqrt(2f * config.gravity * Mathf.Max(0f, height));
+            airHoldRemaining = 0f;
+            Grounded = false;
+            Active = true;
+        }
+
         private bool Sweep(Vector3 direction, float distance, out RaycastHit nearest)
         {
             var bounds = capsule.bounds;

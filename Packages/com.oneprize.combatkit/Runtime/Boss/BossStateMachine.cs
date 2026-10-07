@@ -12,9 +12,8 @@ public string PreviousStateName {get;private set;}="-";
 public BossIdleState IdleState {get;private set;}
 public BossPattern1State Pattern1State {get;private set;}
 public BossPattern2State Pattern2State {get;private set;}
-public BossGroggyState GroggyState {get;private set;}
 public static string StateName(IBossState state)=>state!=null?state.Name:"-";
-private void Awake(){GroggyState=new BossGroggyState(this,GetComponent<BossCombat>());IdleState=new BossIdleState(this,GetComponent<BossCombat>());Pattern1State=new BossPattern1State(this,GetComponent<BossCombat>());Pattern2State=new BossPattern2State(this,GetComponent<BossCombat>());}
+private void Awake(){IdleState=new BossIdleState(this,GetComponent<BossCombat>());Pattern1State=new BossPattern1State(this,GetComponent<BossCombat>());Pattern2State=new BossPattern2State(this,GetComponent<BossCombat>());}
 private bool useSecondPattern;
 public void SelectNextPattern()
 {
@@ -27,8 +26,6 @@ private void Update()
 {
     var combat = GetComponent<BossCombat>();
     if (combat.CurrentHealth <= 0) return;
-    // Process the request outside a pattern Tick to avoid reentrant state transitions.
-    if (combat.GroggyReady && CurrentState != GroggyState) ChangeState(GroggyState);
     if(CurrentState!=null){Record(CurrentState,"EXECUTE");CurrentState.Tick(Time.deltaTime);}
 }
 private void Record(IBossState state,string phase){

@@ -32,11 +32,10 @@ namespace CombatSystem.Player
             var struck = secondStrike ? secondBossHits : bossHits;
             if (boss != null && struck.Add(boss)) boss.TryReceivePlayerHit(combat.IsReleasingPower ? combat.PowerDamageMultiplier : 1f);
         }
-        /// <summary>Marks the enemy as hit by this attack; a first hit also fills the power gauge.</summary>
+        /// <summary>Marks the enemy as hit by this attack; repeated overlap is ignored.</summary>
         private bool Struck(System.Collections.Generic.HashSet<EnemyDamageReaction> set, EnemyDamageReaction enemy)
         {
             if (!set.Add(enemy)) return false;
-            player.PowerGauge.RegisterHit(combat.IsUsingSkill || combat.IsUsingPiercingSkill || combat.IsUsingSkillI || combat.IsUsingSkillC);
             return true;
         }
         private float previousPowerProgress;
@@ -182,6 +181,7 @@ namespace CombatSystem.Player
                         enemy.ReceiveAirComboHit(owner, airIndex, combat.IsAirComboFinisher);
                     HitBoss(other, false);
                 }
+                if (combat.IsAirComboFinisher && progress >= hitRange.y) combat.EndAirCombo();
                 return;
             }
             if (combat.IsUsingUpperAttack)
@@ -234,7 +234,7 @@ namespace CombatSystem.Player
                 }
                 return;
             }
-            Vector2 window = combat.IsUsingSkillA ? config.skillAHitWindow :
+            Vector2 window = combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
                 combat.IsUsingGroundCombo && config.groundHitWindows != null && index < config.groundHitWindows.Length
                     ? config.groundHitWindows[index] : config.hitWindow;
             if (combat.IsUsingGroundCombo)
@@ -255,7 +255,8 @@ namespace CombatSystem.Player
                 HitBoss(other, false);
                 if (enemy != null && Struck(hits, enemy))
                 {
-                    if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(player.transform);
+                    if (combat.IsUsingEFollowUp) enemy.ReceiveGroundComboHit(player.transform, 1, false);
+                    else if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(player.transform);
                     else if (combat.IsUsingGroundCombo) enemy.ReceiveGroundComboHit(player.transform, index, combat.IsGroundComboFinisher);
                     else enemy.ReceiveHit();
                 }

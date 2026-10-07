@@ -89,7 +89,7 @@ namespace CombatSystem.Training
             var m=opponents[i];
             m.ChangeState(m.IdleState);
             var c=m.GetComponent<EnemyCombat>();
-            c.SetParryWindowOpen(false);c.ResetGroggyGauge();
+
             m.GetComponent<EnemyDamageReaction>().RestoreHealth();
             m.transform.SetPositionAndRotation(spawns[i],rotations[i]);
             defeatedAt[i]=-1;

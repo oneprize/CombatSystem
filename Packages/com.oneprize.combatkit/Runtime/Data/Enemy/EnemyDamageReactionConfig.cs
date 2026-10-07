@@ -11,10 +11,18 @@ namespace CombatSystem.Data.Enemy
         [Min(.05f)] public float piercingHitInterval = .12f;
 
         [Min(0)] public float groundReactionMotionScale = .55f;
+        [Header("Ground combo third hit spacing")]
+        [Min(0f)] public float thirdHitTargetDistance = 4f;
+        [Min(0f)] public float thirdHitMaxExtraPush = 3.4f;
+        [Min(.01f)] public float thirdHitPushDuration = .2f;
 
         [Min(0)] public float downDuration = 1f;
 
         [Min(0f)] public float aerialHitBlendTime = 0.1f;
+
+        [Header("Air finisher follow-up")]
+        [Min(0f)] public float slamBounceHeight = .8f;
+        [Min(.1f)] public float slamFollowUpWindow = .8f;
 
         [Header("Upper attack reaction")]
         [Min(0)] public float upperLiftSpeed = 8f;

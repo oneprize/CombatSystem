@@ -22,8 +22,6 @@ namespace CombatSystem.Player
     {
         [Tooltip("Basis for camera-relative movement. A Cinemachine camera resolves to the Unity camera it drives. Falls back to Camera.main.")]
         [SerializeField] private Transform cameraTransform;
-        [Tooltip("Slow-motion/zoom played on a successful parry. Optional; may live on the camera.")]
-        [SerializeField] private ParryFeedback parryFeedback;
 
         [Tooltip("Every tuning value for this character, grouped by module.")]
         [SerializeField] private PlayerProfile profile;
@@ -45,8 +43,6 @@ namespace CombatSystem.Player
         public AttackHeightOffsetModule AttackHeightOffset { get; private set; }
         public RootMotionModule RootMotion { get; private set; }
         public LockOnModule LockOn { get; private set; }
-        public PowerGaugeModule PowerGauge { get; private set; }
-
         public PlayerProfile Profile
         {
             get
@@ -123,12 +119,6 @@ namespace CombatSystem.Player
             }
         }
 
-        public void PlayParryFeedback()
-        {
-            if (parryFeedback == null) parryFeedback = GetComponent<ParryFeedback>();
-            if (parryFeedback != null) parryFeedback.Play();
-        }
-
         private void Awake()
         {
             var controls = GetComponent<IPlayerInput>();
@@ -147,7 +137,6 @@ namespace CombatSystem.Player
             AttackHeightOffset = new AttackHeightOffsetModule();
             RootMotion = new RootMotionModule();
             LockOn = new LockOnModule();
-            PowerGauge = new PowerGaugeModule();
             foreach (var module in Modules()) module.Bind(Context);
         }
 
@@ -164,7 +153,6 @@ namespace CombatSystem.Player
             yield return AttackHeightOffset;
             yield return RootMotion;
             yield return LockOn;
-            yield return PowerGauge;
         }
 
         private void OnEnable() { CombatRegistry.Register(this); }

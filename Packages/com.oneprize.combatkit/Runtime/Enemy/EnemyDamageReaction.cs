@@ -43,7 +43,7 @@ namespace CombatSystem.Combat
         public bool BeginGather(Vector3 destination, Transform attacker, float duration)
         {
             if (physicalKnockdown) return false;
-            if (machine.CurrentState == this) Exit();
+            if (machine.CurrentState == this && !physicalKnockdown) ResetReaction();
             gatherTarget = destination; gatherRemaining = Mathf.Max(.05f, duration);
             reactionState = "Base Layer.Hit";
             Vector3 face = attacker.position - transform.position; face.y=0;
@@ -57,6 +57,20 @@ namespace CombatSystem.Combat
         private float piercingElapsed;
         public bool IsGroundComboReaction { get; private set; }
         private Vector3 groundPushDirection;
+        private float thirdHitPushDistance, thirdHitPushElapsed;
+        private void TickThirdHitPush(float dt)
+        {
+            if (thirdHitPushDistance <= 0f) return;
+            if (!IsGroundComboReaction || reactionState != "Base Layer.GroundHitC")
+            { thirdHitPushDistance = 0f; return; }
+            float duration = Mathf.Max(.01f, config.thirdHitPushDuration);
+            float before = Mathf.Clamp01(thirdHitPushElapsed / duration);
+            thirdHitPushElapsed += dt;
+            float after = Mathf.Clamp01(thirdHitPushElapsed / duration);
+            float movement = thirdHitPushDistance * ((2f * after - after * after) - (2f * before - before * before));
+            knockback.Push(groundPushDirection * movement);
+            if (after >= 1f) thirdHitPushDistance = 0f;
+        }
         public void ApplyGroundReactionMotion(Vector3 delta)
         {
             float backward = Mathf.Max(0, Vector3.Dot(delta, groundPushDirection));
@@ -65,6 +79,19 @@ namespace CombatSystem.Combat
         private EnemyKnockbackMotion knockback;
         private bool physicalKnockdown;
         private float downElapsed;
+        private bool slamPending, bounceUsed;
+        private float bounceWindowRemaining;
+        public bool CanFollowUpBounce => bounceWindowRemaining > 0f;
+        public bool BounceUsed => bounceUsed;
+
+        private void ConsumeBounceFollowUp()
+        {
+            if (!CanFollowUpBounce) return;
+            bounceWindowRemaining = 0f;
+            slamPending = false;
+            aerialReaction = false;
+            // Keep gravity until the low bounce actually touches the floor.
+        }
         public bool HasPhysicalKnockdown => physicalKnockdown;
         public bool IsKnockdownGrounded => knockback != null && knockback.Grounded;
         private void Awake()
@@ -85,18 +112,18 @@ namespace CombatSystem.Combat
         public void ReceiveHit()
         {
             ApplyDamage();
-            // Attacks and an existing groggy are not interrupted by ordinary damage.
-            if (aerialReaction || machine.CurrentState == machine.AttackState ||
-                machine.CurrentState == machine.GroggyState) return;
+            // Attacks are not interrupted by ordinary damage.
+            if (aerialReaction || machine.CurrentState == machine.AttackState) return;
             reactionState = "Base Layer.Hit";
             if (machine.CurrentState == this) Enter();
             else machine.ChangeState(this);
         }
         public void ReceivePiercingHit(Transform attacker, Vector3 dashDirection)
         {
+            ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
-            if (machine.CurrentState == this) Exit();
+            if (machine.CurrentState == this && !physicalKnockdown) ResetReaction();
             IsGroundComboReaction = false;
             piercingReaction = true; piercingStep = 0; piercingElapsed = 0;
             dashDirection.y = 0;
@@ -107,8 +134,9 @@ namespace CombatSystem.Combat
 
         public void ReceiveGroundComboHit(Transform attacker, int comboIndex, bool finisher)
         {
+            ConsumeBounceFollowUp();
             // Keep attack armour and existing airborne/down reactions.
-            if (aerialReaction || machine.CurrentState == machine.AttackState || machine.CurrentState == machine.GroggyState)
+            if (aerialReaction || machine.CurrentState == machine.AttackState)
             { ApplyDamage(); return; }
             if (finisher) { ReceiveSkillHit(attacker); return; }
             ApplyDamage();
@@ -116,6 +144,9 @@ namespace CombatSystem.Combat
             away.y = 0;
             if (away.sqrMagnitude < .001f) away = -transform.forward;
             groundPushDirection = away.normalized;
+            thirdHitPushElapsed = 0f;
+            thirdHitPushDistance = comboIndex == 2 && attacker != null
+                ? Mathf.Clamp(config.thirdHitTargetDistance - away.magnitude, 0f, config.thirdHitMaxExtraPush) : 0f;
             transform.rotation = Quaternion.LookRotation(-groundPushDirection);
             IsGroundComboReaction = true;
             reactionState = comboIndex == 0 ? "Base Layer.GroundHitA" : comboIndex == 2 ? "Base Layer.GroundHitC" : "Base Layer.GroundHitB";
@@ -125,6 +156,7 @@ namespace CombatSystem.Combat
 
         public void ReceiveSkillHit(Transform attacker = null)
         {
+            ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
             aerialReaction = true;
@@ -141,6 +173,7 @@ namespace CombatSystem.Combat
 
         public void ReceiveUpperHit(Transform attacker)
         {
+            ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
             Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
@@ -168,31 +201,47 @@ namespace CombatSystem.Combat
             toward.y = 0;
             if (toward.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(toward);
             reactionState = "Base Layer.AirComboHitB";
+            if (finisher) slamPending = !bounceUsed;
             knockback.AirComboImpact(finisher);
             animator.CrossFadeInFixedTime(reactionState, .05f, 0, 0);
         }
 
         public void ReceiveAerialHit(Transform attacker, int strikeIndex = 0)
         {
-            if (physicalKnockdown) { ApplyDamage(); return; }
             ApplyDamage();
+            // Q's second strike shares the one-bounce allowance with the air finisher.
+            bool bounceOnLanding = strikeIndex == 1 && !bounceUsed;
+            if (physicalKnockdown && !bounceOnLanding) return;
             Vector3 direction = attacker.position - transform.position;
             direction.y = 0f;
             if (direction.sqrMagnitude > 0.0001f)
                 transform.rotation = Quaternion.LookRotation(direction);
             aerialReaction = true;
+            IsGroundComboReaction = false;
+            piercingReaction = false;
+            IsBeingGathered = false;
             reactionState = strikeIndex == 0 ? "Base Layer.AerialHit" : "Base Layer.AerialHit2";
+            if (bounceOnLanding)
+            {
+                physicalKnockdown = true;
+                slamPending = true;
+                downElapsed = 0f;
+                knockback.LaunchUpper(Vector3.zero, 0f, 0f);
+                knockback.AirComboImpact(true);
+            }
             if (machine.CurrentState == this) Enter();
             else machine.ChangeState(this);
         }
 
         public void Enter()
         {
-            combat.SetParryWindowOpen(false);
             animator.CrossFadeInFixedTime(reactionState, aerialReaction ? config.aerialHitBlendTime : 0.05f, 0, 0f);
         }
         public void Tick(float deltaTime)
         {
+            TickThirdHitPush(deltaTime);
+            // Follow-up eligibility must not hold the visual reaction in its airborne pose.
+            bounceWindowRemaining = Mathf.Max(0f, bounceWindowRemaining - deltaTime);
             if (IsBeingGathered)
             {
                 Vector3 move=(gatherTarget-transform.position)*Mathf.Clamp01(deltaTime/Mathf.Max(.001f,gatherRemaining));
@@ -216,6 +265,21 @@ namespace CombatSystem.Combat
             {
                 knockback.Tick(deltaTime);
                 if (!knockback.Grounded) return;
+                if (slamPending)
+                {
+                    slamPending = false;
+                    bounceUsed = true;
+                    bounceWindowRemaining = config.slamFollowUpWindow;
+                    knockback.Bounce(config.slamBounceHeight);
+                    reactionState = "Base Layer.AirComboHitB";
+                    animator.CrossFadeInFixedTime(reactionState, .05f, 0, 0f);
+                    return;
+                }
+                if (!aerialReaction)
+                {
+                    physicalKnockdown = false;
+                    knockback.Stop();
+                }
                 if (reactionState == "Base Layer.SkillAKnockDown" || reactionState == "Base Layer.UpperHit" ||
                     reactionState == "Base Layer.AirComboHitA" || reactionState == "Base Layer.AirComboHitB")
                 {
@@ -247,6 +311,7 @@ namespace CombatSystem.Combat
                 else machine.ChangeState(machine.ObserveState);
             }
         }
-        public void Exit() { IsBeingGathered = false; piercingReaction = false; IsGroundComboReaction = false; aerialReaction = false; physicalKnockdown = false; if (knockback != null) knockback.Stop(); }
+        public void Exit() { bounceUsed = slamPending = false; bounceWindowRemaining = 0f; ResetReaction(); }
+        private void ResetReaction() { thirdHitPushDistance = thirdHitPushElapsed = 0f; IsBeingGathered = false; piercingReaction = false; IsGroundComboReaction = false; aerialReaction = false; physicalKnockdown = false; if (knockback != null) knockback.Stop(); }
     }
 }

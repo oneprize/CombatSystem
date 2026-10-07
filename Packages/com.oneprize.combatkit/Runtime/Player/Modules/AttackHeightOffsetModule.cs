@@ -52,7 +52,15 @@ namespace CombatSystem.Player
                         if (joint != null) lowest = Mathf.Min(lowest, joint.position.y);
                     }
                     if (!float.IsPositiveInfinity(lowest))
-                        animator.bodyPosition += Vector3.up * (character.bounds.min.y + .04f - lowest);
+                    {
+                        // The controller's skin leaves its bounds above the contact surface.
+                        // Ground combos must use the contact height, while keeping the capsule's
+                        // authored jump displacement (not snapping airborne feet to a raycast floor).
+                        bool groundCombo = currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo");
+                        float skin = groundCombo ? character.skinWidth * Mathf.Abs(transform.lossyScale.y) : 0f;
+                        float correction = character.bounds.min.y - skin + .04f - lowest;
+                        animator.bodyPosition += Vector3.up * correction;
+                    }
                     return;
                 }
             }

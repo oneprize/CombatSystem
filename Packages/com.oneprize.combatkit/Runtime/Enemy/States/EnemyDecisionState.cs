@@ -12,8 +12,8 @@ namespace CombatSystem.Combat
     /// - 위치 변경      -> Observe (새 목표 지점을 강제로 고르게 함)
     /// - 후퇴          -> Retreat
     ///
-    /// 패링 시스템을 고려해서, 플레이어가 가드 중이면 공격 가중치를 크게 낮추고
-    /// (공격했다가 무조건 패링당할 위험이 크므로), 공격 중이면 살짝 낮춘다(안 부딪히게 관망).
+    /// 플레이어가 가드 중이면 공격 가중치를 낮추고
+    /// 공격 중이면 살짝 낮춘다(안 부딪히게 관망).
     /// </summary>
     public class EnemyDecisionState : IEnemyState
     {

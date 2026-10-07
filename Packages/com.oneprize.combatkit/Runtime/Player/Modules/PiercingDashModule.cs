@@ -78,10 +78,10 @@ namespace CombatSystem.Player
                 if (enemy != null && struck.Add(enemy))
                 {
                     enemy.ReceivePiercingHit(transform, direction);
-                    Player.PowerGauge.RegisterHit(true);
+                    combat.RegisterPiercingHit(enemy.transform);
                 }
                 var boss = col.GetComponentInParent<CombatSystem.Boss.BossCombat>();
-                if (boss != null && bosses.Add(boss)) boss.TryReceivePlayerHit();
+                if (boss != null && bosses.Add(boss) && boss.TryReceivePlayerHit()) combat.RegisterPiercingHit(boss.transform);
             }
             elapsed += step;
             if (elapsed >= dashDuration || Vector3.Dot(to - from, direction) < dashDistance / dashDuration * step * .1f)

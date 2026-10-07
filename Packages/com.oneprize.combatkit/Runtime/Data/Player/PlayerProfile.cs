@@ -25,22 +25,15 @@ namespace CombatSystem.Data.Player
         [Serializable]
         public class PowerAttackSettings
         {
-            [Header("Gauge (1.0 = one stage)")]
-            [Min(1)] public int stages = 3;
-            [Tooltip("Gauge gained per enemy hit by a normal attack (ground/air combo, upper, chase).")]
-            [Min(0f)] public float gainPerHit = .125f;
-            [Tooltip("Gauge gained per enemy hit by a skill (G, A, B, C, I).")]
-            [Min(0f)] public float gainPerSkillHit = .2f;
             [Header("Charge")]
-            [Tooltip("Seconds the attack button must stay held before the charge starts.")]
-            [Min(0f)] public float holdThreshold = .3f;
-            [Tooltip("Stages drained per second while charging.")]
-            [Min(.01f)] public float drainPerSecond = 1f / .7f;
-            [Tooltip("Once this many stages have been drained, hits deal damage but no longer interrupt the charge.")]
-            [Min(0f)] public float armorAfterStages = 1f;
+            [Min(.01f)] public float holdThreshold = .3f;
+            [Tooltip("Total button hold time at which damage stops increasing. Holding longer keeps charging.")]
+            [Min(.31f)] public float maxChargeDuration = 5f;
+            [Tooltip("Seconds after charge entry before incoming hits stop interrupting.")]
+            [Min(0f)] public float armorAfterSeconds = .7f;
             [Header("Release")]
-            [Tooltip("Damage multiplier per attack level (stages drained, rounded up).")]
-            public float[] damageMultipliers = { 2f, 3.5f, 5f };
+            [Min(1f)] public float minDamageMultiplier = 2f;
+            [Min(1f)] public float maxDamageMultiplier = 5f;
             [Tooltip("Normalized time of the dash slashes in PowerAttackEnd.")]
             public Vector2 dashHitWindow = new Vector2(.03f, .36f);
             [Min(.1f)] public float dashHitRadius = 1.2f;
@@ -70,14 +63,14 @@ namespace CombatSystem.Data.Player
             public float[] comboChainProgress = { .25f, .30f, .30f };
             [Tooltip("Blend time (seconds) from one ground combo step into the next.")]
             [Min(0f)] public float comboCrossFadeTime = .1f;
+            [Tooltip("Blend duration from a finished ground attack back to Idle.")]
+            [Min(0f)] public float groundAttackIdleBlendTime = .35f;
             [Header("Attack to dodge")]
             [Tooltip("Normalized time per ground combo step after which a dodge may cancel the attack (end of the swing).")]
             public float[] dodgeCancelProgress = { .25f, .30f, .30f, .40f };
             [Header("Attack Facing")]
             [Min(0f)] public float attackTargetDistance = 10f;
             [Min(0f)] public float attackTargetHeightTolerance = 2f;
-            [Header("Parry Input")]
-            [Min(0f)] public float parryInputWindow = 0.15f;
             [Header("Air combo")]
             [Range(0, 1)] public float upperAirChainProgress = .22f;
             [Tooltip("Fallback chain point for air steps without an entry in airComboChainProgress.")]
@@ -98,6 +91,10 @@ namespace CombatSystem.Data.Player
             [Range(0f, 1f)] public float skillAFollowUpProgress = .65f;
             [Range(0f, 1f)] public float skillBFollowUpProgress = .65f;
             [Min(0f)] public float skillFollowUpBlendTime = .08f;
+            [Header("E hit follow-up")]
+            [Min(.05f)] public float eFollowUpInputWindow = .8f;
+            [Range(0f, 1f)] public float eFollowUpComboProgress = .6f;
+            public Vector2 eFollowUpHitWindow = new Vector2(.18f, .42f);
             [Header("Normal attack to skill")]
             [Min(0f)] public float normalSkillInputBuffer = .4f;
             [Range(0f, 1f)] public float normalSkillTransitionProgress = .6f;
@@ -160,6 +157,9 @@ namespace CombatSystem.Data.Player
         {
             [Min(.1f)] public float fallGravity = 18f;
             [Min(.1f)] public float maximumHoldTime = 10f;
+            [Min(1f)] public float finisherFallSpeed = 12f;
+            [Min(1f)] public float finisherFallGravity = 40f;
+            [Min(.01f)] public float landingAttackBuffer = .3f;
         }
 
         [Serializable]

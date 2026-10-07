@@ -14,7 +14,8 @@ namespace CombatSystem.Player
         public bool Active { get; private set; }
         public bool Recovering => Active && falling;
         private PlayerProfile.AirComboSettings config;
-        private bool falling, landing;
+        private bool falling, landing, fastFall;
+        public bool AllowsLandingFollowUp => fastFall && Recovering;
         private float verticalSpeed, heldTime;
         private float previousUpperHeight;
         private readonly List<Collider> ignoredEnemyColliders = new List<Collider>();
@@ -139,14 +140,24 @@ namespace CombatSystem.Player
 
         public void Begin()
         {
-            Active = true; falling = landing = false; verticalSpeed = heldTime = 0;
+            Active = true; fastFall = falling = landing = false; verticalSpeed = heldTime = 0;
         }
 
-        public void Fall()
+        public void Fall(bool fast = false)
         {
             if (!Active || falling) return;
-            falling = true; verticalSpeed = 0;
+            falling = true; fastFall = fast; verticalSpeed = fast ? -config.finisherFallSpeed : 0f;
             if (!Player.IsHitReacting) animator.CrossFadeInFixedTime("Base Layer.LinkJumpLoop", .1f, 0, 0);
+        }
+
+        private bool TryLandingAttack()
+        {
+            if (!fastFall || Player.IsHitReacting) return false;
+            Active = false;
+            Player.Locomotion.OnCombatLanded();
+            if (Player.Combat.TryLandingFollowUp()) { fastFall = false; return true; }
+            Active = true;
+            return false;
         }
 
         public void Tick(float dt)
@@ -160,6 +171,7 @@ namespace CombatSystem.Player
             }
             if (landing)
             {
+                if (TryLandingAttack()) return;
                 if (Player.IsHitReacting) { Active = false; return; }
                 if (!animator.IsInTransition(0) && animator.GetCurrentAnimatorStateInfo(0).IsName("LinkJumpEnd") &&
                     animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1)
@@ -170,11 +182,13 @@ namespace CombatSystem.Player
             while (remaining > .00001f)
             {
                 float step = Mathf.Min(.02f, remaining); remaining -= step;
-                verticalSpeed -= config.fallGravity * step;
+                verticalSpeed -= (fastFall ? config.finisherFallGravity : config.fallGravity) * step;
                 var collision = character.Move(Vector3.up * verticalSpeed * step);
                 if ((collision & CollisionFlags.Below) != 0)
                 {
                     verticalSpeed = 0; landing = true;
+                    Player.Locomotion.OnCombatLanded();
+                    if (TryLandingAttack()) return;
                     if (Player.IsHitReacting) Active = false;
                     else animator.CrossFadeInFixedTime("Base Layer.LinkJumpEnd", .1f, 0, 0);
                     break;
@@ -182,6 +196,6 @@ namespace CombatSystem.Player
             }
         }
 
-        public override void OnDisable() { Active = falling = landing = false; RestoreEnemyCollisions(); }
+        public override void OnDisable() { Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
     }
 }

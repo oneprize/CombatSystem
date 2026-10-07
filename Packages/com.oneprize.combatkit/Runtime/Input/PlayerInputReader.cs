@@ -7,7 +7,7 @@ namespace CombatSystem.Player
     /// Default <see cref="IPlayerInput"/>: reads the "Combat" action map of an InputActionAsset.
     /// Every property reads the action directly instead of caching per frame, so
     /// WasPressedThisFrame keeps exactly the timing of the old Input.GetKeyDown /
-    /// Keyboard.current checks (parry windows depend on it). Rebind keys in the asset.
+    /// Keyboard.current checks (shared by combat modules). Rebind keys in the asset.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class PlayerInputReader : MonoBehaviour, IPlayerInput

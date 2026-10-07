@@ -8,15 +8,14 @@ namespace CombatSystem.Data.Enemy
     {
         [Header("Timing (seconds)")]
         public float idleDuration = 2.0f;
-        public float staggerDuration = 1.0f;
 
         [Header("Combo (1~3 약공격, 4 강공격) - Big_Sword 4콤보 클립 길이에 맞춘 타이밍")]
         public ComboStep[] comboSteps = new ComboStep[]
         {
-            new ComboStep { animStateName = "Attack.Combo1", windupDuration = 0.5f, parryWindowDuration = 0.25f, recoveryDuration = 0.48f, isStrongAttack = false },
-            new ComboStep { animStateName = "Attack.Combo2", windupDuration = 0.4f, parryWindowDuration = 0.25f, recoveryDuration = 0.42f, isStrongAttack = false },
-            new ComboStep { animStateName = "Attack.Combo3", windupDuration = 0.4f, parryWindowDuration = 0.2f, recoveryDuration = 0.4f, isStrongAttack = false },
-            new ComboStep { animStateName = "Attack.Combo4", windupDuration = 0.6f, parryWindowDuration = 0.25f, recoveryDuration = 0.48f, isStrongAttack = true },
+            new ComboStep { animStateName = "Attack.Combo1", windupDuration = 0.5f, activeDuration = 0.25f, recoveryDuration = 0.48f, isStrongAttack = false },
+            new ComboStep { animStateName = "Attack.Combo2", windupDuration = 0.4f, activeDuration = 0.25f, recoveryDuration = 0.42f, isStrongAttack = false },
+            new ComboStep { animStateName = "Attack.Combo3", windupDuration = 0.4f, activeDuration = 0.2f, recoveryDuration = 0.4f, isStrongAttack = false },
+            new ComboStep { animStateName = "Attack.Combo4", windupDuration = 0.6f, activeDuration = 0.25f, recoveryDuration = 0.48f, isStrongAttack = true },
         };
 
         [Header("Movement (이동↔공격 연동)")]
@@ -57,7 +56,7 @@ namespace CombatSystem.Data.Enemy
         public float baseRepositionWeight = 15f;
         public float baseRetreatWeight = 10f;
         public float baseReapproachWeight = 5f;
-        [Tooltip("플레이어가 가드 중일 때 공격 가중치에 곱하는 배율 (패링당할 위험이 크므로 크게 낮춘다)")]
+        [Tooltip("플레이어가 가드 중일 때 공격 가중치에 곱하는 배율")]
         public float guardingAttackMultiplier = 0.25f;
         [Tooltip("플레이어가 공격 중일 때 공격 가중치에 곱하는 배율 (부딪히지 않게 약간 낮춘다)")]
         public float attackingAttackMultiplier = 0.5f;
@@ -68,11 +67,7 @@ namespace CombatSystem.Data.Enemy
 
         [Header("Animation (visual only, no logic here)")]
         public string idleAnimStateName = "Idle";
-        public string groggyAnimStateName = "Groggy";
         public float crossFadeTime = 0.1f;
 
-        [Header("Parry Stagger")]
-        [Min(1f)] public float maxGroggyGauge = 100f;
-        [Min(0f)] public float groggyPerParry = 25f;
     }
 }
