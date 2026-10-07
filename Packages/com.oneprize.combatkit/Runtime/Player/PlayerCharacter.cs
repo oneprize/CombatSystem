@@ -119,6 +119,13 @@ namespace CombatSystem.Player
             }
         }
 
+        [SerializeField] private ParryFeedback parryFeedback;
+        public void PlayParryFeedback()
+        {
+            if (parryFeedback == null) parryFeedback = GetComponent<ParryFeedback>();
+            if (parryFeedback != null) parryFeedback.Play();
+        }
+
         private void Awake()
         {
             var controls = GetComponent<IPlayerInput>();

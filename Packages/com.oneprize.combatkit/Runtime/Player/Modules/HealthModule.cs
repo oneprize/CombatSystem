@@ -3,7 +3,7 @@ using CombatSystem.Data.Player;
 
 namespace CombatSystem.Player
 {
-    public enum PlayerHitResult { None, Blocked, Damaged, Evaded }
+    public enum PlayerHitResult { None, Blocked, Damaged, Evaded, Parried }
 
     /// <summary>
     /// Incoming hits: dodge/guard resolution, HP, hit-reaction animations and the
@@ -34,6 +34,16 @@ namespace CombatSystem.Player
             CurrentHealth = MaxHealth;
         }
 
+        public void PlayProjectileParry()
+        {
+            if (bossDown) return;
+            Player.Combat.CancelForDamage();
+            LastResult = PlayerHitResult.Parried;
+            stateName = "Base Layer.ProjectileParry";
+            IsReacting = true; entered = false;
+            animator.CrossFadeInFixedTime(stateName, .05f, 0, 0);
+        }
+
         private void ReadStandUpInput()
         {
             Vector2 move = Player.Controls.Move;
@@ -58,7 +68,7 @@ namespace CombatSystem.Player
             return true;
         }
 
-        public bool ReceiveHit(int comboIndex, Transform attacker, bool knockDown = false)
+        public bool ReceiveHit(int comboIndex, Transform attacker, bool knockDown = false, bool allowBossParry = true)
         {
             if (comboIndex < 0 || comboIndex > 3)
                 return false;
@@ -70,6 +80,15 @@ namespace CombatSystem.Player
                 return true;
             }
             LastComboIndex = comboIndex;
+            var boss = attacker != null ? attacker.GetComponentInParent<CombatSystem.Boss.BossCombat>() : null;
+            if (allowBossParry && boss != null && combat.TryConsumeBossParry())
+            {
+                LastResult = PlayerHitResult.Parried;
+                boss.RegisterParry();
+                Player.PlayParryFeedback();
+                Debug.Log("[Parry Success] Boss attack parried", Player);
+                return true;
+            }
             if (combat.IsGuarding)
             {
                 LastResult = PlayerHitResult.Blocked;

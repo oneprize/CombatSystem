@@ -18,7 +18,27 @@ private PlayerCharacter GetPlayer()
     }
     return player;
 }
-public bool CanTakeDamage => CurrentHealth > 0;
+private float groggyEndsAt;
+private bool groggyActive;
+public int ParryCount { get; private set; }
+public int ParriesToGroggy => Mathf.Max(1, coreConfig.parriesToGroggy);
+public bool GroggyReady => ParryCount >= ParriesToGroggy;
+public float GroggySecondsRemaining => groggyActive ? Mathf.Max(0, groggyEndsAt - Time.time) : 0;
+public bool IsGroggy => groggyActive && GroggySecondsRemaining > 0;
+public bool CanTakeDamage => IsGroggy && CurrentHealth > 0;
+public void RegisterParry()
+{
+    if (groggyActive || CurrentHealth <= 0 || GroggyReady) return;
+    ParryCount++;
+    Debug.Log("[Boss Parry] " + ParryCount + "/" + ParriesToGroggy, this);
+}
+public void BeginGroggy()
+{
+    groggyActive = true;
+    groggyEndsAt = Time.time + Mathf.Max(.1f, coreConfig.groggyDuration);
+    if (ActiveProjectile != null && !ActiveProjectile.Resolved) Destroy(ActiveProjectile.gameObject);
+}
+public void EndGroggy() { groggyActive = false; ParryCount = 0; }
 public bool TryReceivePlayerHit(float damageMultiplier = 1f)
 {
     if (!CanTakeDamage) return false;
@@ -94,7 +114,7 @@ public void ThrowProjectile()
     foreach (var ownerCollider in GetComponentsInChildren<Collider>())
         Physics.IgnoreCollision(ballCollider, ownerCollider);
     ActiveProjectile = ball.GetComponent<BossProjectile>();
-    if(ActiveProjectile!=null) ActiveProjectile.Initialize(this);
+    if(ActiveProjectile!=null) ActiveProjectile.Initialize(this, playerCombat);
     body.linearVelocity = velocity;
     Destroy(ball, pattern1Config.projectileLifetime);
 }

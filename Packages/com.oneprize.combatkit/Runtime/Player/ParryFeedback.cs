@@ -1,7 +1,97 @@
 using UnityEngine;
+using Unity.Cinemachine;
+using CombatSystem.Data.Player;
 namespace CombatSystem.Player
 {
-    // Serialized compatibility shell for existing scenes/prefabs. No camera or time effects.
-    [AddComponentMenu("")]
-    public sealed class ParryFeedback : MonoBehaviour { }
+    public class ParryFeedback : MonoBehaviour
+    {
+        [SerializeField] private Camera targetCamera;
+        [SerializeField] private ParryFeedbackConfig config;
+        private Camera activeCamera;
+        private CinemachineCamera activeVirtualCamera;
+        private float originalVirtualZoom;
+        private float elapsed, originalScale, originalFixedStep, originalZoom;
+        private bool active, orthographic;
+
+        private void Awake()
+        {
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<ParryFeedbackConfig>();
+                Debug.LogWarning("ParryFeedback: no ParryFeedbackConfig assigned, using built-in defaults.", this);
+            }
+        }
+
+        public void Play()
+        {
+            if (!isActiveAndEnabled || Time.timeScale <= 0f) return;
+            if (!active)
+            {
+                activeCamera = targetCamera != null ? targetCamera : Camera.main;
+                originalScale = Time.timeScale;
+                originalFixedStep = Time.fixedDeltaTime;
+                if (activeCamera != null)
+                {
+                    orthographic = activeCamera.orthographic;
+                    originalZoom = orthographic ? activeCamera.orthographicSize : activeCamera.fieldOfView;
+                    var brain = activeCamera.GetComponent<CinemachineBrain>();
+                    activeVirtualCamera = brain != null ? brain.ActiveVirtualCamera as CinemachineCamera : null;
+                    if (activeVirtualCamera != null)
+                        originalVirtualZoom = orthographic ? activeVirtualCamera.Lens.OrthographicSize : activeVirtualCamera.Lens.FieldOfView;
+                }
+                active = true;
+            }
+            // Repeated parries restart the effect without overwriting the restore values.
+            elapsed = 0f;
+            Time.timeScale = originalScale * config.slowMotionScale;
+            Time.fixedDeltaTime = originalFixedStep * config.slowMotionScale;
+        }
+        private void Update()
+        {
+            if (!active) return;
+            elapsed += Time.unscaledDeltaTime;
+            float enter = Mathf.Max(0.01f, config.zoomInDuration);
+            float recovery = Mathf.Max(0.01f, config.recoveryDuration);
+            float endHold = enter + config.holdDuration;
+            float zoomWeight = elapsed < enter ? Mathf.SmoothStep(0f, 1f, elapsed / enter) :
+                1f - Mathf.SmoothStep(0f, 1f, (elapsed - endHold) / recovery);
+            float restore = Mathf.SmoothStep(0f, 1f, (elapsed - endHold) / recovery);
+            Time.timeScale = originalScale * Mathf.Lerp(config.slowMotionScale, 1f, restore);
+            Time.fixedDeltaTime = originalFixedStep * Mathf.Lerp(config.slowMotionScale, 1f, restore);
+            if (activeCamera != null)
+            {
+                float zoom = Mathf.Lerp(originalZoom, originalZoom * config.zoomMultiplier, zoomWeight);
+                if (orthographic) activeCamera.orthographicSize = zoom;
+                else activeCamera.fieldOfView = zoom;
+            }
+            // Drive Cinemachine's lens too, so its Brain cannot overwrite the zoom.
+            if (activeVirtualCamera != null)
+            {
+                float zoom = Mathf.Lerp(originalVirtualZoom, originalVirtualZoom * config.zoomMultiplier, zoomWeight);
+                if (orthographic) activeVirtualCamera.Lens.OrthographicSize = zoom;
+                else activeVirtualCamera.Lens.FieldOfView = zoom;
+            }
+            if (elapsed >= endHold + recovery) Restore();
+        }
+        private void Restore()
+        {
+            if (!active) return;
+            Time.timeScale = originalScale;
+            Time.fixedDeltaTime = originalFixedStep;
+            if (activeCamera != null)
+            {
+                if (orthographic) activeCamera.orthographicSize = originalZoom;
+                else activeCamera.fieldOfView = originalZoom;
+            }
+            if (activeVirtualCamera != null)
+            {
+                if (orthographic) activeVirtualCamera.Lens.OrthographicSize = originalVirtualZoom;
+                else activeVirtualCamera.Lens.FieldOfView = originalVirtualZoom;
+            }
+            activeVirtualCamera = null;
+            active = false;
+        }
+        private void OnDisable() { Restore(); }
+        private void OnDestroy() { Restore(); }
+    }
 }

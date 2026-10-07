@@ -10,7 +10,8 @@ namespace CombatSystem.UI
         [SerializeField] private BossStateMachine target;
         private Canvas canvas;
         private Text enemyName, state, conditions, logs, hpText, duration;
-        private Image hpFill;
+        private Image hpFill, groggyFill;
+        private Text groggyText;
         private float refreshAt;
 
         private Text Label(Transform parent, string name, float y, float height, int size, Color color)
@@ -39,7 +40,7 @@ namespace CombatSystem.UI
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
             var panel = LabUIKit.Panel(root.transform, "BOSS MONITOR", LabUIKit.PanelBg);
-            LabUIKit.TopRight(panel, 18, -18, 400, 700);
+            LabUIKit.TopRight(panel, 18, -18, 400, 780);
             Label(panel, "Title", 16, 36, LabUIKit.FsHead, LabUIKit.Accent).text = "BOSS MONITOR";
             enemyName = Label(panel, "Enemy", 55, 32, LabUIKit.FsBody, LabUIKit.TextMain);
             hpFill = LabUIKit.Bar(panel, "Health", 20, -96, 360, 12, LabUIKit.PanelEdge, LabUIKit.Good);
@@ -50,8 +51,10 @@ namespace CombatSystem.UI
             LabUIKit.HLine(panel, 20, -258, 360, LabUIKit.PanelEdge, 1);
             Label(panel, "Conditions Heading", 272, 32, LabUIKit.FsHead, LabUIKit.TextMain).text = "CONDITION";
             conditions = Label(panel, "Conditions", 310, 205, LabUIKit.FsSmall, LabUIKit.TextMain);
-            Label(panel, "Log Heading", 497, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
-            logs = Label(panel, "Logs", 537, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
+            groggyFill = LabUIKit.Bar(panel, "Groggy", 20, -526, 360, 10, LabUIKit.PanelEdge, LabUIKit.AccentWarm);
+            groggyText = Label(panel, "Groggy Value", 540, 28, LabUIKit.FsSmall, LabUIKit.TextMain);
+            Label(panel, "Log Heading", 577, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
+            logs = Label(panel, "Logs", 617, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
         }
         private void OnEnable() { if (canvas != null) canvas.gameObject.SetActive(true); }
         private void OnDisable() { if (canvas != null) canvas.gameObject.SetActive(false); }
@@ -79,6 +82,14 @@ namespace CombatSystem.UI
             hpText.text = health != null ? string.Format("HP  {0:0} / {1:0}   ({2:0}%)", health.CurrentHealth, health.MaxHealth, hpFill.fillAmount * 100) : "HP —";
             if (combat != null)
             {
+                groggyFill.fillAmount = (float)combat.ParryCount / combat.ParriesToGroggy;
+                var projectile = combat.ActiveProjectile;
+                bool parryOpen = projectile != null && projectile.IsParryWindowOpen;
+                groggyText.text = combat.IsGroggy
+                    ? "GROGGY  " + combat.GroggySecondsRemaining.ToString("0.0") + "s  / VULNERABLE"
+                    : "GROGGY  " + combat.ParryCount + " / " + combat.ParriesToGroggy +
+                      (parryOpen ? "  PARRY! " + projectile.ParrySecondsRemaining.ToString("0.0") + "s" : "  / INVULNERABLE");
+
                 bool hasPlayer = combat.PlayerTransform != null;
                 Vector3 delta = hasPlayer ? combat.PlayerTransform.position - target.transform.position : Vector3.zero;
                 delta.y = 0f;

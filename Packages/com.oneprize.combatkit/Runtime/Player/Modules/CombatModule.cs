@@ -113,8 +113,26 @@ namespace CombatSystem.Player
             powerConfig = Player.Profile.powerAttack;
         }
 
+        private float lastBossParryInput = float.NegativeInfinity;
+        private int bossParryConsumedFrame = -1;
+        public bool IsBossParryInputActive => !Player.IsHitReacting && !Player.IsDodging &&
+            !Player.IsLinkJumping && Player.Health.CurrentHealth > 0 &&
+            bossParryConsumedFrame != Time.frameCount &&
+            (Player.Controls.AttackPressed || Time.unscaledTime - lastBossParryInput <= config.bossParryInputWindow);
+
+        public bool TryConsumeBossParry()
+        {
+            if (!IsBossParryInputActive) return false;
+            lastBossParryInput = float.NegativeInfinity;
+            bossParryConsumedFrame = Time.frameCount;
+            ClearGroundAttackInput();
+            ClearEFollowUp();
+            return true;
+        }
+
         public void CancelForDamage()
         {
+            lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
             ClearGroundAttackInput();
             bufferedSkillIndex = -1;
@@ -136,6 +154,10 @@ namespace CombatSystem.Player
 
         public void Tick()
         {
+            if (bossParryConsumedFrame == Time.frameCount) return;
+            if (Player.Controls.AttackPressed && !Player.IsHitReacting && !Player.IsDodging &&
+                !Player.IsLinkJumping && bossParryConsumedFrame != Time.frameCount)
+                lastBossParryInput = Time.unscaledTime;
             if (Player.IsHitReacting || Player.IsLinkJumping)
             {
                 ClearGroundAttackInput();
@@ -203,7 +225,7 @@ namespace CombatSystem.Player
         // Also called by DodgeModule, which owns input during a dodge.
         public void CaptureGroundAttackInput(IPlayerInput controls)
         {
-            if (capturedInputFrame == Time.frameCount) return;
+            if (capturedInputFrame == Time.frameCount || bossParryConsumedFrame == Time.frameCount) return;
             capturedInputFrame = Time.frameCount;
             if (controls.AttackPressed)
             {
@@ -667,6 +689,7 @@ namespace CombatSystem.Player
 
         public override void OnDisable()
         {
+            lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
             ClearGroundAttackInput();
             IsAttacking = false;

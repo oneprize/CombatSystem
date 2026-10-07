@@ -91,6 +91,8 @@ namespace CombatSystem.Data.Player
             [Range(0f, 1f)] public float skillAFollowUpProgress = .65f;
             [Range(0f, 1f)] public float skillBFollowUpProgress = .65f;
             [Min(0f)] public float skillFollowUpBlendTime = .08f;
+            [Header("Boss parry")]
+            [Min(0f)] public float bossParryInputWindow = .15f;
             [Header("E hit follow-up")]
             [Min(.05f)] public float eFollowUpInputWindow = .8f;
             [Range(0f, 1f)] public float eFollowUpComboProgress = .6f;
