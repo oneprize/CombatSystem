@@ -12,6 +12,114 @@ namespace CombatSystem.Player
     public sealed class AirComboModule : PlayerModule
     {
         public bool Active { get; private set; }
+        public bool IsSlamming { get; private set; }
+        public bool IsSlamLanding => IsSlamming && slamPhase == 2;
+        private int slamPhase;
+        private float slamElapsed;
+        private readonly HashSet<CombatSystem.Combat.EnemyDamageReaction> slamHits = new HashSet<CombatSystem.Combat.EnemyDamageReaction>();
+        private readonly HashSet<CombatSystem.Boss.BossCombat> slamBossHits = new HashSet<CombatSystem.Boss.BossCombat>();
+
+        public bool TryBeginSlam()
+        {
+            if (IsSlamming || !character.enabled || Player.IsHitReacting || Player.IsDodging ||
+                Player.IsLinkJumping || Player.IsGuarding || Player.Health.CurrentHealth <= 0 || character.isGrounded)
+                return false;
+            // Check real floor clearance: locomotion's cached grounded flag is stale during an upper attack.
+            foreach (var hit in Physics.RaycastAll(character.bounds.center, Vector3.down,
+                character.bounds.extents.y + .2f, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.transform.IsChildOf(transform) || hit.collider.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>() != null ||
+                    hit.collider.GetComponentInParent<CombatSystem.Boss.BossCombat>() != null) continue;
+                if (hit.normal.y > .5f) return false;
+            }
+            foreach (var state in new[] { "AirSlamStart", "AirSlamLoop", "AirSlamEnd" })
+                if (!animator.HasState(0, Animator.StringToHash("Base Layer." + state))) return false;
+            Player.Combat.BeginAirSlam();
+            Begin();
+            IsSlamming = true; slamPhase = 0; slamElapsed = 0;
+            slamHits.Clear(); slamBossHits.Clear();
+            TickEnemyCollision();
+            animator.CrossFadeInFixedTime("Base Layer.AirSlamStart", .06f, 0, 0);
+            return true;
+        }
+
+        public void CancelSlam()
+        {
+            if (!IsSlamming) return;
+            IsSlamming = false;
+            falling = false;
+            if (slamPhase == 2) Active = false;
+            else Fall(true);
+        }
+
+        private void SlamContacts(Vector3 from, Vector3 to, bool impact)
+        {
+            float radius = impact ? config.slamHitRadius : .9f;
+            foreach (var other in Physics.OverlapCapsule(from + Vector3.up * .5f, to + Vector3.up * .5f,
+                radius, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (other.transform.IsChildOf(transform)) continue;
+                Vector3 point = other.ClosestPoint(to + Vector3.up * .5f);
+                Vector3 direction = point - (to + Vector3.up * .5f);
+                // An overlap must not hit through arena walls.
+                bool blocked = false;
+                foreach (var wall in Physics.RaycastAll(to + Vector3.up * .5f, direction.normalized,
+                    direction.magnitude, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (wall.transform.IsChildOf(transform) || wall.collider.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>() != null ||
+                        wall.collider.GetComponentInParent<CombatSystem.Boss.BossCombat>() != null) continue;
+                    blocked = true; break;
+                }
+                if (blocked) continue;
+                var enemy = other.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>();
+                if (enemy != null && enemy.CurrentHealth > 0 && (impact || enemy.IsAirborneForCombo) && slamHits.Add(enemy))
+                {
+                    if (enemy.IsAirborneForCombo) enemy.ReceiveAirComboHit(transform, 3, true);
+                    else enemy.ReceiveAerialHit(transform, 1);
+                }
+                var boss = other.GetComponentInParent<CombatSystem.Boss.BossCombat>();
+                if (impact && boss != null && slamBossHits.Add(boss)) boss.TryReceivePlayerHit();
+            }
+        }
+
+        private void TickSlam(float dt)
+        {
+            slamElapsed += dt;
+            if (slamPhase == 0)
+            {
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                if ((!state.IsName("AirSlamStart") || state.normalizedTime < 1f) && slamElapsed < .5f) return;
+                slamPhase = 1; slamElapsed = 0; verticalSpeed = -config.slamFallSpeed;
+                animator.CrossFadeInFixedTime("Base Layer.AirSlamLoop", .05f, 0, 0);
+            }
+            if (slamPhase == 2)
+            {
+                if (slamElapsed < config.slamLandingRecovery) return;
+                IsSlamming = Active = false;
+                Player.Combat.FinishAirSlam();
+                Player.Locomotion.OnCombatLanded();
+                if (Player.Combat.TryLandingFollowUp()) return;
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                if (state.IsName("AirSlamEnd") && state.normalizedTime >= 1f || slamElapsed >= 2f)
+                    animator.CrossFadeInFixedTime("Base Layer.Idle", .15f, 0, 0);
+                else { IsSlamming = Active = true; }
+                return;
+            }
+            float remaining = dt;
+            while (remaining > .00001f && slamPhase == 1)
+            {
+                float step = Mathf.Min(.02f, remaining); remaining -= step;
+                verticalSpeed = Mathf.Max(-40f, verticalSpeed - config.slamGravity * step);
+                Vector3 before = transform.position;
+                var collision = character.Move(Vector3.up * verticalSpeed * step);
+                SlamContacts(before, transform.position, false);
+                if ((collision & CollisionFlags.Below) == 0) continue;
+                slamPhase = 2; slamElapsed = 0; verticalSpeed = 0;
+                Player.Locomotion.OnCombatLanded();
+                SlamContacts(transform.position, transform.position, true);
+                animator.CrossFadeInFixedTime("Base Layer.AirSlamEnd", .04f, 0, 0);
+            }
+        }
         public bool Recovering => Active && falling;
         private PlayerProfile.AirComboSettings config;
         private bool falling, landing, fastFall;
@@ -163,6 +271,7 @@ namespace CombatSystem.Player
         public void Tick(float dt)
         {
             if (!Active) return;
+            if (IsSlamming) { TickSlam(dt); return; }
             if (!falling)
             {
                 heldTime += dt;
@@ -196,6 +305,6 @@ namespace CombatSystem.Player
             }
         }
 
-        public override void OnDisable() { Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
+        public override void OnDisable() { IsSlamming = false; Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
     }
 }

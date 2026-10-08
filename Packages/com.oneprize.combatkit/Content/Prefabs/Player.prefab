@@ -2508,6 +2508,8 @@ GameObject:
   - component: {fileID: 3309891952150241785}
   - component: {fileID: 2683331307229246501}
   - component: {fileID: 1080214696322167235}
+  - component: {fileID: 7261923500150219931}
+  - component: {fileID: 2584501923432259460}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2594,8 +2596,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerCharacter
   cameraTransform: {fileID: 0}
-  parryFeedback: {fileID: 1080214696322167235}
   profile: {fileID: 11400000, guid: 07c3c0166a0e7d14daee6639c499d793, type: 2}
+  parryFeedback: {fileID: 1080214696322167235}
 --- !u!114 &2683331307229246501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2624,6 +2626,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.ParryFeedback
   targetCamera: {fileID: 0}
   config: {fileID: 11400000, guid: 2a8907637eee4278bd82e29b5e0f96a0, type: 2}
+--- !u!114 &7261923500150219931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4732037f9f5125b469d3c27b5d7e63b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerSlashVfx
+  hitConfig: {fileID: 11400000, guid: 0faf90da7e2b47af92a3cab02f37ed6a, type: 2}
+  trailMaterial: {fileID: 2100000, guid: b79e81609f622f147ab060257961a5c2, type: 2}
+  trailLifetime: 0.14
+  bladeStart: 0.22
+  bladeEnd: 1
+  trailColor: {r: 0.75, g: 0.9, b: 1, a: 0.75}
+--- !u!114 &2584501923432259460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9a5302e79fa19419930ec19edc4f2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerSwordWave
+  wavePrefab: {fileID: 6111486948785554852, guid: f7967f33aeac15f48a3732e3fd3ac36c, type: 3}
+  speed: 20
+  range: 12
+  size: 0.65
+  spawnOffset: {x: 0, y: 0.35, z: 0.8}
 --- !u!1 &9095833428554535245
 GameObject:
   m_ObjectHideFlags: 0

@@ -20,6 +20,7 @@ MonoBehaviour:
     - 0.3
     - 0.3
     comboCrossFadeTime: 0.1
+    groundAttackIdleBlendTime: 0.35
     dodgeCancelProgress:
     - 0.25
     - 0.3
@@ -27,7 +28,6 @@ MonoBehaviour:
     - 0.4
     attackTargetDistance: 10
     attackTargetHeightTolerance: 2
-    parryInputWindow: 0.15
     upperAirChainProgress: 0.22
     airChainProgress: 0.95
     airComboChainProgress:
@@ -35,11 +35,20 @@ MonoBehaviour:
     - 0.33
     - 0.4
     airAttackContactDistance: 1.1
+    skillCChaseProgress: 0.45
+    chaseAirChainProgress: 0.75
     skillAttackInputBuffer: 0.4
     skillGFollowUpProgress: 0.75
     skillAFollowUpProgress: 0.65
     skillBFollowUpProgress: 0.65
     skillFollowUpBlendTime: 0.08
+    bossParryInputWindow: 0.15
+    sheathedChainProgress: 0.4
+    sheathedBlendTime: 0.03
+    sheathedHitWindow: {x: 0.12, y: 0.35}
+    eFollowUpInputWindow: 0.8
+    eFollowUpComboProgress: 0.6
+    eFollowUpHitWindow: {x: 0.18, y: 0.42}
     normalSkillInputBuffer: 0.4
     normalSkillTransitionProgress: 0.6
     normalSkillBlendTime: 0.08
@@ -49,7 +58,7 @@ MonoBehaviour:
     skillTargetDistance: 10
   locomotion:
     walkSpeed: 3
-    runSpeed: 6
+    runSpeed: 9
     rotationSpeed: 720
     jumpForce: 7
     gravity: -9.81
@@ -75,6 +84,13 @@ MonoBehaviour:
   airCombo:
     fallGravity: 18
     maximumHoldTime: 10
+    finisherFallSpeed: 12
+    finisherFallGravity: 40
+    landingAttackBuffer: 0.3
+    slamFallSpeed: 18
+    slamGravity: 45
+    slamHitRadius: 2.5
+    slamLandingRecovery: 0.35
   piercingDash:
     distance: 5
     duration: 0.22
@@ -98,3 +114,16 @@ MonoBehaviour:
     visualLowering: 0.12
     guardHeightOffset: 0.23
     guardAcceptHeightOffset: 0.25
+  lockOn:
+    acquireRange: 20
+    keepRange: 25
+  powerAttack:
+    holdThreshold: 0.3
+    maxChargeDuration: 5
+    armorAfterSeconds: 0.7
+    minDamageMultiplier: 2
+    maxDamageMultiplier: 5
+    dashHitWindow: {x: 0.03, y: 0.36}
+    dashHitRadius: 1.2
+    slamHitWindow: {x: 0.42, y: 0.5}
+    slamHitRadius: 3

@@ -93,6 +93,10 @@ namespace CombatSystem.Data.Player
             [Min(0f)] public float skillFollowUpBlendTime = .08f;
             [Header("Boss parry")]
             [Min(0f)] public float bossParryInputWindow = .15f;
+            [Header("RMB sheathed combo")]
+            [Range(.1f, 1f)] public float sheathedChainProgress = .4f;
+            [Min(0f)] public float sheathedBlendTime = .03f;
+            public Vector2 sheathedHitWindow = new Vector2(.12f, .35f);
             [Header("E hit follow-up")]
             [Min(.05f)] public float eFollowUpInputWindow = .8f;
             [Range(0f, 1f)] public float eFollowUpComboProgress = .6f;
@@ -162,6 +166,11 @@ namespace CombatSystem.Data.Player
             [Min(1f)] public float finisherFallSpeed = 12f;
             [Min(1f)] public float finisherFallGravity = 40f;
             [Min(.01f)] public float landingAttackBuffer = .3f;
+            [Header("Air E slam")]
+            [Min(.1f)] public float slamFallSpeed = 18f;
+            [Min(.1f)] public float slamGravity = 45f;
+            [Min(.1f)] public float slamHitRadius = 2.5f;
+            [Min(.05f)] public float slamLandingRecovery = .35f;
         }
 
         [Serializable]

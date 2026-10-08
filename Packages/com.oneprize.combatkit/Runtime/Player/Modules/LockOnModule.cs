@@ -81,6 +81,8 @@ namespace CombatSystem.Player
             if (enemy == null || enemy.Transform == null || !enemy.Transform.gameObject.activeInHierarchy) return false;
             var health = enemy.Transform.GetComponent<CombatSystem.Combat.EnemyDamageReaction>();
             if (health != null && health.CurrentHealth <= 0f) return false;
+            var boss = enemy as CombatSystem.Boss.BossCombat;
+            if (boss != null && boss.CurrentHealth <= 0f) return false;
             return Flat(enemy.Transform.position - transform.position).sqrMagnitude <= range * range;
         }
 

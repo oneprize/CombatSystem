@@ -66,6 +66,12 @@ namespace CombatSystem.Player
         private float groundInputReleasedAt;
         private int capturedInputFrame = -1;
 
+        private const int SheathedReadyIndex = 22, SheathedFirstIndex = 23;
+        private int sheathedStep;
+        private bool sheathedQueued;
+        public bool IsSheathedReady => IsAttacking && attackIndex == SheathedReadyIndex;
+        public bool IsSheathedCombo => IsAttacking && attackIndex >= SheathedFirstIndex && attackIndex < SheathedFirstIndex + 2;
+        public int SheathedComboStep => IsSheathedCombo ? attackIndex - SheathedFirstIndex : -1;
         public bool IsGuarding { get; private set; }
         public bool IsAttacking { get; private set; }
         public int AttackComboIndex => attackIndex;
@@ -103,7 +109,7 @@ namespace CombatSystem.Player
         public float PowerDamageMultiplier => Mathf.Lerp(powerConfig.minDamageMultiplier,
             Mathf.Max(powerConfig.minDamageMultiplier, powerConfig.maxDamageMultiplier), PowerChargeNormalized);
         public string CurrentAttackStateName => AttackStateName;
-        private string AttackStateName => attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillIIndex ? "Skill_I" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirSlamStart" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillIIndex ? "Skill_I" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
 
         private AirComboModule airCombo => Player.AirCombo;
 
@@ -132,6 +138,8 @@ namespace CombatSystem.Player
 
         public void CancelForDamage()
         {
+            sheathedQueued = false; sheathedStep = 0;
+            airCombo.CancelSlam();
             lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
             ClearGroundAttackInput();
@@ -163,6 +171,12 @@ namespace CombatSystem.Player
                 ClearGroundAttackInput();
                 return;
             }
+            if (airCombo.IsSlamming)
+            {
+                if (airCombo.IsSlamLanding) CaptureGroundAttackInput(Player.Controls);
+                return;
+            }
+            if (Player.Controls.SkillAPressed && airCombo.TryBeginSlam()) return;
             if (airCombo.Recovering)
             {
                 if (airCombo.AllowsLandingFollowUp) CaptureGroundAttackInput(Player.Controls);
@@ -171,6 +185,17 @@ namespace CombatSystem.Player
             }
             if (Player.IsDodging) return;
             var controls = Player.Controls;
+            if (IsSheathedReady || IsSheathedCombo)
+            {
+                TickSheathed(controls);
+                return;
+            }
+            if (controls.GuardHeld && !IsAttacking && Player.Locomotion.IsGrounded && !Player.IsAirComboActive)
+            {
+                BeginSheathedReady(true);
+                TickSheathed(controls);
+                return;
+            }
             bool followUpPress = controls.AttackPressed && (IsUsingSkillA || !IsAttacking) &&
                 eFollowUpTarget != null && Time.time <= eFollowUpUntil && Player.CanStartAction(PlayerAction.Attack);
             if (followUpPress)
@@ -197,10 +222,7 @@ namespace CombatSystem.Player
             if (controls.UpperAttackPressed)
                 TryUpperAttack();
 
-            if (controls.GuardHeld && !IsGuarding && !Player.IsAirComboActive)
-                StartGuard();
-            else if (!controls.GuardHeld && IsGuarding)
-                StopGuard();
+
 
             bool airborneAttack = Player.IsAirComboActive || IsUsingUpperAttack || IsUsingChaseAttack ||
                 (!Player.Locomotion.IsGrounded && !IsUsingGroundCombo);
@@ -329,7 +351,28 @@ namespace CombatSystem.Player
         }
 
         public void TrySkill() { RequestSkill(SkillGIndex); }
-        public void TrySkillA() { RequestSkill(SkillAIndex); }
+        public void TrySkillA()
+        {
+            if (airCombo.TryBeginSlam()) return;
+            // A failed airborne request must never become the ground piercing skill.
+            if (!Player.Locomotion.IsGrounded || Player.IsAirComboActive) return;
+            RequestSkill(SkillAIndex);
+        }
+
+        public void BeginAirSlam()
+        {
+            CancelForDamage();
+            attackIndex = 21;
+            IsAttacking = true;
+            AttackSequence++;
+        }
+
+        public void FinishAirSlam()
+        {
+            IsAttacking = false;
+            queuedAttack = false;
+            attackIndex = 0;
+        }
         public void TrySkillB() { RequestSkill(SkillBIndex); }
         public void TrySkillI() { RequestSkill(SkillIIndex); }
         public void TrySkillC() { RequestSkill(SkillCIndex); }
@@ -666,19 +709,61 @@ namespace CombatSystem.Player
             return points != null && step < points.Length ? points[step] : config.airChainProgress;
         }
 
-        private void StartGuard()
+        private void BeginSheathedReady(bool reset)
         {
-            CancelForDamage();
-            IsGuarding = true;
-            PlayAnimState(config.guardAnimStateName);
-            Debug.Log("[PlayerCombat] Guard ON");
+            ClearGroundAttackInput(); ClearEFollowUp();
+            queuedAttack = false; sheathedQueued = false;
+            bufferedSkillIndex = -1; skillAttackBufferedUntil = float.NegativeInfinity;
+            IsGuarding = false; IsAttacking = true;
+            attackIndex = SheathedReadyIndex;
+            if (reset) sheathedStep = 0;
+            animator.CrossFadeInFixedTime("Base Layer.SheathedStart", .1f, 0, 0);
         }
 
-        private void StopGuard()
+        private void BeginSheathedAttack()
         {
-            IsGuarding = false;
-            PlayAnimState(config.idleAnimStateName);
-            Debug.Log("[PlayerCombat] Guard OFF");
+            sheathedQueued = false;
+            attackIndex = SheathedFirstIndex + sheathedStep;
+            sheathedStep = (sheathedStep + 1) % 2;
+            IsAttacking = true; AttackSequence++;
+            FaceNearbyEnemy();
+            animator.CrossFadeInFixedTime("Base Layer." + AttackStateName, config.sheathedBlendTime, 0, 0);
+        }
+
+        private void EndSheathed()
+        {
+            sheathedQueued = false; sheathedStep = 0;
+            IsAttacking = false; attackIndex = 0;
+            ClearGroundAttackInput();
+            animator.CrossFadeInFixedTime(config.idleAnimStateName, .15f, 0, 0);
+        }
+
+        private void TickSheathed(IPlayerInput controls)
+        {
+            // Releasing RMB cancels the pending next strike, never emits PowerAttackEnd.
+            if (!controls.GuardHeld)
+            {
+                sheathedQueued = false;
+                if (IsSheathedReady) { EndSheathed(); return; }
+            }
+            else if (controls.AttackPressed) sheathedQueued = true;
+            if (IsSheathedReady)
+            {
+                var current = animator.GetCurrentAnimatorStateInfo(0);
+                if (sheathedQueued && (current.IsName("SheathedReady") ||
+                    (current.IsName("SheathedStart") && current.normalizedTime >= .85f)))
+                    BeginSheathedAttack();
+                return;
+            }
+            float progress = CurrentAttackProgress();
+            if (progress < 0) return;
+            if (sheathedQueued && controls.GuardHeld && progress >= config.sheathedChainProgress)
+            { BeginSheathedAttack(); return; }
+            if (progress >= 1f)
+            {
+                if (controls.GuardHeld) BeginSheathedReady(false);
+                else EndSheathed();
+            }
         }
 
         public void PlayGuardAccept()
@@ -689,6 +774,7 @@ namespace CombatSystem.Player
 
         public override void OnDisable()
         {
+            sheathedQueued = false; sheathedStep = 0;
             lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
             ClearGroundAttackInput();

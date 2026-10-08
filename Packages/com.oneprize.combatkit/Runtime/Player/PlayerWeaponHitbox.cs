@@ -91,7 +91,7 @@ namespace CombatSystem.Player
             Vector3 footFrom = previousFootPosition;
             previousFootPosition = footPosition;
             if (!player.IsAttacking || player.IsGuarding || player.IsHitReacting || !box.enabled) return;
-            if (combat.IsUsingSkillI) return;
+            if (combat.IsUsingSkillI || player.AirCombo.IsSlamming) return;
             if (combat.IsUsingPiercingSkill)
             {
                 HitWindowActive = player.PiercingDash.IsDashing;
@@ -122,7 +122,7 @@ namespace CombatSystem.Player
                 if (next.IsName(name)) state = next;
             }
             if (!state.IsName(name)) return;
-            if (combat.IsChargingPower) return;
+            if (combat.IsChargingPower || combat.IsSheathedReady) return;
             if (combat.IsReleasingPower) { UpdatePowerHits(state); return; }
             if (combat.IsUsingSkillC)
             {
@@ -234,7 +234,7 @@ namespace CombatSystem.Player
                 }
                 return;
             }
-            Vector2 window = combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
+            Vector2 window = combat.IsSheathedCombo ? player.Profile.combat.sheathedHitWindow : combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
                 combat.IsUsingGroundCombo && config.groundHitWindows != null && index < config.groundHitWindows.Length
                     ? config.groundHitWindows[index] : config.hitWindow;
             if (combat.IsUsingGroundCombo)
@@ -255,7 +255,7 @@ namespace CombatSystem.Player
                 HitBoss(other, false);
                 if (enemy != null && Struck(hits, enemy))
                 {
-                    if (combat.IsUsingEFollowUp) enemy.ReceiveGroundComboHit(player.transform, 1, false);
+                    if (combat.IsSheathedCombo) enemy.ReceiveGroundComboHit(player.transform, combat.SheathedComboStep % 2, false); else if (combat.IsUsingEFollowUp) enemy.ReceiveGroundComboHit(player.transform, 1, false);
                     else if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(player.transform);
                     else if (combat.IsUsingGroundCombo) enemy.ReceiveGroundComboHit(player.transform, index, combat.IsGroundComboFinisher);
                     else enemy.ReceiveHit();
