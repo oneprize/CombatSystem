@@ -27,6 +27,10 @@ namespace CombatSystem.Combat
         /// </summary>
         public bool IsPlayerGuarding => GetPlayer() != null && GetPlayer().IsGuarding;
 
+        public string OpeningAttackStateName => config.openingAttackStateName;
+        public float OpeningAttackRange => config.openingAttackRange;
+        public Vector2 OpeningHitWindow => config.openingHitWindow;
+        public float OpeningHitRadius => config.openingHitRadius;
         public float AttackRange => config.attackRange;
         public float DetectionRange => config.detectionRange;
         public float MoveSpeed => config.moveSpeed;

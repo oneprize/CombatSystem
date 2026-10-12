@@ -12,3 +12,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fab2d2a990b94e729a04d1e45cf6ff25, type: 3}
   m_Name: EnemyCombatConfig
   m_EditorClassIdentifier: 
+  idleDuration: 2
+  comboSteps:
+  - animStateName: Attack.Combo1
+    windupDuration: 0.5
+    activeDuration: 0.25
+    recoveryDuration: 0.48
+    isStrongAttack: 0
+  - animStateName: Attack.Combo2
+    windupDuration: 0.4
+    activeDuration: 0.25
+    recoveryDuration: 0.42
+    isStrongAttack: 0
+  - animStateName: Attack.Combo3
+    windupDuration: 0.4
+    activeDuration: 0.2
+    recoveryDuration: 0.4
+    isStrongAttack: 0
+  - animStateName: Attack.Combo4
+    windupDuration: 0.6
+    activeDuration: 0.25
+    recoveryDuration: 0.48
+    isStrongAttack: 1
+  openingAttackStateName: OpeningJumpAttack
+  openingAttackRange: 5
+  openingHitWindow: {x: 0.4, y: 0.55}
+  openingHitRadius: 1.3
+  attackRange: 2
+  detectionRange: 6
+  moveSpeed: 4
+  rotationSpeed: 300
+  moveAnimStateName: Run
+  patrolRadius: 4
+  patrolSpeed: 1.5
+  patrolAnimStateName: Walk
+  combatMinDistance: 2.5
+  combatMaxDistance: 4
+  combatHalfAngle: 60
+  combatAngleTolerance: 15
+  repositionMinInterval: 0.75
+  observeSpeed: 1.8
+  observeAnimationReferenceSpeed: 1.8
+  observeAnimationSpeedMultiplier: 1
+  observeDuration: 3
+  repositionArriveThreshold: 0.4
+  repositionDriftThreshold: 1.5
+  observeAnimStateName: ObserveMove
+  baseAttackWeight: 50
+  baseContinueObserveWeight: 20
+  baseRepositionWeight: 15
+  baseRetreatWeight: 10
+  baseReapproachWeight: 5
+  guardingAttackMultiplier: 0.25
+  attackingAttackMultiplier: 0.5
+  retreatDuration: 1
+  retreatSpeed: 3
+  idleAnimStateName: Idle
+  crossFadeTime: 0.1

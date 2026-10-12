@@ -3,13 +3,15 @@ using CombatSystem.Data.Player;
 
 namespace CombatSystem.Player
 {
-    /// <summary>Forward dodge that moves exactly as the dodge clip's root motion does.</summary>
+    /// <summary>Directional forward dodge, or a backward dodge without movement input.</summary>
     public sealed class DodgeModule : PlayerModule
     {
         public bool IsDodging { get; private set; }
         public string CurrentStateName { get; private set; }
         private PlayerProfile.DodgeSettings config;
         private Vector3 direction;
+        private bool enteredDodgeAnimation;
+        private bool airborneDodge;
 
         protected override void OnInitialize()
         {
@@ -20,14 +22,18 @@ namespace CombatSystem.Player
         {
             if (!Player.isActiveAndEnabled || IsDodging || !character.enabled || !Player.CanStartAction(PlayerAction.Dodge)) return false;
             worldInput.y = 0f;
-            direction = worldInput.sqrMagnitude > .001f ? worldInput.normalized : transform.forward;
-            CurrentStateName = "Base Layer.DodgeFront";
+            bool hasDirectionInput = worldInput.sqrMagnitude > .001f;
+            direction = hasDirectionInput ? worldInput.normalized : transform.forward;
+            bool runningDodge = hasDirectionInput && Player.Locomotion.IsRunning && Player.Controls.RunHeld;
+            CurrentStateName = runningDodge ? "Base Layer.DodgeRun" : hasDirectionInput ? "Base Layer.DodgeFront" : "Base Layer.DodgeBack";
             if (!animator.HasState(0, Animator.StringToHash(CurrentStateName))) return false;
             Player.Combat.CancelForDodge();
-            // Face the movement direction so the forward dodge matches its displacement.
+            // Back dodge keeps facing forward; its clip supplies backward root motion.
             direction.y = 0f;
             direction.Normalize();
-            if (direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction);
+            if (hasDirectionInput && direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction);
+            airborneDodge = !character.isGrounded;
+            enteredDodgeAnimation = false;
             IsDodging = true;
             animator.SetBool("isMoving", false);
             animator.SetBool("isRunning", false);
@@ -44,9 +50,13 @@ namespace CombatSystem.Player
             // CombatModule does not tick while dodging, so attack input is read here.
             Player.Combat.CaptureGroundAttackInput(Player.Controls);
             character.Move(Vector3.down * 2f * dt);
+            airborneDodge |= !character.isGrounded;
             if (animator.IsInTransition(0)) return;
             var state = animator.GetCurrentAnimatorStateInfo(0);
-            bool playing = state.IsName(CurrentStateName) && state.normalizedTime < 1f;
+            if (state.IsName(CurrentStateName)) enteredDodgeAnimation = true;
+            if (!enteredDodgeAnimation) return;
+            bool continuingRun = CurrentStateName == "Base Layer.DodgeRun" && Player.Controls.Move.sqrMagnitude > .01f && Player.Controls.RunHeld;
+            bool playing = state.IsName(CurrentStateName) && state.normalizedTime < (continuingRun ? .9f : 1f);
             if (Player.Combat.GroundAttackInputReady && (!playing || state.normalizedTime >= config.attackCancelProgress))
             {
                 IsDodging = false;
@@ -55,7 +65,17 @@ namespace CombatSystem.Player
             }
             if (playing && IsDodging) return;
             IsDodging = false;
-            animator.CrossFadeInFixedTime("Base Layer.Idle", .1f);
+            if (airborneDodge)
+            {
+                Player.Locomotion.ResumeAirDodge();
+                return;
+            }
+            bool moving = Player.Controls.Move.sqrMagnitude > .01f;
+            bool running = moving && Player.Controls.RunHeld;
+            animator.SetBool("isMoving", moving);
+            animator.SetBool("isRunning", running);
+            animator.CrossFadeInFixedTime(running ? "Base Layer.Run" : moving ? "Base Layer.Walk" : "Base Layer.Idle", .15f, 0, 0f);
+            Player.Locomotion.ResumeAfterDodge(dt);
         }
 
         public void ApplyRootMotion(Vector3 delta)

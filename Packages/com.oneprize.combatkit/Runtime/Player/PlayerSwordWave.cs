@@ -8,7 +8,7 @@ namespace CombatSystem.Player
     {
         [SerializeField] private GameObject wavePrefab;
         [SerializeField, Min(.1f)] private float speed = 20f;
-        [SerializeField, Min(.1f)] private float range = 12f;
+        [SerializeField, Min(.1f)] private float range = 100f;
         [SerializeField, Min(.01f)] private float size = .65f;
         [SerializeField] private Vector3 spawnOffset = new Vector3(0,.35f,.8f);
         private PlayerCharacter player;
@@ -16,6 +16,61 @@ namespace CombatSystem.Player
         private int emittedSequence = -1;
         private readonly List<GameObject> live = new List<GameObject>();
         public int FiredCount { get; private set; }
+
+        private sealed class AttackHits
+        {
+            public int Sequence, ComboStep;
+            public readonly HashSet<UnityEngine.Object> Targets = new HashSet<UnityEngine.Object>();
+        }
+        private AttackHits currentHits;
+        private RaycastHit[] castBuffer = new RaycastHit[32];
+        private Collider[] overlapBuffer = new Collider[32];
+        [SerializeField] private Vector3 horizontalHitHalfExtents = new Vector3(1.3f, .25f, .25f);
+        [SerializeField] private Vector3 verticalHitHalfExtents = new Vector3(.25f, 1.1f, .25f);
+
+        private AttackHits CurrentHits()
+        {
+            if(currentHits == null || currentHits.Sequence != player.Combat.AttackSequence)
+                currentHits = new AttackHits { Sequence = player.Combat.AttackSequence, ComboStep = player.Combat.SheathedComboStep };
+            return currentHits;
+        }
+        // Both the blade and its projectile claim targets in the same per-swing ledger.
+        // In-flight waves retain their ledger even when a later swing starts.
+        public void TryHitWithBlade(Collider target) { ApplyHit(target, CurrentHits()); }
+
+        private void ApplyHit(Collider collider, AttackHits attack)
+        {
+            var boss = collider.GetComponentInParent<CombatSystem.Boss.BossCombat>();
+            if(boss != null)
+            {
+                if(attack.Targets.Add(boss)) boss.TryReceivePlayerHit();
+                return;
+            }
+            var enemy = collider.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>();
+            if(enemy != null && enemy.CurrentHealth > 0f && attack.Targets.Add(enemy))
+                enemy.ReceiveGroundComboHit(transform, attack.ComboStep % 2, false);
+        }
+        private bool IsObstacle(Collider collider, GameObject wave)
+        {
+            return !collider.transform.IsChildOf(transform) && !collider.transform.IsChildOf(wave.transform) &&
+                collider.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>() == null &&
+                collider.GetComponentInParent<CombatSystem.Boss.BossCombat>() == null;
+        }
+        private int Overlap(Vector3 center, Vector3 half, Quaternion rotation)
+        {
+            int count;
+            while((count = Physics.OverlapBoxNonAlloc(center, half, overlapBuffer, rotation, ~0, QueryTriggerInteraction.Ignore)) == overlapBuffer.Length)
+                System.Array.Resize(ref overlapBuffer, overlapBuffer.Length * 2);
+            return count;
+        }
+        private int Sweep(Vector3 center, Vector3 half, Vector3 direction, Quaternion rotation, float distance)
+        {
+            int count;
+            while((count = Physics.BoxCastNonAlloc(center, half, direction, castBuffer, rotation, distance, ~0, QueryTriggerInteraction.Ignore)) == castBuffer.Length)
+                System.Array.Resize(ref castBuffer, castBuffer.Length * 2);
+            return count;
+        }
+
         private void Awake(){player=GetComponent<PlayerCharacter>();animator=GetComponent<Animator>();}
         private void LateUpdate()
         {
@@ -48,7 +103,7 @@ namespace CombatSystem.Player
                 var main=ps.main;main.scalingMode=ParticleSystemScalingMode.Hierarchy;main.stopAction=ParticleSystemStopAction.None;
                 ps.Play(false);
             }
-            live.Add(wave);FiredCount++;StartCoroutine(Fly(wave,direction));
+            live.Add(wave);FiredCount++;StartCoroutine(Fly(wave,direction,CurrentHits()));
         }
         private static bool IsGroundEffect(Transform effect,Transform root)
         {
@@ -56,26 +111,47 @@ namespace CombatSystem.Player
                 if(current.name=="Decal" || current.name=="Puddle")return true;
             return false;
         }
-        private IEnumerator Fly(GameObject wave,Vector3 direction)
+        private IEnumerator Fly(GameObject wave,Vector3 direction,AttackHits attack)
         {
+            Vector3 half = attack.ComboStep == 0 ? horizontalHitHalfExtents : verticalHitHalfExtents;
+            Quaternion hitRotation = Quaternion.LookRotation(direction);
             float travelled=0;
+            bool hitWall=false;
+            // Prevent the muzzle offset from spawning a projectile through a nearby wall.
+            Vector3 muzzle = wave.transform.position + Vector3.up * half.y;
+            Vector3 origin = transform.position; origin.y = muzzle.y;
+            Vector3 launch = muzzle - origin;
+            int launchCount = Sweep(origin, half, launch.normalized, hitRotation, launch.magnitude);
+            int initialCount = Overlap(origin, half, hitRotation);
+            for(int i=0;i<initialCount;i++) if(IsObstacle(overlapBuffer[i],wave)) { travelled=range; hitWall=true; }
+            for(int i=0;i<launchCount;i++) if(IsObstacle(castBuffer[i].collider,wave)) { travelled=range; hitWall=true; }
             while(wave!=null&&travelled<range)
             {
                 float step=Mathf.Min(speed*Time.deltaTime,range-travelled);
                 bool blocked=false;
-                foreach(var hit in Physics.SphereCastAll(wave.transform.position,.15f,direction,step,~0,QueryTriggerInteraction.Ignore))
+                Vector3 center = wave.transform.position + Vector3.up * half.y;
+                int overlaps = Overlap(center, half, hitRotation);
+                // Resolve blockers before targets, independently of physics query ordering.
+                for(int i=0;i<overlaps;i++)
+                    if(IsObstacle(overlapBuffer[i], wave)) { blocked=true; step=0f; break; }
+                if(!blocked)
                 {
-                    if(hit.transform.IsChildOf(transform)||hit.transform.IsChildOf(wave.transform)||
-                        hit.collider.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>()!=null||
-                        hit.collider.GetComponentInParent<CombatSystem.Boss.BossCombat>()!=null)continue;
-                    step=Mathf.Min(step,hit.distance);blocked=true;
+                    int count = Sweep(center, half, direction, hitRotation, step);
+                    for(int i=0;i<count;i++)
+                        if(IsObstacle(castBuffer[i].collider, wave))
+                        { step=Mathf.Min(step,castBuffer[i].distance); blocked=true; }
+                    for(int i=0;i<overlaps;i++) ApplyHit(overlapBuffer[i], attack);
+                    for(int i=0;i<count;i++)
+                        if(!IsObstacle(castBuffer[i].collider,wave) && (!blocked || castBuffer[i].distance < step))
+                            ApplyHit(castBuffer[i].collider, attack);
                 }
                 wave.transform.position+=direction*step;travelled+=step;
-                if(blocked)break;
+                if(blocked){hitWall=true;break;}
                 yield return null;
             }
             if(wave!=null)
             {
+                if(hitWall){live.Remove(wave);Destroy(wave);yield break;}
                 float fade=0;
                 foreach(var ps in wave.GetComponentsInChildren<ParticleSystem>(true))
                 {
@@ -86,6 +162,6 @@ namespace CombatSystem.Player
                 live.Remove(wave);Destroy(wave);
             }
         }
-        private void OnDisable(){StopAllCoroutines();foreach(var wave in live)if(wave!=null)Destroy(wave);live.Clear();emittedSequence=-1;}
+        private void OnDisable(){StopAllCoroutines();foreach(var wave in live)if(wave!=null)Destroy(wave);live.Clear();emittedSequence=-1;currentHits=null;}
     }
 }

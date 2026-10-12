@@ -18,6 +18,12 @@ namespace CombatSystem.Data.Enemy
             new ComboStep { animStateName = "Attack.Combo4", windupDuration = 0.6f, activeDuration = 0.25f, recoveryDuration = 0.48f, isStrongAttack = true },
         };
 
+        [Header("Opening jump attack")]
+        public string openingAttackStateName = "OpeningJumpAttack";
+        public float openingAttackRange = 5f;
+        public Vector2 openingHitWindow = new Vector2(.40f, .55f);
+        public float openingHitRadius = 1.3f;
+
         [Header("Movement (이동↔공격 연동)")]
         public float attackRange = 2.0f;
         public float detectionRange = 6.0f;

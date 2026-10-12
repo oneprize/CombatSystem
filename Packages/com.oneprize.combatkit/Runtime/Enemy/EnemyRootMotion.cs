@@ -58,6 +58,7 @@ namespace CombatSystem.Combat
             Vector3 movement = animator.deltaPosition;
             // 중력은 기존 컨트롤러가 담당하고 정면 회전은 전투 코드가 담당한다.
             movement.y = 0f;
+            if (attack && enemy.AttackState.IsOpeningAttack) movement *= enemy.AttackState.OpeningMotionScale;
             if (character != null && character.enabled)
                 character.Move(movement);
             else

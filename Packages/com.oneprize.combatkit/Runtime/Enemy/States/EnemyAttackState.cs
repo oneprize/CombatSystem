@@ -18,9 +18,13 @@ namespace CombatSystem.Combat
         // 피격으로 끊겨도 리셋하지 않는다 - 전체 콤보를 안 끊기고 다 마쳤을 때만 0으로 돌아간다.
         private int comboIndex;
 
+        private bool openingUsed;
+        public float OpeningMotionScale { get; private set; } = 1f;
+        public bool IsOpeningAttack { get; private set; }
+        public bool OpeningAttackPending => !openingUsed;
         public int ComboIndex => comboIndex;
         public int AttackSequence { get; private set; }
-        public bool CurrentComboStepIsStrong => CurrentStep.isStrongAttack;
+        public bool CurrentComboStepIsStrong => IsOpeningAttack || CurrentStep.isStrongAttack;
 
         private ComboStep CurrentStep => combat.GetComboStep(comboIndex);
 
@@ -34,16 +38,35 @@ namespace CombatSystem.Combat
         public void Enter()
         {
             AttackSequence++;
+            IsOpeningAttack = !openingUsed;
+            if (IsOpeningAttack)
+            {
+                openingUsed = true;
+                Vector3 offset = combat.PlayerTransform == null ? Vector3.zero : combat.PlayerTransform.position - machine.transform.position;
+                offset.y = 0f;
+                OpeningMotionScale = Mathf.Clamp01((offset.magnitude - 1.1f) / 4.1f);
+            }
             // 공격을 시작하는 순간 바로 플레이어 쪽으로 각도를 딱 맞춘다 (Chase/Decision에서 넘어오며
             // 아직 다 돌지 못한 각도가 남아있어도 첫 프레임부터 정면으로 공격하도록).
             FacePlayerInstant();
             // 애니메이션은 여기서 딱 한 번만 CrossFade하고, 스텝 사이 전환은 Animator Controller가 처리한다.
-            combat.PlayAnimState(CurrentStep.animStateName);
+            combat.PlayAnimState(IsOpeningAttack ? combat.OpeningAttackStateName : CurrentStep.animStateName);
         }
 
         public void Tick(float deltaTime)
         {
             // 콤보가 진행되는 내내(스텝이 바뀌는 순간에도) 플레이어가 움직이면 계속 따라 바라본다.
+            if (IsOpeningAttack)
+            {
+                // Keep the launch direction: the player can dodge the leap.
+                AnimatorStateInfo opening;
+                if (TryGetOpeningProgress(out opening) && opening.normalizedTime >= 1f)
+                {
+                    comboIndex = 0;
+                    machine.ChangeState(machine.ObserveState);
+                }
+                return;
+            }
             FacePlayerTowards(deltaTime);
 
             // CrossFade 중에는 다음 상태를 우선하여 화면의 콤보와 판정을 동기화한다.
@@ -63,6 +86,20 @@ namespace CombatSystem.Combat
                 comboIndex = 0;
                 machine.ChangeState(machine.ObserveState);
             }
+        }
+
+        public bool TryGetOpeningProgress(out AnimatorStateInfo state)
+        {
+            state = default(AnimatorStateInfo);
+            if (!IsOpeningAttack || animator == null) return false;
+            string name = "Base Layer." + combat.OpeningAttackStateName;
+            if (animator.IsInTransition(0))
+            {
+                state = animator.GetNextAnimatorStateInfo(0);
+                if (state.IsName(name)) return true;
+            }
+            state = animator.GetCurrentAnimatorStateInfo(0);
+            return state.IsName(name);
         }
 
         private bool TryGetAttackProgress(out AnimatorStateInfo animation, out int index)
@@ -106,6 +143,7 @@ namespace CombatSystem.Combat
 
         public void Exit()
         {
+            IsOpeningAttack = false;
             // comboIndex는 여기서 리셋하지 않는다 - 피격으로 끊겨도 다음 공격에서 이어간다.
         }
 

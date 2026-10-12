@@ -138,7 +138,7 @@ namespace CombatSystem.Combat
             // Keep attack armour and existing airborne/down reactions.
             if (aerialReaction || machine.CurrentState == machine.AttackState)
             { ApplyDamage(); return; }
-            if (finisher) { ReceiveSkillHit(attacker); return; }
+            // Ground combo finishers use the grounded push reaction; skill launches stay separate.
             ApplyDamage();
             Vector3 away = attacker != null ? transform.position - attacker.position : -transform.forward;
             away.y = 0;

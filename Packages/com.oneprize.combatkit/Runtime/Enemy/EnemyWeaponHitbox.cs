@@ -38,10 +38,44 @@ namespace CombatSystem.Combat
             return -1;
         }
 
+        private void CheckOpeningHit()
+        {
+            AnimatorStateInfo state;
+            if (!machine.AttackState.TryGetOpeningProgress(out state)) return;
+            Vector2 window = combat.OpeningHitWindow;
+            if (state.normalizedTime < window.x || state.normalizedTime > window.y) return;
+            int sequence = machine.AttackState.AttackSequence;
+            if (lastSequence != sequence || lastCombo != -2)
+            {
+                hitPlayers.Clear();
+                lastSequence = sequence;
+                lastCombo = -2;
+            }
+            Vector3 center = machine.transform.position + Vector3.up + machine.transform.forward * .8f;
+            foreach (var contact in Physics.OverlapSphere(center, combat.OpeningHitRadius, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (!(contact is CharacterController)) continue;
+                var player = contact.GetComponent<PlayerCharacter>();
+                if (player == null || hitPlayers.Contains(player)) continue;
+                bool blocked = false;
+                Vector3 destination = player.transform.position + Vector3.up;
+                foreach (var obstruction in Physics.RaycastAll(center, destination - center,
+                    Vector3.Distance(center, destination), ~0, QueryTriggerInteraction.Ignore))
+                    if (!obstruction.transform.IsChildOf(machine.transform) &&
+                        !obstruction.transform.IsChildOf(player.transform)) { blocked = true; break; }
+                if (!blocked && player.Health.ReceiveHit(3, machine.transform)) hitPlayers.Add(player);
+            }
+        }
+
         private void LateUpdate()
         {
             if (machine == null || machine.CurrentState != machine.AttackState ||
                 !hitbox.enabled) return;
+            if (machine.AttackState.IsOpeningAttack)
+            {
+                CheckOpeningHit();
+                return;
+            }
             int sequence = machine.AttackState.AttackSequence;
             var state = animator.GetCurrentAnimatorStateInfo(0);
             int combo = FindCombo(state);

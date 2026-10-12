@@ -109,7 +109,7 @@ public void ThrowProjectile()
     var body = Instantiate(projectilePrefab, origin, Quaternion.identity);
     var ball = body.gameObject;
     ball.name = "Boss Pattern1 Projectile";
-    ball.transform.localScale = Vector3.one * pattern1Config.projectileDiameter;
+    // Preserve the authored projectile prefab scale.
     var ballCollider = ball.GetComponent<Collider>();
     foreach (var ownerCollider in GetComponentsInChildren<Collider>())
         Physics.IgnoreCollision(ballCollider, ownerCollider);

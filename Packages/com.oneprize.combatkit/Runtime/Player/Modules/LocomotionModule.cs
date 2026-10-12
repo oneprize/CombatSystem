@@ -19,6 +19,7 @@ namespace CombatSystem.Player
         private bool dodgeBuffered;
         private float airborneTime;
         private string landingState;
+        private bool airDodgeLanding;
 
         public bool IsMoving { get; private set; }
         public bool IsRunning { get; private set; }
@@ -44,8 +45,8 @@ namespace CombatSystem.Player
             var dodge = Player.Dodge;
             if (dodge.IsDodging)
             {
-                dodge.Tick(dt);
                 velocity = Vector3.zero;
+                dodge.Tick(dt);
                 return;
             }
             bool dodgePressed = Player.Controls.DodgePressed;
@@ -99,6 +100,26 @@ namespace CombatSystem.Player
             velocity = Vector3.zero;
             ResetJumpState();
             animator.SetBool("isGrounded", true);
+        }
+
+        public void ResumeAirDodge()
+        {
+            airDodgeLanding = true;
+            velocity = Vector3.down * 2f;
+            IsGrounded = character.isGrounded;
+            IsJumping = !IsGrounded;
+            jumpCount = IsGrounded ? 0 : 1;
+            animator.SetBool("isGrounded", IsGrounded);
+            animator.SetBool("isJumping", IsJumping);
+            animator.SetBool("isMoving", false);
+            animator.SetBool("isRunning", false);
+            if (IsGrounded) Land();
+            else animator.CrossFadeInFixedTime(JumpLoopState, .08f, 0, 0f);
+        }
+
+        public void ResumeAfterDodge(float dt)
+        {
+            HandleMovement(dt);
         }
 
         private void HandleMovement(float dt)
@@ -244,6 +265,13 @@ namespace CombatSystem.Player
             bool fromDoubleJump = jumpCount >= MaxJumps;
             IsJumping = false;
             if (!CanPlayJumpAnimation) return;
+            if (airDodgeLanding)
+            {
+                airDodgeLanding = false;
+                landingState = JumpEndState;
+                animator.CrossFadeInFixedTime(landingState, .08f, 0, 0f);
+                return;
+            }
             if (IsMoving)
             {
                 // 이동 입력이 있으면 착지 모션 없이 바로 이동 모션으로 (미끄러지는 착지 방지).
@@ -277,6 +305,7 @@ namespace CombatSystem.Player
         /// <summary>Another action took over movement (air combo, dodge, link jump, upper attack).</summary>
         private void ResetJumpState()
         {
+            airDodgeLanding = false;
             jumpCount = 0;
             IsJumping = false;
             airborneTime = 0f;

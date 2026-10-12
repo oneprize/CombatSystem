@@ -16,6 +16,7 @@ namespace CombatSystem.Player
         private PlayerCharacter player;
         private CombatModule combat => player.Combat;
         private Animator animator;
+        private PlayerSwordWave swordWave;
         private BoxCollider box;
         private int sequence = -1, combo = -1;
         private readonly System.Collections.Generic.HashSet<EnemyDamageReaction> hits =
@@ -79,6 +80,7 @@ namespace CombatSystem.Player
             }
             player = GetComponentInParent<PlayerCharacter>();
             animator = player.GetComponent<Animator>();
+            swordWave = player.GetComponent<PlayerSwordWave>();
             box = GetComponent<BoxCollider>();
             kickFoot = animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightFoot) : null;
             if (kickFoot != null) previousFootPosition = kickFoot.position;
@@ -251,6 +253,11 @@ namespace CombatSystem.Player
             foreach (var other in Physics.OverlapBox(transform.TransformPoint(box.center),
                 Vector3.Scale(box.size * 0.5f, scale), transform.rotation, ~0, QueryTriggerInteraction.Ignore))
             {
+                if (combat.IsSheathedCombo && swordWave != null && swordWave.isActiveAndEnabled)
+                {
+                    swordWave.TryHitWithBlade(other);
+                    continue;
+                }
                 var enemy = other.GetComponentInParent<EnemyDamageReaction>();
                 HitBoss(other, false);
                 if (enemy != null && Struck(hits, enemy))

@@ -36,7 +36,8 @@ namespace CombatSystem.Combat
             toPlayer.y = 0f;
             float distance = toPlayer.magnitude;
 
-            if (distance <= combat.AttackRange)
+            float attackRange = machine.AttackState.OpeningAttackPending ? combat.OpeningAttackRange : combat.AttackRange;
+            if (distance <= attackRange)
             {
                 machine.ChangeState(machine.AttackState);
                 return;
