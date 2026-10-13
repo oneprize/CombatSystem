@@ -1,0 +1,28 @@
+Combat Kit - independent Assets distribution
+
+Location: Assets/CombatKit
+Export: Tools > Combat Kit > Export unitypackage
+Import the resulting .unitypackage in another project. Imported files are independent copies; editing them never changes CombatSystem.
+
+Tested source environment: Unity 6000.3.21f1, URP.
+Install required packages BEFORE importing:
+com.unity.inputsystem 1.20.0
+com.unity.cinemachine 3.1.7
+com.unity.ai.navigation 2.0.14
+com.unity.ugui 2.0.0
+com.unity.render-pipelines.universal 17.3.0
+Use compatible versions for your Unity editor. Exact source versions are in Documentation/DependencyVersions.json (reference only; it does not install dependencies).
+
+Use a URP project with its pipeline configured.
+Player Settings > Active Input Handling: Input System Package (New) or Both.
+Open Content/Scenes/ComboPracticeGround.unity to try the training scene.
+For your own scene use Tools > Combat Kit > Spawner.
+Add gameplay scenes to the build scene list for restart in a built player.
+The spawner may disable existing cameras when creating its camera rig.
+Enemy chase currently moves directly toward its target; it does not find paths around walls.
+
+Do not install both an old UPM Combat Kit and this Assets copy in the same project:
+remove the old package first to avoid duplicate GUIDs and assemblies.
+Keep all .meta files when copying or versioning the source.
+UPM dependencies and project-wide settings are NOT included in the unitypackage.
+Export is blocked if CombatKit starts referencing other Assets folders.
