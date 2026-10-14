@@ -37,16 +37,18 @@ namespace CombatSystem.Combat
             float distance = toPlayer.magnitude;
 
             float attackRange = machine.AttackState.OpeningAttackPending ? combat.OpeningAttackRange : combat.AttackRange;
-            if (distance <= attackRange)
+            if (distance <= attackRange && machine.Navigation.CanAttack(player))
             {
                 machine.ChangeState(machine.AttackState);
                 return;
             }
 
-            Vector3 direction = toPlayer.normalized;
+            machine.Navigation.MoveTo(player.position, combat.MoveSpeed, Mathf.Max(.1f, attackRange * .8f));
+            Vector3 direction = machine.Navigation.MoveDirection;
+            if (direction.sqrMagnitude < .001f) return;
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             self.rotation = Quaternion.RotateTowards(self.rotation, targetRotation, combat.RotationSpeed * deltaTime);
-            self.position += direction * combat.MoveSpeed * deltaTime;
+
         }
 
         public void Exit()

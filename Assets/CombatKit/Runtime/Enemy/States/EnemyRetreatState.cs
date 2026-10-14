@@ -45,9 +45,9 @@ namespace CombatSystem.Combat
             self.rotation = Quaternion.RotateTowards(self.rotation, targetRotation, combat.RotationSpeed * deltaTime);
 
             Vector3 awayFromPlayer = -towardPlayer;
-            self.position += awayFromPlayer * combat.RetreatSpeed * deltaTime;
+            machine.Navigation.MoveTo(self.position + awayFromPlayer * 2f, combat.RetreatSpeed, .1f);
 
-            Vector3 localMove = self.InverseTransformDirection(awayFromPlayer);
+            Vector3 localMove = self.InverseTransformDirection(machine.Navigation.MoveDirection);
             combat.SetObserveMoveDirection(localMove.x, localMove.z);
 
             elapsed += deltaTime;

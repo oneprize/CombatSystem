@@ -404,6 +404,9 @@ GameObject:
   - component: {fileID: 4906460427493798672}
   - component: {fileID: 6359826120824989392}
   - component: {fileID: 4617015989602868085}
+  - component: {fileID: 2948551140454842487}
+  - component: {fileID: 5821482892173681202}
+  - component: {fileID: 3559641631024825450}
   m_Layer: 0
   m_Name: PracticeDummy
   m_TagString: Untagged
@@ -498,66 +501,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c723effa64c5294bb38b3bb350904b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.MonsterCombat
-  idleDuration: 2
-  staggerDuration: 1
-  comboSteps:
-  - animStateName: Attack.Combo1
-    windupDuration: 0.5
-    parryWindowDuration: 0.25
-    recoveryDuration: 0.48
-    isStrongAttack: 0
-  - animStateName: Attack.Combo2
-    windupDuration: 0.4
-    parryWindowDuration: 0.25
-    recoveryDuration: 0.42
-    isStrongAttack: 0
-  - animStateName: Attack.Combo3
-    windupDuration: 0.4
-    parryWindowDuration: 0.2
-    recoveryDuration: 0.4
-    isStrongAttack: 0
-  - animStateName: Attack.Combo4
-    windupDuration: 0.6
-    parryWindowDuration: 0.25
-    recoveryDuration: 0.48
-    isStrongAttack: 1
-  attackRange: 2
-  detectionRange: 6
-  moveSpeed: 4
-  rotationSpeed: 300
-  moveAnimStateName: Run
-  patrolRadius: 4
-  patrolSpeed: 1.5
-  patrolAnimStateName: Walk
-  combatMinDistance: 2.5
-  combatMaxDistance: 4
-  combatHalfAngle: 60
-  combatAngleTolerance: 15
-  repositionMinInterval: 0.75
-  observeSpeed: 1
-  observeAnimationReferenceSpeed: 1.8
-  observeAnimationSpeedMultiplier: 1
-  observeDuration: 3
-  repositionArriveThreshold: 0.4
-  repositionDriftThreshold: 1.5
-  observeAnimStateName: ObserveMove
-  baseAttackWeight: 50
-  baseContinueObserveWeight: 20
-  baseRepositionWeight: 15
-  baseRetreatWeight: 10
-  baseReapproachWeight: 5
-  guardingAttackMultiplier: 0.25
-  attackingAttackMultiplier: 0.5
-  retreatDuration: 1
-  retreatSpeed: 3
+  config: {fileID: 11400000, guid: eb00e43166534d6cb7c3a5b11f079811, type: 2}
   player: {fileID: 0}
   animator: {fileID: 1923053233423839028}
-  idleAnimStateName: Idle
-  groggyAnimStateName: Groggy
-  crossFadeTime: 0.1
-  maxGroggyGauge: 100
-  groggyPerParry: 25
-  config: {fileID: 11400000, guid: eb00e43166534d6cb7c3a5b11f079811, type: 2}
 --- !u!114 &2784195930224812121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -568,7 +514,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d3541ce2eee4ae3ab1d2365d8f9d7cd, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyRootMotion
 --- !u!114 &4906460427493798672
 MonoBehaviour:
@@ -582,12 +528,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e4922bb80d0557418c868d2e015e9ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyDamageReaction
-  maxHealth: 100
-  damagePerHit: 10
-  downDuration: 1
-  aerialHitBlendTime: 0.1
-  upperLiftSpeed: 8
-  upperPushSpeed: 1.5
   config: {fileID: 11400000, guid: 922ab0232c7b47ea81daca219c9c2fda, type: 2}
 --- !u!114 &6359826120824989392
 MonoBehaviour:
@@ -601,13 +541,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 204bf21a8472a8844a0666ac3f7caf8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyKnockbackMotion
-  launchSpeed: 6
-  upwardSpeed: 4
-  gravity: 18
-  groundClearance: 0.02
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
   config: {fileID: 11400000, guid: 3d0815de485843ae91ad4e177e42f6e1, type: 2}
 --- !u!114 &4617015989602868085
 MonoBehaviour:
@@ -621,6 +554,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d744735595ba0b143aa558686e220e03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Training.PracticeDummy
+--- !u!195 &2948551140454842487
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2200748518399378798}
+  m_Enabled: 0
+  m_AgentTypeID: 0
+  m_Radius: 0.3
+  m_Speed: 3.5
+  m_Acceleration: 20
+  avoidancePriority: 50
+  m_AngularSpeed: 0
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 0
+  m_AutoRepath: 1
+  m_Height: 1.8
+  m_BaseOffset: 0.02
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &5821482892173681202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2200748518399378798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23bfddf4dc6dedc4d82e3eec5b634ce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyNavigation
+--- !u!114 &3559641631024825450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2200748518399378798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &2250139214972211004
 GameObject:
   m_ObjectHideFlags: 0
@@ -2632,10 +2619,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3842c3765063a941acefbfc665a09f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Combat.EnemyWeaponHitbox
-  combo1HitWindow: {x: 0.38, y: 0.52}
-  combo2HitWindow: {x: 0.18, y: 0.3}
-  combo3HitWindow: {x: 0.03, y: 0.16}
-  combo4HitWindow: {x: 0.2, y: 0.58}
   config: {fileID: 11400000, guid: 66991c0d03c541039e5339d5cf16ee8d, type: 2}
 --- !u!1 &9001351455588231471
 GameObject:

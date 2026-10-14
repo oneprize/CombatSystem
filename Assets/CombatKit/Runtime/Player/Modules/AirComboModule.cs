@@ -12,16 +12,16 @@ namespace CombatSystem.Player
     public sealed class AirComboModule : PlayerModule
     {
         public bool Active { get; private set; }
-        public bool IsSlamming { get; private set; }
-        public bool IsSlamLanding => IsSlamming && slamPhase == 2;
-        private int slamPhase;
-        private float slamElapsed;
-        private readonly HashSet<CombatSystem.Combat.EnemyDamageReaction> slamHits = new HashSet<CombatSystem.Combat.EnemyDamageReaction>();
-        private readonly HashSet<CombatSystem.Boss.BossCombat> slamBossHits = new HashSet<CombatSystem.Boss.BossCombat>();
+        public bool IsAirDashing { get; private set; }
+        private float dashElapsed, dashTravel, dashEndWait;
+        private bool dashAttackQueued;
+        private CombatSystem.Combat.EnemyDamageReaction dashTarget;
+        private readonly HashSet<CombatSystem.Combat.EnemyDamageReaction> dashHits = new HashSet<CombatSystem.Combat.EnemyDamageReaction>();
+        private readonly HashSet<CombatSystem.Boss.BossCombat> dashBossHits = new HashSet<CombatSystem.Boss.BossCombat>();
 
-        public bool TryBeginSlam()
+        public bool TryBeginAirDash()
         {
-            if (IsSlamming || !character.enabled || Player.IsHitReacting || Player.IsDodging ||
+            if (IsAirDashing || !character.enabled || Player.IsHitReacting || Player.IsDodging ||
                 Player.IsLinkJumping || Player.IsGuarding || Player.Health.CurrentHealth <= 0 || character.isGrounded)
                 return false;
             // Check real floor clearance: locomotion's cached grounded flag is stale during an upper attack.
@@ -32,29 +32,29 @@ namespace CombatSystem.Player
                     hit.collider.GetComponentInParent<CombatSystem.Boss.BossCombat>() != null) continue;
                 if (hit.normal.y > .5f) return false;
             }
-            foreach (var state in new[] { "AirSlamStart", "AirSlamLoop", "AirSlamEnd" })
+            foreach (var state in new[] { "AirDashAttack" })
                 if (!animator.HasState(0, Animator.StringToHash("Base Layer." + state))) return false;
-            Player.Combat.BeginAirSlam();
+            Player.Combat.BeginAirDash();
             Begin();
-            IsSlamming = true; slamPhase = 0; slamElapsed = 0;
-            slamHits.Clear(); slamBossHits.Clear();
+            IsAirDashing = true; dashElapsed = dashTravel = dashEndWait = 0; previousDashProgress = 0;
+            dashAttackQueued = false; dashTarget = null;
+            dashHits.Clear(); dashBossHits.Clear();
             TickEnemyCollision();
-            animator.CrossFadeInFixedTime("Base Layer.AirSlamStart", .06f, 0, 0);
+            animator.CrossFadeInFixedTime("Base Layer.AirDashAttack", .06f, 0, 0);
             return true;
         }
 
-        public void CancelSlam()
+        public void CancelAirDash()
         {
-            if (!IsSlamming) return;
-            IsSlamming = false;
+            if (!IsAirDashing) return;
+            IsAirDashing = false;
             falling = false;
-            if (slamPhase == 2) Active = false;
-            else Fall(true);
+            Fall();
         }
 
-        private void SlamContacts(Vector3 from, Vector3 to, bool impact)
+        private void DashContacts(Vector3 from, Vector3 to)
         {
-            float radius = impact ? config.slamHitRadius : .9f;
+            float radius = .9f;
             foreach (var other in Physics.OverlapCapsule(from + Vector3.up * .5f, to + Vector3.up * .5f,
                 radius, ~0, QueryTriggerInteraction.Ignore))
             {
@@ -72,52 +72,61 @@ namespace CombatSystem.Player
                 }
                 if (blocked) continue;
                 var enemy = other.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>();
-                if (enemy != null && enemy.CurrentHealth > 0 && (impact || enemy.IsAirborneForCombo) && slamHits.Add(enemy))
+                if (enemy != null && enemy.CurrentHealth > 0 && dashHits.Add(enemy))
                 {
-                    if (enemy.IsAirborneForCombo) enemy.ReceiveAirComboHit(transform, 3, true);
-                    else enemy.ReceiveAerialHit(transform, 1);
+                    if (enemy.IsAirborneForCombo)
+                    {
+                        enemy.ReceiveAirComboHit(transform, 0, false);
+                        if (dashTarget == null) dashTarget = enemy;
+                    }
+                    else enemy.ReceiveGroundComboHit(transform, 1, false);
                 }
                 var boss = other.GetComponentInParent<CombatSystem.Boss.BossCombat>();
-                if (impact && boss != null && slamBossHits.Add(boss)) boss.TryReceivePlayerHit();
+                if (boss != null && dashBossHits.Add(boss)) boss.TryReceivePlayerHit();
             }
         }
 
-        private void TickSlam(float dt)
+        private float previousDashProgress;
+        private AnimatorStateInfo DashState()
         {
-            slamElapsed += dt;
-            if (slamPhase == 0)
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            if (animator.IsInTransition(0) && animator.GetNextAnimatorStateInfo(0).IsName("AirDashAttack"))
+                state = animator.GetNextAnimatorStateInfo(0);
+            return state;
+        }
+        public void ApplyAirDashRootMotion(Vector3 delta)
+        {
+            if (!IsAirDashing || !character.enabled) return;
+            var state = DashState();
+            if (!state.IsName("AirDashAttack")) return;
+            delta.y = 0f;
+            Vector3 before = transform.position;
+            delta *= config.airDashMotionScale;
+            delta = Vector3.ClampMagnitude(delta, Mathf.Max(0, config.airDashMaxDistance - dashTravel));
+            character.Move(delta);
+            dashTravel += Vector3.Distance(before, transform.position);
+            if (state.normalizedTime >= .15f && previousDashProgress <= .7f)
+                DashContacts(before, transform.position);
+            previousDashProgress = state.normalizedTime;
+        }
+        private void TickAirDash(float dt)
+        {
+            dashElapsed += dt;
+            if (Player.Controls.AttackPressed) dashAttackQueued = true;
+            var state = DashState();
+            if (dashAttackQueued && state.IsName("AirDashAttack") && state.normalizedTime >= config.airDashFollowUpProgress)
             {
-                var state = animator.GetCurrentAnimatorStateInfo(0);
-                if ((!state.IsName("AirSlamStart") || state.normalizedTime < 1f) && slamElapsed < .5f) return;
-                slamPhase = 1; slamElapsed = 0; verticalSpeed = -config.slamFallSpeed;
-                animator.CrossFadeInFixedTime("Base Layer.AirSlamLoop", .05f, 0, 0);
-            }
-            if (slamPhase == 2)
-            {
-                if (slamElapsed < config.slamLandingRecovery) return;
-                IsSlamming = Active = false;
-                Player.Combat.FinishAirSlam();
-                Player.Locomotion.OnCombatLanded();
-                if (Player.Combat.TryLandingFollowUp()) return;
-                var state = animator.GetCurrentAnimatorStateInfo(0);
-                if (state.IsName("AirSlamEnd") && state.normalizedTime >= 1f || slamElapsed >= 2f)
-                    animator.CrossFadeInFixedTime("Base Layer.Idle", .15f, 0, 0);
-                else { IsSlamming = Active = true; }
+                IsAirDashing = false;
+                Begin();
+                Player.Combat.BeginAirDashFollowUp(dashTarget);
                 return;
             }
-            float remaining = dt;
-            while (remaining > .00001f && slamPhase == 1)
+            if (state.IsName("AirDashAttack") && state.normalizedTime >= 1f) dashEndWait += dt;
+            if (dashEndWait >= config.airDashFollowUpGrace || dashElapsed >= 2f)
             {
-                float step = Mathf.Min(.02f, remaining); remaining -= step;
-                verticalSpeed = Mathf.Max(-40f, verticalSpeed - config.slamGravity * step);
-                Vector3 before = transform.position;
-                var collision = character.Move(Vector3.up * verticalSpeed * step);
-                SlamContacts(before, transform.position, false);
-                if ((collision & CollisionFlags.Below) == 0) continue;
-                slamPhase = 2; slamElapsed = 0; verticalSpeed = 0;
-                Player.Locomotion.OnCombatLanded();
-                SlamContacts(transform.position, transform.position, true);
-                animator.CrossFadeInFixedTime("Base Layer.AirSlamEnd", .04f, 0, 0);
+                IsAirDashing = false;
+                Player.Combat.FinishAirDash();
+                Fall();
             }
         }
         public bool Recovering => Active && falling;
@@ -271,7 +280,7 @@ namespace CombatSystem.Player
         public void Tick(float dt)
         {
             if (!Active) return;
-            if (IsSlamming) { TickSlam(dt); return; }
+            if (IsAirDashing) { TickAirDash(dt); return; }
             if (!falling)
             {
                 heldTime += dt;
@@ -305,6 +314,6 @@ namespace CombatSystem.Player
             }
         }
 
-        public override void OnDisable() { IsSlamming = false; Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
+        public override void OnDisable() { IsAirDashing = false; Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
     }
 }

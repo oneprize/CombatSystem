@@ -42,6 +42,7 @@ namespace CombatSystem.Player
 
         public void Apply(Vector3 delta)
         {
+            if (Player.AirCombo.IsAirDashing) { Player.AirCombo.ApplyAirDashRootMotion(delta); return; }
             var combat = Player.Combat;
             if (combat.IsUsingPiercingSkill)
             {

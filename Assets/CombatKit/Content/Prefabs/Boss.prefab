@@ -1982,6 +1982,7 @@ GameObject:
   - component: {fileID: 8727445868932221365}
   - component: {fileID: 1244849515607024194}
   - component: {fileID: 8208699492151668059}
+  - component: {fileID: 3639799117938435537}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Untagged
@@ -2042,37 +2043,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Boss.BossCombat
   player: {fileID: 0}
-  maxHealth: 500
-  detectionRange: 50
-  attackRange: 50
-  patternCooldown: 3
-  parriesToGroggy: 4
-  groggyDuration: 10
-  damagePerPlayerHit: 10
+  coreConfig: {fileID: 11400000, guid: d3b04177e74f4b91a9a8d26ab6b62303, type: 2}
   projectilePrefab: {fileID: 2179679205473468736, guid: 9ca3d5b86c4e5de4c8d1670560c76e0a, type: 3}
   projectileSpawnPoint: {fileID: 2542189716736283467}
-  projectileSpawnOffset: {x: 0, y: 1.7, z: 1.2}
-  projectileSpeed: 12
-  projectileDiameter: 3
-  projectileLifetime: 8
-  throwReleaseProgress: 0.42608696
-  chargeWindup: 0.7
-  chargeSpeed: 18
-  jumpStartDistance: 3
-  jumpDuration: 0.8
-  jumpHeight: 3
-  landingRecovery: 1
-  impactRadius: 3
-  impactHeight: 2.5
-  maxChargeDistance: 20
-  minTurnRadius: 12
-  trackingStopDistance: 5
-  maxChargeDuration: 1.5
-  jumpTakeoffTime: 0.2
-  jumpLandingTime: 0.75
-  chargeHitRadius: 2
-  chargeHitHeight: 2
-  coreConfig: {fileID: 11400000, guid: d3b04177e74f4b91a9a8d26ab6b62303, type: 2}
   pattern1Config: {fileID: 11400000, guid: 7e953aa7e29f4e1eb00e0a93a419f87b, type: 2}
   pattern2Config: {fileID: 11400000, guid: 04f5b93f277549f5a5e4d7f8122d87de, type: 2}
 --- !u!114 &8037830514584089894
@@ -2112,7 +2085,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e5eb5150d48d5547a217a4eb813f42b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Boss.BossLandingGrounding
-  soleClearance: 0.02
   config: {fileID: 11400000, guid: d7ba045ccec049e9bf1629029a086673, type: 2}
 --- !u!136 &8208699492151668059
 CapsuleCollider:
@@ -2137,6 +2109,26 @@ CapsuleCollider:
   m_Height: 1.6
   m_Direction: 1
   m_Center: {x: 0, y: 0.8, z: 0}
+--- !u!114 &3639799117938435537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8160702212791096956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &8161985041084998962
 GameObject:
   m_ObjectHideFlags: 0

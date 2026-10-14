@@ -108,7 +108,7 @@ namespace CombatSystem.Player
         public float PowerDamageMultiplier => Mathf.Lerp(powerConfig.minDamageMultiplier,
             Mathf.Max(powerConfig.minDamageMultiplier, powerConfig.maxDamageMultiplier), PowerChargeNormalized);
         public string CurrentAttackStateName => AttackStateName;
-        private string AttackStateName => IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirSlamStart" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
 
         private AirComboModule airCombo => Player.AirCombo;
 
@@ -138,7 +138,7 @@ namespace CombatSystem.Player
         public void CancelForDamage()
         {
             sheathedQueued = false; sheathedStep = 0;
-            airCombo.CancelSlam();
+            airCombo.CancelAirDash();
             lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
             ClearGroundAttackInput();
@@ -170,12 +170,12 @@ namespace CombatSystem.Player
                 ClearGroundAttackInput();
                 return;
             }
-            if (airCombo.IsSlamming)
+            if (airCombo.IsAirDashing)
             {
-                if (airCombo.IsSlamLanding) CaptureGroundAttackInput(Player.Controls);
+
                 return;
             }
-            if (Player.Controls.SkillAPressed && airCombo.TryBeginSlam()) return;
+            if (Player.Controls.SkillAPressed && airCombo.TryBeginAirDash()) return;
             if (airCombo.Recovering)
             {
                 if (airCombo.AllowsLandingFollowUp) CaptureGroundAttackInput(Player.Controls);
@@ -370,13 +370,13 @@ namespace CombatSystem.Player
         public void TrySkill() { RequestSkill(SkillGIndex); }
         public void TrySkillA()
         {
-            if (airCombo.TryBeginSlam()) return;
+            if (airCombo.TryBeginAirDash()) return;
             // A failed airborne request must never become the ground piercing skill.
             if (!Player.Locomotion.IsGrounded || Player.IsAirComboActive) return;
             RequestSkill(SkillAIndex);
         }
 
-        public void BeginAirSlam()
+        public void BeginAirDash()
         {
             CancelForDamage();
             attackIndex = 21;
@@ -384,7 +384,7 @@ namespace CombatSystem.Player
             AttackSequence++;
         }
 
-        public void FinishAirSlam()
+        public void FinishAirDash()
         {
             IsAttacking = false;
             queuedAttack = false;
@@ -520,6 +520,17 @@ namespace CombatSystem.Player
             return info.IsName(expected) ? info.normalizedTime : -1f;
         }
 
+        public void BeginAirDashFollowUp(CombatSystem.Combat.EnemyDamageReaction target)
+        {
+            BeginAirAttack(0);
+            if (target == null || !target.isActiveAndEnabled || target.CurrentHealth <= 0 || !target.IsAirborneForCombo) return;
+            Vector3 direction = target.transform.position - transform.position;
+            direction.y = 0;
+            if (direction.sqrMagnitude > config.skillTargetDistance * config.skillTargetDistance) return;
+            AttackTarget = target;
+            if (direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
+
         private void BeginAirAttack(int index)
         {
             if (index < 0 || index >= AirComboCount || !animator.HasState(0, Animator.StringToHash("Base Layer.AirAttack" + (index + 1)))) return;
@@ -641,9 +652,11 @@ namespace CombatSystem.Player
             }
 
             if (bufferedSkillIndex >= 0 && Time.time > bufferedSkillUntil) bufferedSkillIndex = -1;
-            if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && info.normalizedTime >= config.normalSkillTransitionProgress)
+            bool bufferedPiercingSkill = bufferedSkillIndex == SkillAIndex || bufferedSkillIndex == SkillBIndex;
+            float skillTransitionProgress = bufferedPiercingSkill ? config.piercingSkillTransitionProgress : config.normalSkillTransitionProgress;
+            if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && info.normalizedTime >= skillTransitionProgress)
             {
-                BeginSkill(bufferedSkillIndex, config.normalSkillBlendTime);
+                BeginSkill(bufferedSkillIndex, bufferedPiercingSkill ? config.piercingSkillBlendTime : config.normalSkillBlendTime);
                 return;
             }
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CombatSystem.Combat
 {
-    [RequireComponent(typeof(EnemyCombat))]
+    [RequireComponent(typeof(EnemyCombat), typeof(EnemyNavigation))]
     public class EnemyStateMachine : MonoBehaviour
     {
         public sealed class MonitorEntry
@@ -33,6 +33,7 @@ namespace CombatSystem.Combat
             monitorLog.Add(new MonitorEntry { State = name, Phase = phase, Time = Time.time });
             if (monitorLog.Count > 64) monitorLog.RemoveAt(0);
         }
+        public EnemyNavigation Navigation { get; private set; }
         public IEnemyState CurrentState { get; private set; }
 
         public EnemyIdleState IdleState { get; private set; }
@@ -45,6 +46,7 @@ namespace CombatSystem.Combat
 
         private void Awake()
         {
+            Navigation = GetComponent<EnemyNavigation>();
             var combat = GetComponent<EnemyCombat>();
 
             IdleState = new EnemyIdleState(this, combat);
@@ -85,6 +87,7 @@ namespace CombatSystem.Combat
                 CurrentState.Exit();
                 Record(CurrentState, "EXIT");
             }
+            Navigation.Suspend();
             PreviousStateName = StateName(CurrentState);
             CurrentState = next;
             StateEnteredAt = Time.time;

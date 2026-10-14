@@ -19,7 +19,11 @@ Open Content/Scenes/ComboPracticeGround.unity to try the training scene.
 For your own scene use Tools > Combat Kit > Spawner.
 Add gameplay scenes to the build scene list for restart in a built player.
 The spawner may disable existing cameras when creating its camera rig.
-Enemy chase currently moves directly toward its target; it does not find paths around walls.
+Enemies use NavMesh for chase, patrol, observe and retreat. Attacks and hit reactions retain authored motion.
+In a new scene add floor/wall colliders, save it, then use Tools > Combat Kit > Bake Navigation in Current Scene and save again.
+The supplied training scene includes baked navigation. Re-bake after changing level geometry.
+If no reachable NavMesh is near an enemy, navigation stops and warns rather than moving through walls.
+Off-mesh landings require a nearby same-level reachable NavMesh; arbitrary off-mesh recovery and animated NavMeshLink traversal are not provided.
 
 Do not install both an old UPM Combat Kit and this Assets copy in the same project:
 remove the old package first to avoid duplicate GUIDs and assemblies.

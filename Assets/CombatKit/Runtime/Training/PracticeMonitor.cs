@@ -44,7 +44,7 @@ namespace CombatSystem.Training
                 + "\nTotal hits: " + dummy.TotalHits
                 + "\nLast damage: " + Mathf.FloorToInt(dummy.LastDamage) + "  /  Total: " + Mathf.FloorToInt(dummy.TotalDamage)
                 + "\nDummy: " + (dummy.GetComponent<CombatSystem.Combat.EnemyDamageReaction>().IsAirborneForCombo ? "AIRBORNE" : "GROUND")
-                + "\n\nLMB: combo 1-5 / W + LMB: Skill C\nC then LMB: upper + air combo 1-6\nQ / E / R: skills   Ctrl: dodge\nF5: reset dummy and counters";
+                + "\n\nQ / E / R: skills   Ctrl: dodge\nF5: reset dummy and counters";
             GUI.Label(new Rect(x+18, 78, 345, 250), rows, text);
             if (Time.time - dummy.LastHitTime < .8f && Camera.main != null)
             {

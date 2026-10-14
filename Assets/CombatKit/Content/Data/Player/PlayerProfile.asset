@@ -49,6 +49,8 @@ MonoBehaviour:
     eFollowUpInputWindow: 0.8
     eFollowUpComboProgress: 0.6
     eFollowUpHitWindow: {x: 0.18, y: 0.42}
+    piercingSkillTransitionProgress: 0.4
+    piercingSkillBlendTime: 0.05
     normalSkillInputBuffer: 0.4
     normalSkillTransitionProgress: 0.6
     normalSkillBlendTime: 0.08

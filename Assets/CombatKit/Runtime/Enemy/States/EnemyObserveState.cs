@@ -77,7 +77,7 @@ namespace CombatSystem.Combat
             targetAge += deltaTime;
             // 저장된 월드 좌표를 유지한다. 크게 벗어났을 때만, 최소 간격을 두고 재선택한다.
             // 적이 아직 복귀 중이라는 이유만으로 목표를 계속 다시 뽑지는 않는다.
-            if (!hasTarget || (targetAge >= combat.RepositionMinInterval && IsTargetInvalid(player)))
+            if ((!hasTarget && targetAge >= .3f) || (hasTarget && targetAge >= combat.RepositionMinInterval && IsTargetInvalid(player)))
             {
                 PickNewTargetPosition();
             }
@@ -94,7 +94,7 @@ namespace CombatSystem.Combat
 
             // Arrival never waits for the invalid-target reselection cooldown.
             // Select and move toward the next point in this same frame.
-            if (distanceToTarget <= combat.RepositionArriveThreshold)
+            if (hasTarget && distanceToTarget <= Mathf.Max(combat.RepositionArriveThreshold, .5f))
             {
                 PickNewTargetPosition();
                 toTarget = targetPosition - self.position;
@@ -103,10 +103,11 @@ namespace CombatSystem.Combat
             }
 
             Vector3 localMove = Vector3.zero;
-            if (distanceToTarget > .001f)
+            if (hasTarget && distanceToTarget > .001f)
             {
-                Vector3 moveDir = toTarget / distanceToTarget;
-                self.position += moveDir * Mathf.Min(combat.ObserveSpeed * deltaTime, distanceToTarget);
+                machine.Navigation.MoveTo(targetPosition, combat.ObserveSpeed, .05f);
+                Vector3 moveDir = machine.Navigation.MoveDirection;
+
                 localMove = self.InverseTransformDirection(moveDir);
             }
 
@@ -169,12 +170,19 @@ namespace CombatSystem.Combat
                     : (i < 14 ? combat.CombatMinDistance : combat.CombatMaxDistance);
                 Vector3 candidate = player.position + Quaternion.Euler(0f, angle, 0f) * forward * distance;
                 candidate.y = machine.transform.position.y;
+                Vector3 valid;
+                if (!machine.Navigation.TryTarget(candidate, out valid)) continue;
+                candidate = valid;
+                Vector3 sector = candidate - player.position; sector.y = 0f;
+                if (sector.magnitude < combat.CombatMinDistance || sector.magnitude > combat.CombatMaxDistance ||
+                    Vector3.Angle(forward, sector) > combat.CombatHalfAngle) continue;
                 float travel = Vector3.Distance(candidate, machine.transform.position);
                 if (travel > bestDistance) { bestDistance = travel; best = candidate; }
                 if (travel >= minimumTravel) { best = candidate; break; }
             }
+            if (bestDistance < 0f) { hasTarget = false; targetAge = 0f; machine.Navigation.Suspend(); return; }
             targetPosition = best;
-            targetPosition.y = machine.transform.position.y;
+
             hasTarget = true;
             targetAge = 0f;
         }

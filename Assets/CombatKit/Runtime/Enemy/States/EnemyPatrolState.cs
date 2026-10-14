@@ -51,10 +51,12 @@ namespace CombatSystem.Combat
                 return;
             }
 
-            Vector3 direction = toWaypoint.normalized;
+            if (!machine.Navigation.MoveTo(waypoint, combat.PatrolSpeed, .1f)) { PickNewWaypoint(); return; }
+            Vector3 direction = machine.Navigation.MoveDirection;
+            if (direction.sqrMagnitude < .001f) return;
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             self.rotation = Quaternion.RotateTowards(self.rotation, targetRotation, combat.RotationSpeed * deltaTime);
-            self.position += direction * combat.PatrolSpeed * deltaTime;
+
         }
 
         public void Exit()

@@ -47,7 +47,7 @@ namespace CombatSystem.Player
             var c=player.Combat;
             if(sequence!=c.AttackSequence){sequence=c.AttackSequence;previousProgress=0;wasActive=false;previousValid=false;}
             if(player.IsHitReacting||player.IsGuarding||c.IsChargingPower)return false;
-            if(player.AirCombo.IsSlamming){var s=animator.GetCurrentAnimatorStateInfo(0);return s.IsName("AirSlamLoop")||(s.IsName("AirSlamEnd")&&s.normalizedTime<.15f);}
+            if(player.AirCombo.IsAirDashing){var s=animator.GetCurrentAnimatorStateInfo(0);return s.IsName("AirDashAttack") && s.normalizedTime >= .15f && s.normalizedTime <= .7f;}
             if(!c.IsAttacking)return false;
             string name="Base Layer."+c.CurrentAttackStateName;
             var state=animator.GetCurrentAnimatorStateInfo(0);

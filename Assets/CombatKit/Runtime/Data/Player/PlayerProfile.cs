@@ -102,6 +102,9 @@ namespace CombatSystem.Data.Player
             [Range(0f, 1f)] public float eFollowUpComboProgress = .6f;
             public Vector2 eFollowUpHitWindow = new Vector2(.18f, .42f);
             [Header("Normal attack to skill")]
+            [Tooltip("Normalized ground attack progress at which E/R may interrupt the combo.")]
+            [Range(0f, 1f)] public float piercingSkillTransitionProgress = .4f;
+            [Min(0f)] public float piercingSkillBlendTime = .05f;
             [Min(0f)] public float normalSkillInputBuffer = .4f;
             [Range(0f, 1f)] public float normalSkillTransitionProgress = .6f;
             [Min(0f)] public float normalSkillBlendTime = .08f;
@@ -161,6 +164,11 @@ namespace CombatSystem.Data.Player
         [Serializable]
         public class AirComboSettings
         {
+            [Header("Air E dash and follow-up")]
+            [Min(0f)] public float airDashMaxDistance = 2.5f;
+            [Range(0f, 1f)] public float airDashMotionScale = .38f;
+            [Range(0f, 1f)] public float airDashFollowUpProgress = .7f;
+            [Min(0f)] public float airDashFollowUpGrace = .2f;
             [Min(.1f)] public float fallGravity = 18f;
             [Min(.1f)] public float maximumHoldTime = 10f;
             [Min(1f)] public float finisherFallSpeed = 12f;
