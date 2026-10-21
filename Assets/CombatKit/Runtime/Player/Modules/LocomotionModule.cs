@@ -4,22 +4,32 @@ using CombatSystem.Data.Player;
 namespace CombatSystem.Player
 {
     /// <summary>
-    /// Camera-relative walk/run, double jump and gravity. Also starts dodges and link jumps,
-    /// and hands the frame to whichever movement action (air combo, dodge, link jump) is active.
+    /// 카메라 기준 걷기/달리기, 2단 점프와 중력을 처리한다. 회피와 링크 점프의 시작 입력도 받으며,
+    /// 이동을 소유한 동작(공중 콤보, 회피, 링크 점프)이 있으면 그 프레임을 해당 모듈에 넘긴다.
     /// </summary>
     public sealed class LocomotionModule : PlayerModule
     {
+        #region 필드
+
         private const int MaxJumps = 2; // 최대 연속 점프 횟수
 
         private PlayerProfile.LocomotionSettings config;
+        /// <summary>급격한 방향 반전 후 방향 전환 모션(isTurning)을 유지할 남은 시간.</summary>
         private float turningTimer;
-        private int jumpCount; // 플레이어가 점프한 횟수
+        private int jumpCount; // 현재 공중에서 사용한 점프 횟수
         private Vector3 velocity;
-        private Vector3 lastMoveDirection; // 이전 이동 방향을 저장할 변수
+        private Vector3 lastMoveDirection; // 방향 반전 감지용 직전 이동 방향
+        /// <summary>지상 콤보 도중 누른 회피 입력을 회피 캔슬 시점까지 보관해 두는 플래그.</summary>
         private bool dodgeBuffered;
         private float airborneTime;
+        /// <summary>재생 중인 착지 애니메이터 상태. 착지 모션이 끝나거나 이동을 시작하면 null로 비운다.</summary>
         private string landingState;
+        /// <summary>공중 회피가 끝나 낙하 중임을 표시. 착지 시 이동 입력과 관계없이 JumpEnd 착지 모션을 재생하게 한다.</summary>
         private bool airDodgeLanding;
+
+        #endregion
+
+        #region 프로퍼티
 
         public bool IsMoving { get; private set; }
         public bool IsRunning { get; private set; }
@@ -27,11 +37,20 @@ namespace CombatSystem.Player
         public bool IsGrounded { get; private set; }
         public bool IsTurning { get; private set; }
 
+        #endregion
+
+        #region 프레임 갱신 및 동작 위임
+
+        /// <summary>프로필 설정을 캐싱한다.</summary>
         protected override void OnInitialize()
         {
             config = Player.Profile.locomotion;
         }
 
+        /// <summary>
+        /// 매 프레임 이동을 갱신한다. 공중 콤보·회피·링크 점프가 진행 중이면 해당 모듈에 위임하고,
+        /// 아니면 회피/링크 점프 시작 입력을 확인한 뒤 일반 이동과 점프·중력을 처리한다.
+        /// </summary>
         public void Tick(float dt)
         {
             var air = Player.AirCombo;
@@ -59,8 +78,8 @@ namespace CombatSystem.Player
                 Vector2 move = Player.Controls.Move;
                 Vector3 input = forward * move.y + right * move.x;
                 if (dodge.TryBegin(input)) { dodgeBuffered = false; velocity = Vector3.zero; ResetJumpState(); return; }
-                // Pressed mid-swing: hold it until this step reaches its dodge cancel point.
-                // The latest input wins, so a combo follow-up queued earlier is dropped.
+                // 공격 모션 도중 눌렀다면 현재 콤보 단계가 회피 캔슬 시점에 도달할 때까지 입력을 보관한다.
+                // 가장 최근 입력이 우선이므로, 앞서 예약된 콤보 후속 공격은 버린다.
                 if (dodgePressed && Player.Combat.IsUsingGroundCombo)
                 {
                     dodgeBuffered = true;
@@ -84,8 +103,8 @@ namespace CombatSystem.Player
             HandleMovement(dt);
             if (Player.Combat.IsUsingUpperAttack || Player.Combat.IsUsingChaseAttack || Player.Combat.IsReleasingPower || Player.Combat.IsGroundComboFinisher)
             {
-                // UpperAttack owns vertical movement through collision-aware root motion.
-                // Do not add normal jump gravity or accept Space during this animation.
+                // UpperAttack(및 추격 공격·파워 공격·지상 콤보 피니시)는 충돌을 고려한 루트 모션으로 수직 이동을 직접 제어한다.
+                // 이 애니메이션 동안에는 일반 점프 중력을 더하거나 Space 입력을 받지 않는다.
                 velocity = Vector3.zero;
                 ResetJumpState();
                 animator.SetBool("isGrounded", character.isGrounded);
@@ -94,6 +113,7 @@ namespace CombatSystem.Player
             HandleJump(dt);
         }
 
+        /// <summary>공중 콤보 낙하가 착지했을 때 호출되어 접지 상태와 점프 상태를 초기화한다.</summary>
         public void OnCombatLanded()
         {
             IsGrounded = true;
@@ -102,6 +122,7 @@ namespace CombatSystem.Player
             animator.SetBool("isGrounded", true);
         }
 
+        /// <summary>공중 회피가 끝났을 때 일반 낙하(또는 이미 바닥이면 착지)로 이어지도록 점프 상태를 복원한다.</summary>
         public void ResumeAirDodge()
         {
             airDodgeLanding = true;
@@ -117,14 +138,23 @@ namespace CombatSystem.Player
             else animator.CrossFadeInFixedTime(JumpLoopState, .08f, 0, 0f);
         }
 
+        /// <summary>지상 회피가 끝난 프레임에 곧바로 이동을 이어 받아 멈칫거림 없이 걷기/달리기로 복귀시킨다.</summary>
         public void ResumeAfterDodge(float dt)
         {
             HandleMovement(dt);
         }
 
+        #endregion
+
+        #region 이동 처리
+
+        /// <summary>
+        /// 카메라 기준 입력으로 캐릭터를 회전·이동시키고 이동 관련 애니메이터 파라미터를 갱신한다.
+        /// 급격히 반대 방향으로 꺾으면 잠시 방향 전환 모션과 감속을 적용한다.
+        /// </summary>
         private void HandleMovement(float dt)
         {
-            // 공격 또는 방어 중일 때는 이동을 막는다
+            // 공격, 가드, 피격 리액션 중에는 이동을 막는다.
             bool isCombatLocked = Player.IsAttacking || Player.IsGuarding || Player.IsHitReacting;
             if (isCombatLocked)
             {
@@ -143,7 +173,6 @@ namespace CombatSystem.Player
             bool isMoving = inputDir.magnitude > 0.1f;
             bool isRunning = isMoving && Player.Controls.RunHeld;
 
-            // 현재 이동 방향을 계산합니다.
             Vector2 move = Player.Controls.Move;
             Vector3 currentMoveDirection = cam.forward * move.y + cam.right * move.x;
             currentMoveDirection.y = 0f;
@@ -153,10 +182,10 @@ namespace CombatSystem.Player
             {
                 float dot = Vector3.Dot(lastMoveDirection.normalized, currentMoveDirection.normalized);
                 if (dot < -0.8f)
-                    turningTimer = config.turningHoldTime; // 반전 시 타이머 시작
+                    turningTimer = config.turningHoldTime; // 거의 정반대로 꺾으면 방향 전환 모션 시작
             }
 
-            // 타이머가 남아있으면 isTurning 유지
+            // 방향 전환 유지 시간 동안은 isTurning을 켜 두어 전환 모션과 감속을 보여 준다.
             if (turningTimer > 0f)
             {
                 turningTimer -= dt;
@@ -179,7 +208,6 @@ namespace CombatSystem.Player
                 lastMoveDirection = currentMoveDirection;
             }
 
-            // 애니메이터 파라미터 업데이트
             animator.SetBool("isMoving", isMoving);
             animator.SetBool("isRunning", isRunning);
             animator.SetBool("isTurning", IsTurning);
@@ -192,10 +220,17 @@ namespace CombatSystem.Player
             IsRunning = isRunning;
         }
 
+        #endregion
+
+        #region 점프·착지
+
+        /// <summary>
+        /// 접지 판정, 2단 점프 입력, 낭떠러지 낙하 전환, 착지 처리와 중력 적용을 담당한다.
+        /// </summary>
         private void HandleJump(float dt)
         {
-            // Before Land() below: a CrossFade only shows up in the animator state from the next update,
-            // so checking the landing state in the same frame it was requested would drop it.
+            // 아래의 Land()보다 먼저 호출해야 한다. CrossFade는 다음 업데이트부터 애니메이터 상태에 반영되므로,
+            // 요청한 같은 프레임에 착지 상태를 검사하면 착지 처리가 누락된다.
             UpdateLanding();
             IsGrounded = CheckGrounded();
 
@@ -233,7 +268,6 @@ namespace CombatSystem.Player
             animator.SetBool("isJumping", IsJumping);
             animator.SetInteger("jumpCount", jumpCount);
 
-            // 중력 적용
             velocity.y += config.gravity * dt;
             character.Move(velocity * dt);
         }
@@ -244,12 +278,12 @@ namespace CombatSystem.Player
         private const string DoubleJumpStartState = "Base Layer.DoubleJumpStart";
         private const string DoubleJumpEndState = "Base Layer.DoubleJumpEnd";
 
-        /// <summary>Jump/fall/landing animations only play when no action owns the animator.</summary>
+        /// <summary>점프/낙하/착지 애니메이션은 다른 동작(피격, 공격, 가드)이 애니메이터를 쓰지 않을 때만 재생한다.</summary>
         private bool CanPlayJumpAnimation => !Player.IsHitReacting && !Player.IsAttacking && !Player.IsGuarding;
 
         /// <summary>
-        /// The transform sits at the capsule's centre, so the probe starts at the capsule bottom
-        /// (a probe from the transform never reaches the floor and the player would never land).
+        /// 캡슐 하단에서 짧게 레이캐스트해 접지 여부를 판정한다. Transform이 캡슐 중심에 있으므로
+        /// Transform에서 쏘면 바닥에 닿지 않아 착지하지 못하기 때문이다.
         /// </summary>
         private bool CheckGrounded()
         {
@@ -260,6 +294,10 @@ namespace CombatSystem.Player
                 ~0, QueryTriggerInteraction.Ignore);
         }
 
+        /// <summary>
+        /// 점프 상태를 끝내고 상황에 맞는 착지 모션을 재생한다. 이동 중이면 착지 모션 없이 바로 걷기/달리기로,
+        /// 2단 점프 후면 2단 점프 착지 모션으로 전환한다.
+        /// </summary>
         private void Land()
         {
             bool fromDoubleJump = jumpCount >= MaxJumps;
@@ -282,7 +320,7 @@ namespace CombatSystem.Player
             animator.CrossFadeInFixedTime(landingState, .08f, 0, 0f);
         }
 
-        /// <summary>Leaves the landing animation for Idle when it ends, or for Walk/Run as soon as the player moves.</summary>
+        /// <summary>착지 애니메이션이 끝나면 대기 상태로, 그 전에 이동을 시작하면 즉시 걷기/달리기로 빠져나간다.</summary>
         private void UpdateLanding()
         {
             if (landingState == null) return;
@@ -302,7 +340,7 @@ namespace CombatSystem.Player
             landingState = null;
         }
 
-        /// <summary>Another action took over movement (air combo, dodge, link jump, upper attack).</summary>
+        /// <summary>다른 동작(공중 콤보, 회피, 링크 점프, UpperAttack 등)이 이동을 가져갔을 때 점프·착지 상태를 모두 초기화한다.</summary>
         private void ResetJumpState()
         {
             airDodgeLanding = false;
@@ -314,12 +352,18 @@ namespace CombatSystem.Player
             animator.SetInteger("jumpCount", 0);
         }
 
+        #endregion
+
+        #region 입력 변환
+
+        /// <summary>이동 입력(2D)을 XZ 평면의 정규화된 방향으로 바꾼다.</summary>
         private Vector3 GetInputDirection()
         {
             Vector2 move = Player.Controls.Move;
             return new Vector3(move.x, 0, move.y).normalized;
         }
 
+        /// <summary>입력 방향을 카메라의 수평 오른쪽/정면 축에 투영해 블렌드 트리용 moveX/moveY 값으로 만든다.</summary>
         private static Vector2 TransformToLocalInput(Vector3 input, Transform cam)
         {
             Vector3 camForward = cam.forward;
@@ -335,5 +379,7 @@ namespace CombatSystem.Player
 
             return new Vector2(localX, localY);
         }
+
+        #endregion
     }
 }

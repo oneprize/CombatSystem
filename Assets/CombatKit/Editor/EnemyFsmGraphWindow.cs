@@ -3,12 +3,21 @@ using UnityEditor;
 using CombatSystem.Combat;
 using System.Collections.Generic;
 
+/// <summary>
+/// 적 상태 머신(EnemyStateMachine)의 상태와 전이 조건을 비헤이비어 트리 형태의 노드 그래프로 보여 주는 관찰 전용 에디터 창.
+/// 플레이 중에는 현재 상태와 최근 진입 상태를 강조하고, 좌측 Blackboard와 우측 Inspector에 판단 값과 상태 로그를 표시한다.
+/// 노드 배치는 실행 로직에 영향을 주지 않는다.
+/// </summary>
 public class EnemyFsmGraphWindow : EditorWindow
 {
+    #region 그래프 데이터 타입
+
+    /// <summary>그래프의 상태 노드. 상태 ID, 요약 설명, 더블클릭 시 열 상태 스크립트 경로를 가진다.</summary>
     private class Node
     {
         public string id, summary, path;
         public Rect rect;
+        /// <summary>노드를 만들고 상태 ID 규칙(Enemy{Id}State.cs, HIT는 EnemyDamageReaction.cs)으로 소스 경로를 정한다.</summary>
         public Node(string id, string summary, float x, float y)
         {
             this.id = id; this.summary = summary; rect = new Rect(x, y, 190, 80);
@@ -16,12 +25,19 @@ public class EnemyFsmGraphWindow : EditorWindow
                 "Assets/Enemy/States/Enemy" + char.ToUpper(id[0]) + id.Substring(1).ToLower() + "State.cs";
         }
     }
+    /// <summary>상태 간 전이 하나와 그 조건 설명. Inspector 패널에서 선택 상태의 나가는 전이를 보여 줄 때 쓴다.</summary>
     private class Edge
     {
         public string from, to, condition;
+        /// <summary>출발/도착 상태 ID와 전이 조건 설명을 저장한다.</summary>
         public Edge(string from, string to, string condition)
         { this.from = from; this.to = to; this.condition = condition; }
     }
+
+    #endregion
+
+    #region 필드
+
     [SerializeField] private EnemyStateMachine target;
     [SerializeField] private string selected = "OBSERVE";
     private Vector2 detailScroll;
@@ -29,6 +45,11 @@ public class EnemyFsmGraphWindow : EditorWindow
     private List<Edge> edges;
     private double nextRepaint;
 
+    #endregion
+
+    #region 창 열기와 갱신
+
+    /// <summary>FSM 그래프 창을 연다.</summary>
     [MenuItem("Tools/Combat System/FSM Graph")]
     public static void Open()
     {
@@ -36,6 +57,7 @@ public class EnemyFsmGraphWindow : EditorWindow
         window.minSize = new Vector2(800, 500);
         window.Show();
     }
+    /// <summary>그래프를 구성하고, 주기적 다시 그리기와 선택 변경 이벤트를 구독한다.</summary>
     private void OnEnable()
     {
         Build();
@@ -43,11 +65,13 @@ public class EnemyFsmGraphWindow : EditorWindow
         Selection.selectionChanged += SelectionChanged;
         SelectionChanged();
     }
+    /// <summary>OnEnable에서 구독한 에디터 이벤트를 해제한다.</summary>
     private void OnDisable()
     {
         EditorApplication.update -= Refresh;
         Selection.selectionChanged -= SelectionChanged;
     }
+    /// <summary>선택한 오브젝트(또는 그 부모)에 적 상태 머신이 있으면 관찰 대상으로 바꾼다. 대상이 없으면 씬의 첫 적을 쓴다.</summary>
     private void SelectionChanged()
     {
         if (Selection.activeGameObject != null)
@@ -58,12 +82,22 @@ public class EnemyFsmGraphWindow : EditorWindow
         if (target == null) target = Object.FindFirstObjectByType<EnemyStateMachine>();
         Repaint();
     }
+    /// <summary>실시간 상태 표시를 위해 0.1초 간격으로 창을 다시 그린다.</summary>
     private void Refresh()
     {
         if (EditorApplication.timeSinceStartup < nextRepaint) return;
         nextRepaint = EditorApplication.timeSinceStartup + .1;
         Repaint();
     }
+
+    #endregion
+
+    #region 그래프 정의
+
+    /// <summary>
+    /// 표시할 상태 노드와 전이 조건 목록을 정의한다. 실제 상태 머신 코드에서 읽어 오는 것이 아니라 수동으로 적은 설명이므로,
+    /// 전이 로직이 바뀌면 여기도 함께 갱신해야 한다.
+    /// </summary>
     private void Build()
     {
         nodes = new List<Node>
@@ -93,7 +127,9 @@ public class EnemyFsmGraphWindow : EditorWindow
             new Edge("HIT","OBSERVE","피격 완료 또는 넉다운 → 기상 완료")
         };
     }
+    /// <summary>상태 ID로 노드를 찾는다.</summary>
     private Node Find(string id) { return nodes.Find(n => n.id == id); }
+    /// <summary>플레이 중 해당 상태에 마지막으로 진입한 지 1초가 안 됐는지 판정한다. 너무 짧게 지나가는 상태를 눈에 띄게 하려는 용도.</summary>
     private bool Recent(string id)
     {
         if (!Application.isPlaying || target == null) return false;
@@ -103,10 +139,17 @@ public class EnemyFsmGraphWindow : EditorWindow
                 return Time.time - log[i].Time < 1f;
         return false;
     }
+
+    #endregion
+
+    #region 그래프 그리기
+
     private float zoom = .7f;
     private Vector2 pan = new Vector2(30, 45);
     private Vector2 blackboardScroll;
+    /// <summary>그래프 좌표의 사각형을 현재 확대/이동을 적용한 화면 좌표로 변환한다.</summary>
     private Rect ScreenRect(Rect r) { return new Rect(pan + r.position * zoom, r.size * zoom); }
+    /// <summary>부모 카드 아래쪽에서 자식 카드 위쪽으로 꺾인 연결선과 화살촉을 그린다. 활성 경로는 굵은 초록색으로 표시한다.</summary>
     private void Connect(Rect parent, Rect child, bool active)
     {
         Vector2 start = ScreenRect(parent).center;
@@ -119,6 +162,10 @@ public class EnemyFsmGraphWindow : EditorWindow
             new Vector2(start.x,middle),new Vector2(end.x,middle),end);
         Handles.DrawAAPolyLine(2f,end+new Vector2(-4,-6),end,end+new Vector2(4,-6));
     }
+    /// <summary>
+    /// 헤더 색과 제목/본문이 있는 카드를 그린다. 테두리 색으로 현재 상태(초록), 최근 진입(주황), 선택(파랑)을 구분하고,
+    /// 상태 카드를 클릭하면 선택하며 더블클릭하면 해당 상태 스크립트를 연다.
+    /// </summary>
     private void Card(Rect rect, string title, string body, Color header, string state, string current)
     {
         Rect r = ScreenRect(rect);
@@ -140,6 +187,10 @@ public class EnemyFsmGraphWindow : EditorWindow
             Event.current.Use();
         }
     }
+    /// <summary>
+    /// 툴바(대상 선택, 전체 보기/현재 상태로 이동, 확대 슬라이더), 가운데 그래프 영역(휠 확대·드래그 이동, 격자, 루트→분기→조건→상태 카드),
+    /// 좌측 Blackboard와 우측 Inspector 패널을 그린다.
+    /// </summary>
     private void OnGUI()
     {
         if(nodes==null) Build();
@@ -215,11 +266,18 @@ public class EnemyFsmGraphWindow : EditorWindow
         EditorGUILayout.EndScrollView();
         GUILayout.EndArea();
     }
+
+    #endregion
+
+    #region 사이드 패널
+
+    /// <summary>Blackboard 항목 하나를 라벨과 복사 가능한 값으로 그린다.</summary>
     private void Value(string label,string value)
     {
         EditorGUILayout.LabelField(label,EditorStyles.miniBoldLabel);
         EditorGUILayout.SelectableLabel(value,EditorStyles.wordWrappedMiniLabel,GUILayout.Height(30));
     }
+    /// <summary>대상 적의 판단 입력값(플레이어 거리, 탐지/공격 범위 여부, 관찰 거리, 체력 비율, 플레이어 가드·공격 여부)을 표시한다. 실시간 값은 플레이 중에만 나온다.</summary>
     private void DrawBlackboard()
     {
         EditorGUILayout.LabelField("Blackboard",EditorStyles.boldLabel);
@@ -243,6 +301,7 @@ public class EnemyFsmGraphWindow : EditorWindow
         Value("PlayerGuarding",live?c.IsPlayerGuarding.ToString():"—");
         Value("PlayerAttacking",live?c.IsPlayerAttacking.ToString():"—");
     }
+    /// <summary>대상 적의 현재/이전 상태와 유지 시간, 선택한 상태의 나가는 전이와 보충 설명, 최근 상태 로그 18줄을 Inspector 패널에 표시한다.</summary>
     private void DrawDetails()
     {
         EditorGUILayout.LabelField("FSM MONITOR",EditorStyles.boldLabel);
@@ -287,9 +346,17 @@ public class EnemyFsmGraphWindow : EditorWindow
                     (log[i].Phase=="EXECUTE"?" ×"+log[i].Count:""),EditorStyles.miniLabel);
         }
     }
+
+    #endregion
+
+    #region 소스 열기
+
+    /// <summary>노드에 연결된 상태 스크립트를 외부 편집기로 연다. 경로에 스크립트가 없으면 아무 것도 하지 않는다.</summary>
     private void OpenSource(Node node)
     {
         var script=AssetDatabase.LoadAssetAtPath<MonoScript>(node.path);
         if(script!=null) AssetDatabase.OpenAsset(script);
     }
+
+    #endregion
 }

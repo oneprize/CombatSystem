@@ -5,32 +5,38 @@ using CombatSystem.Data.Player;
 
 namespace CombatSystem.Player
 {
-    /// <summary>Actions gated by <see cref="PlayerCharacter.CanStartAction"/>.</summary>
+    /// <summary><see cref="PlayerCharacter.CanStartAction"/>으로 시작 가능 여부를 판정하는 플레이어 행동 종류.</summary>
     public enum PlayerAction { Attack, Skill, UpperAttack, Dodge, LinkJump }
 
-    /// <summary>What the player is doing right now, highest priority first.</summary>
+    /// <summary>플레이어의 현재 상태. 여러 상태가 겹치면 앞에 선언된 것이 우선한다.</summary>
     public enum PlayerState { HitReact, Dodge, LinkJump, Attack, AirRecovery, Guard, Jump, Run, Walk, Idle, Dead }
 
     /// <summary>
-    /// The single player component. Owns every player module and drives them in a fixed
-    /// order, so features never depend on Unity's per-component Update ordering.
+    /// 플레이어의 유일한 컴포넌트. 모든 플레이어 모듈을 소유하고 고정된 순서로 구동하므로,
+    /// 기능들이 Unity의 컴포넌트별 Update 실행 순서에 의존하지 않는다.
     /// </summary>
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(-100)]
     [RequireComponent(typeof(Animator), typeof(CharacterController))]
     public sealed class PlayerCharacter : MonoBehaviour, ICombatant
     {
+        #region 필드
+
         [Tooltip("Basis for camera-relative movement. A Cinemachine camera resolves to the Unity camera it drives. Falls back to Camera.main.")]
         [SerializeField] private Transform cameraTransform;
 
         [Tooltip("Every tuning value for this character, grouped by module.")]
         [SerializeField] private PlayerProfile profile;
 
+        #endregion
+
+        #region 프로퍼티
+
         public Transform Transform => transform;
         public CombatTeam Team => CombatTeam.Player;
 
         public PlayerContext Context { get; private set; }
-        /// <summary>The character's controls: an IPlayerInput on this GameObject, else no input.</summary>
+        /// <summary>캐릭터 조작 입력. 같은 GameObject의 IPlayerInput을 쓰고, 없으면 아무 입력도 없는 NullPlayerInput을 쓴다.</summary>
         public IPlayerInput Controls { get; private set; } = NullPlayerInput.Instance;
         public HealthModule Health { get; private set; }
         public CombatModule Combat { get; private set; }
@@ -42,6 +48,7 @@ namespace CombatSystem.Player
         public AttackHeightOffsetModule AttackHeightOffset { get; private set; }
         public RootMotionModule RootMotion { get; private set; }
         public LockOnModule LockOn { get; private set; }
+        /// <summary>캐릭터 튜닝 값 묶음. 인스펙터에서 할당되지 않았으면 경고를 남기고 기본값 인스턴스를 만들어 쓴다.</summary>
         public PlayerProfile Profile
         {
             get
@@ -56,10 +63,9 @@ namespace CombatSystem.Player
         }
 
         /// <summary>
-        /// The camera the player actually sees, used as the basis for camera-relative input.
-        /// A Cinemachine virtual camera assigned here is resolved to the Unity camera its brain
-        /// drives: when another virtual camera (e.g. lock-on) is live, the assigned one keeps
-        /// its own orientation off-screen and would no longer match what is shown.
+        /// 플레이어가 실제로 보고 있는 카메라로, 카메라 기준 이동 입력의 기준축이 된다.
+        /// Cinemachine 가상 카메라가 할당되면 그 Brain이 구동하는 Unity 카메라로 변환한다.
+        /// 다른 가상 카메라(예: 락온)가 활성일 때 할당된 카메라는 화면 밖에서 자기 방향을 유지하므로 실제 화면과 어긋나기 때문이다.
         /// </summary>
         public Transform CameraTransform
         {
@@ -88,6 +94,7 @@ namespace CombatSystem.Player
         public bool IsLinkJumping => LinkJump.IsTraversing;
         public bool IsAirComboActive => AirCombo.Active;
 
+        /// <summary>현재 상태를 우선순위(사망 > 피격 리액션 > 회피 > ... > 대기) 순으로 판정해 하나로 요약한다.</summary>
         public PlayerState CurrentState
         {
             get
@@ -106,9 +113,13 @@ namespace CombatSystem.Player
             }
         }
 
+        #endregion
+
+        #region 행동 허용 판정과 패리 피드백
+
         /// <summary>
-        /// The one place that decides whether a new action may start. Busy states block
-        /// everything; attacks and skills may still be requested mid-attack so they can buffer.
+        /// 새 행동을 시작해도 되는지 판정하는 유일한 지점. 바쁜 상태(사망/피격/가드/회피/링크 점프)는 모두 막고,
+        /// 공격과 스킬은 선입력 버퍼링을 위해 공격 도중에도 요청을 허용한다.
         /// </summary>
         public bool CanStartAction(PlayerAction action)
         {
@@ -124,16 +135,22 @@ namespace CombatSystem.Player
         }
 
         [SerializeField] private ParryFeedback parryFeedback;
+        /// <summary>패리 성공 연출(슬로 모션 + 카메라 줌인)을 재생한다. 참조가 비어 있으면 같은 GameObject에서 찾아 쓴다.</summary>
         public void PlayParryFeedback()
         {
             if (parryFeedback == null) parryFeedback = GetComponent<ParryFeedback>();
             if (parryFeedback != null) parryFeedback.Play();
         }
 
+        #endregion
+
+        #region Unity 생명주기
+
+        /// <summary>입력 소스를 찾고 컨텍스트와 모든 모듈을 생성해 바인딩한다.</summary>
         private void Awake()
         {
             var controls = GetComponent<IPlayerInput>();
-            // Compare as UnityEngine.Object so Unity's "missing component" null is treated as null.
+            // UnityEngine.Object로 비교해야 Unity의 "missing component" 가짜 null도 null로 취급된다.
             if (controls as UnityEngine.Object != null) Controls = controls;
             else Debug.LogWarning("PlayerCharacter: no IPlayerInput component (e.g. PlayerInputReader); the character will ignore input.", this);
             Context = new PlayerContext(this);
@@ -150,6 +167,7 @@ namespace CombatSystem.Player
             foreach (var module in Modules()) module.Bind(Context);
         }
 
+        /// <summary>바인딩/비활성화 등 일괄 처리에 쓰는 전체 모듈 목록을 고정 순서로 열거한다.</summary>
         private IEnumerable<PlayerModule> Modules()
         {
             yield return Health;
@@ -164,19 +182,23 @@ namespace CombatSystem.Player
             yield return LockOn;
         }
 
+        /// <summary>적이 타겟으로 찾을 수 있도록 전투 레지스트리에 등록한다.</summary>
         private void OnEnable() { CombatRegistry.Register(this); }
 
+        /// <summary>전투 레지스트리에서 빠지고 각 모듈이 진행 중인 작업을 정리하게 한다.</summary>
         private void OnDisable()
         {
             CombatRegistry.Unregister(this);
             foreach (var module in Modules()) module.OnDisable();
         }
 
+        /// <summary>시작 시 대기 애니메이션을 재생한다.</summary>
         private void Start()
         {
             Combat.PlayIdle();
         }
 
+        /// <summary>매 프레임 모듈들을 정해진 순서로 Tick한다. 사망 상태에서는 낙하와 재시작 입력만 처리한다.</summary>
         private void Update()
         {
             if (IsDead)
@@ -186,24 +208,34 @@ namespace CombatSystem.Player
             }
             float dt = Time.deltaTime;
             Health.Tick();
-            LockOn.Tick(); // before Combat so a new attack faces the current lock target
+            LockOn.Tick(); // 새 공격이 현재 락온 대상을 바라보도록 Combat보다 먼저 갱신
             Combat.Tick();
-            Locomotion.Tick(dt); // also ticks the active air combo / dodge / link jump
+            Locomotion.Tick(dt); // 진행 중인 공중 콤보 / 회피 / 링크 점프도 여기서 함께 Tick됨
             AirCombo.TickEnemyCollision();
             PiercingDash.Tick();
         }
 
+        /// <summary>현재는 사망 시 조기 반환만 하는 빈 후처리 훅이다.</summary>
         private void LateUpdate()
         {
             if (IsDead) return;
         }
 
+        /// <summary>애니메이터의 루트 모션 이동량을 RootMotionModule에 넘겨 실제 이동으로 반영한다.</summary>
         private void OnAnimatorMove()
         {
             if (IsDead) return;
             RootMotion.Apply(Context.Animator.deltaPosition);
         }
 
+        #endregion
+
+        #region 사망 처리
+
+        /// <summary>
+        /// 사망 상태로 전환한다. 진행 중인 공격을 취소하고 체력 외 모듈을 정리한 뒤,
+        /// 레지스트리에서 빠지고 애니메이터 bool 파라미터를 모두 꺼서 다른 상태로 새지 않게 한다.
+        /// </summary>
         public void EnterDeath()
         {
             Combat.CancelForDamage();
@@ -216,6 +248,7 @@ namespace CombatSystem.Player
             deathFallSpeed = 0f;
         }
 
+        /// <summary>사망 중 매 프레임 호출. 시체가 바닥까지 떨어지게 중력을 적용하고, R 키로 현재 씬을 다시 불러온다.</summary>
         private void TickDeath()
         {
             var controller = GetComponent<CharacterController>();
@@ -242,9 +275,16 @@ namespace CombatSystem.Player
             }
         }
 
+        #endregion
+
+        #region 애니메이션 IK
+
+        /// <summary>공격 높이 보정 모듈이 IK로 상체/무기 높이를 맞출 수 있도록 IK 패스를 전달한다.</summary>
         private void OnAnimatorIK(int layerIndex)
         {
             AttackHeightOffset.OnAnimatorIK(layerIndex);
         }
+
+        #endregion
     }
 }

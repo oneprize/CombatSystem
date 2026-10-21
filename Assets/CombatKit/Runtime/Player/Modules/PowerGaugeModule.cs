@@ -1,1 +1,1 @@
-// The hit-funded gauge was removed. Power attacks now charge by holding the attack button.
+// 타격으로 채우던 파워 게이지는 제거되었다. 파워 공격은 이제 공격 버튼을 누르고 있는 동안 충전된다.

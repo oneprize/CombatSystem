@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace CombatSystem.UI
 {
     /// <summary>
-    /// 학습용 UI 를 코드로 만들기 위한 작은 도우미 모음.
+    /// 학습용 UI(모니터 패널 등)를 코드로 만들기 위한 작은 도우미 모음. 글자 크기 단계, 색 팔레트, 폰트/스프라이트, 생성·배치 함수를 제공한다.
     ///
     /// 왜 코드로 UI 를 만드는가?
     ///   학습자가 Unity UI 를 직접 조립하는 것은 이 수업의 목표가 아니다.
@@ -12,8 +12,8 @@ namespace CombatSystem.UI
     /// </summary>
     public static class LabUIKit
     {
-        // 글자 크기 --------------------------------------------------
-        //
+        #region 글자 크기
+
         // 다섯 단계만 쓴다. 새 크기가 필요해 보이면 이 중 하나를 고른다. 늘리지 않는다.
         //
         // 왜 제한하는가
@@ -35,7 +35,10 @@ namespace CombatSystem.UI
         /// <summary>위의 다섯 단계. 아틀라스를 미리 구울 때 쓴다.</summary>
         public static readonly int[] Ladder = { FsSmall, FsBody, FsHead, FsTitle, FsHuge };
 
-        // 색 팔레트 --------------------------------------------------
+        #endregion
+
+        #region 색 팔레트
+
         // 학습 패널은 완전히 불투명해야 한다.
         // 패널 위쪽 164px 이 지면 타일과 겹치기 때문이다. (카메라를 내려 Game View 를
         // 넓게 쓰면서 겹치는 구간이 32px -> 164px 로 늘어났다)
@@ -51,7 +54,7 @@ namespace CombatSystem.UI
         public static readonly Color Bad = new Color(0.95f, 0.42f, 0.42f, 1f);
         public static readonly Color Idle = new Color(0.35f, 0.40f, 0.50f, 1f);
 
-        /// <summary>상태 / 노드 이름별 대표 색. Game View 라벨과 다이어그램이 같은 색을 쓴다.</summary>
+        /// <summary>상태/노드 이름의 접두어로 대표 색을 고른다. Game View 라벨과 다이어그램이 같은 색을 쓰도록 한곳에서 정한다.</summary>
         public static Color LabelColor(string label)
         {
             if (string.IsNullOrEmpty(label)) return Idle;
@@ -68,7 +71,10 @@ namespace CombatSystem.UI
             return Accent;
         }
 
-        // 폰트 ------------------------------------------------------
+        #endregion
+
+        #region 폰트
+
         private static Font _font;
 
         /// <summary>
@@ -88,7 +94,10 @@ namespace CombatSystem.UI
             }
         }
 
-        // 스프라이트 -------------------------------------------------
+        #endregion
+
+        #region 스프라이트
+
         private static Sprite _roundedSprite;
         private static Sprite _flatSprite;
 
@@ -123,6 +132,7 @@ namespace CombatSystem.UI
             }
         }
 
+        /// <summary>네 모서리를 radius 반경으로 안티앨리어싱해 깎은 흰색 텍스처를 만들고, 모서리를 보존하는 9-slice 스프라이트로 감싼다.</summary>
         private static Sprite BuildRounded(int size, int radius)
         {
             Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -155,8 +165,11 @@ namespace CombatSystem.UI
             return s;
         }
 
-        // 생성 도우미 ------------------------------------------------
+        #endregion
 
+        #region 생성 도우미
+
+        /// <summary>부모 아래에 빈 RectTransform 게임 오브젝트를 만든다. 다른 생성 도우미의 공통 시작점.</summary>
         public static RectTransform NewRect(Transform parent, string name)
         {
             GameObject go = new GameObject(name, typeof(RectTransform));
@@ -164,7 +177,7 @@ namespace CombatSystem.UI
             return (RectTransform)go.transform;
         }
 
-        /// <summary>사각 배경이 있는 패널을 만든다.</summary>
+        /// <summary>배경색이 있는 패널을 만든다. 기본은 둥근 모서리, rounded가 false면 평평한 사각형.</summary>
         public static RectTransform Panel(Transform parent, string name, Color bg, bool rounded = true)
         {
             RectTransform rt = NewRect(parent, name);
@@ -242,6 +255,10 @@ namespace CombatSystem.UI
             }
         }
 
+        /// <summary>
+        /// 학습용 기본 스타일(한글 OS 폰트, 줄 간격 1.15, 줄바꿈, 리치 텍스트, 레이캐스트 비활성)의 Text를 만든다.
+        /// 에디터에서는 글자 크기 사다리에 없는 크기를 쓰면 경고한다.
+        /// </summary>
         public static Text Label(Transform parent, string name, string content, int size, Color color,
             TextAnchor anchor = TextAnchor.UpperLeft, FontStyle style = FontStyle.Normal)
         {
@@ -269,7 +286,9 @@ namespace CombatSystem.UI
             return t;
         }
 
-        // 배치 도우미 ------------------------------------------------
+        #endregion
+
+        #region 배치와 그리기 도우미
 
         /// <summary>부모 전체를 채우도록 늘린다. (여백 지정 가능)</summary>
         public static void Stretch(RectTransform rt, float left, float bottom, float right, float top)
@@ -392,5 +411,7 @@ namespace CombatSystem.UI
             fill.raycastTarget = false;
             return fill;
         }
+
+        #endregion
     }
 }

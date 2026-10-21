@@ -3,9 +3,15 @@ using UnityEngine;
 using CombatSystem.Data.Player;
 namespace CombatSystem.Player
 {
+    /// <summary>
+    /// 공격의 히트 구간 동안 칼날이 지나간 궤적을 리본 메시로 그려 베기 잔상을 표현한다.
+    /// 히트 구간 판정은 PlayerWeaponHitbox와 같은 설정을 써서 실제 판정 타이밍과 시각 효과를 일치시킨다.
+    /// </summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(100)]
     public sealed class PlayerSlashVfx : MonoBehaviour
     {
+        #region 필드
+
         [SerializeField] private PlayerWeaponHitboxConfig hitConfig;
         [SerializeField] private Material trailMaterial;
         [SerializeField, Min(.01f)] private float trailLifetime = .14f;
@@ -17,6 +23,7 @@ namespace CombatSystem.Player
         private Mesh mesh;
         private GameObject trailObject;
         private MeshRenderer renderer;
+        /// <summary>한 프레임의 칼날 시작/끝 위치 샘플. stroke가 다르면 서로 잇지 않아 별개의 궤적으로 그린다.</summary>
         private struct Sample { public Vector3 a,b; public float time; public int stroke; }
         private readonly List<Sample> samples = new List<Sample>(96);
         private readonly List<Vector3> vertices = new List<Vector3>(288);
@@ -27,8 +34,16 @@ namespace CombatSystem.Player
         private float previousProgress;
         private bool wasActive,previousValid;
         private Vector3 previousStart,previousEnd;
+        /// <summary>지금까지 시작된 궤적(휘두름) 수. 디버그/테스트 확인용.</summary>
         public int PlayedCount { get; private set; }
+        /// <summary>현재 남아 있는 궤적 샘플 수. 디버그/테스트 확인용.</summary>
         public int TrailSampleCount => samples.Count;
+
+        #endregion
+
+        #region 초기화
+
+        /// <summary>참조를 캐시하고 궤적을 그릴 전용 GameObject와 동적 메시/렌더러를 만든다.</summary>
         private void Awake()
         {
             player=GetComponent<PlayerCharacter>(); animator=GetComponent<Animator>();
@@ -41,7 +56,17 @@ namespace CombatSystem.Player
             renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows=false; renderer.enabled=false;
         }
+
+        #endregion
+
+        #region 휘두름 구간 판정
+
+        /// <summary>이전 프레임 진행도와 함께 비교해, 프레임이 구간을 건너뛰더라도 히트 구간을 통과 중인지 판정한다.</summary>
         private bool Window(float t,Vector2 w)=>t>=w.x && previousProgress<=w.y;
+        /// <summary>
+        /// 지금 칼날이 히트 구간 안에서 휘둘러지고 있는지 판정한다. 공격 종류별로 히트박스와 같은 구간을 쓰며,
+        /// 새 공격 시퀀스가 시작되면 진행도와 궤적 연결 상태를 초기화한다.
+        /// </summary>
         private bool IsSwing()
         {
             var c=player.Combat;
@@ -65,6 +90,15 @@ namespace CombatSystem.Player
             else if(c.IsUsingGroundCombo&&c.AttackComboIndex!=hitConfig.groundKickComboIndex){int i=c.AttackComboIndex;active=Window(t,hitConfig.groundHitWindows!=null&&i<hitConfig.groundHitWindows.Length?hitConfig.groundHitWindows[i]:hitConfig.hitWindow);}
             previousProgress=t;return active;
         }
+
+        #endregion
+
+        #region 궤적 메시 갱신과 정리
+
+        /// <summary>
+        /// 포즈가 확정된 뒤 칼날 양 끝 위치를 샘플링하고, 수명이 다한 샘플을 버린 다음
+        /// 남은 샘플을 이어 가운데가 진하고 가장자리가 투명한 리본 메시를 다시 만든다.
+        /// </summary>
         private void LateUpdate()
         {
             if(player==null||player.Combat==null||sword==null||hitConfig==null||trailMaterial==null)return;
@@ -74,7 +108,7 @@ namespace CombatSystem.Player
             Vector3 start=sword.transform.TransformPoint(sword.center+axis*((bladeStart-.5f)*length));
             Vector3 end=sword.transform.TransformPoint(sword.center+axis*((bladeEnd-.5f)*length));
             bool active=IsSwing();float now=Time.time;
-            // Never bridge a teleport, a new attack, or separate hit windows.
+            // 순간이동, 새 공격, 서로 다른 히트 구간 사이는 궤적으로 잇지 않는다.
             if(previousValid&&Vector3.Distance(end,previousEnd)>4f){wasActive=false;previousValid=false;}
             if(active)
             {
@@ -95,7 +129,11 @@ namespace CombatSystem.Player
             }
             mesh.Clear();mesh.SetVertices(vertices);mesh.SetColors(colors);mesh.SetUVs(0,uv);mesh.SetTriangles(triangles,0);mesh.RecalculateBounds();renderer.enabled=triangles.Count>0;
         }
+        /// <summary>남은 궤적을 지우고 샘플링 상태를 초기화해 다시 켜졌을 때 이전 궤적과 이어지지 않게 한다.</summary>
         private void OnDisable(){samples.Clear();wasActive=previousValid=false;sequence=-1;if(mesh!=null)mesh.Clear();if(renderer!=null)renderer.enabled=false;}
+        /// <summary>Awake에서 만든 궤적 GameObject와 메시를 함께 파괴한다.</summary>
         private void OnDestroy(){if(trailObject!=null)Destroy(trailObject);if(mesh!=null)Destroy(mesh);}
+
+        #endregion
     }
 }

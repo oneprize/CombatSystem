@@ -3,6 +3,10 @@ using CombatSystem.Combat;
 
 namespace CombatSystem.Data.Enemy
 {
+    /// <summary>
+    /// 일반 적 AI의 콤보 타이밍, 이동·순찰·관찰·후퇴 수치, 행동 결정 가중치, 애니메이션 상태명을 담는 설정 에셋.
+    /// EnemyCombat이 이 값을 읽어 각 상태에 제공한다.
+    /// </summary>
     [CreateAssetMenu(menuName = "CombatKit/Enemy/Enemy Combat Config", fileName = "EnemyCombatConfig")]
     public class EnemyCombatConfig : ScriptableObject
     {
@@ -21,6 +25,7 @@ namespace CombatSystem.Data.Enemy
         [Header("Opening jump attack")]
         public string openingAttackStateName = "OpeningJumpAttack";
         public float openingAttackRange = 5f;
+        /// <summary>오프닝 점프 공격의 히트 판정 구간(정규화 시간 시작/끝).</summary>
         public Vector2 openingHitWindow = new Vector2(.40f, .55f);
         public float openingHitRadius = 1.3f;
 

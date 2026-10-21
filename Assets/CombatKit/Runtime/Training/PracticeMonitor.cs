@@ -4,25 +4,33 @@ using CombatSystem.Core;
 using CombatSystem.Player;
 namespace CombatSystem.Training
 {
+    /// <summary>
+    /// 허수아비 연습 구역용 IMGUI 모니터. 플레이어의 현재 공격 상태와 히트 판정 창, 허수아비 적중 통계와 공중 여부를 표시하고,
+    /// 적중 직후 허수아비 머리 위에 피해 수치를 띄운다. F5로 허수아비와 통계를 초기화한다.
+    /// </summary>
     public sealed class PracticeMonitor : MonoBehaviour
     {
         [SerializeField] private PlayerCharacter player;
         [SerializeField] private PracticeDummy dummy;
         [SerializeField] private PlayerWeaponHitbox hitbox;
         private GUIStyle heading, text;
+        /// <summary>시작 시 플레이어 참조를 연결해 둔다.</summary>
         private void Awake() { EnsurePlayerLinked(); }
+        /// <summary>플레이어가 지정되지 않았으면 가장 가까운 플레이어 팀 전투원을 찾아 연결한다.</summary>
         private void EnsurePlayerLinked()
         {
             if (player != null) return;
             var nearest = CombatRegistry.FindNearest(CombatTeam.Player, transform.position);
             if (nearest != null) player = nearest.Transform.GetComponent<PlayerCharacter>();
         }
+        /// <summary>F5 입력으로 허수아비와 적중 통계를 초기화한다.</summary>
         private void Update()
         {
             EnsurePlayerLinked();
             if (Keyboard.current != null && Keyboard.current.f5Key.wasPressedThisFrame && dummy != null)
                 dummy.ResetDummy();
         }
+        /// <summary>화면 높이에 비례해 크기를 맞춘 우측 상단 패널에 연습 정보를 그리고, 최근 0.8초 안의 피해 수치를 허수아비 위에 표시한다.</summary>
         private void OnGUI()
         {
             EnsurePlayerLinked();

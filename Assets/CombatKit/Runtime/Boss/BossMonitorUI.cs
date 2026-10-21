@@ -5,8 +5,14 @@ using System.Text;
 
 namespace CombatSystem.UI
 {
+    /// <summary>
+    /// 보스의 체력, 현재 상태와 지속 시간, 판단 조건, 그로기 누적, 상태 전이 로그를 화면 우측 패널로 보여 주는 디버그 모니터.
+    /// 패널은 런타임에 코드로 생성되며 0.1초 간격으로 갱신된다.
+    /// </summary>
     public class BossMonitorUI : MonoBehaviour
     {
+        #region 필드
+
         [SerializeField] private BossStateMachine target;
         private Canvas canvas;
         private Text enemyName, state, conditions, logs, hpText, duration;
@@ -14,11 +20,16 @@ namespace CombatSystem.UI
         private Text groggyText;
         private float refreshAt;
 
+        #endregion
+
+        #region UI 구성
+
+        /// <summary>패널 좌측 상단 기준 y 위치에 텍스트 라벨을 만든다. 글자가 선명하도록 3배 해상도로 그린 뒤 축소한다.</summary>
         private Text Label(Transform parent, string name, float y, float height, int size, Color color)
         {
             var text = LabUIKit.Clip(LabUIKit.Label(parent, name, "", size, color));
             LabUIKit.TopLeft(text.rectTransform, 20, -y, 360, height);
-            // Rasterize at higher resolution while preserving the layout size.
+            // 레이아웃 크기는 유지한 채 더 높은 해상도로 래스터화해 작은 글자가 뭉개지지 않게 한다.
             const int rasterScale = 3;
             text.fontSize = size * rasterScale;
             text.rectTransform.sizeDelta *= rasterScale;
@@ -26,6 +37,12 @@ namespace CombatSystem.UI
             if (color == LabUIKit.TextDim) text.color = new Color(0.76f, 0.81f, 0.87f);
             return text;
         }
+
+        #endregion
+
+        #region Unity 생명주기
+
+        /// <summary>대상 보스를 찾고, 오버레이 캔버스와 모니터 패널의 모든 라벨·게이지를 생성한다.</summary>
         private void Awake()
         {
             if (target == null) target = FindFirstObjectByType<BossStateMachine>();
@@ -56,9 +73,18 @@ namespace CombatSystem.UI
             Label(panel, "Log Heading", 577, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
             logs = Label(panel, "Logs", 617, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
         }
+        /// <summary>컴포넌트가 켜지면 모니터 캔버스도 함께 표시한다.</summary>
         private void OnEnable() { if (canvas != null) canvas.gameObject.SetActive(true); }
+        /// <summary>컴포넌트가 꺼지면 모니터 캔버스도 숨긴다.</summary>
         private void OnDisable() { if (canvas != null) canvas.gameObject.SetActive(false); }
+
+        #endregion
+
+        #region 표시 갱신
+
+        /// <summary>조건 값을 색이 입혀진 TRUE/FALSE 리치 텍스트로 변환한다.</summary>
         private static string Flag(bool value) => value ? "<color=#66D980>TRUE</color>" : "<color=#949FAC>FALSE</color>";
+        /// <summary>0.1초마다 보스 상태·체력·그로기·판단 조건·최근 로그 6줄을 패널에 반영한다.</summary>
         private void Update()
         {
             if (Time.unscaledTime < refreshAt) return;
@@ -113,5 +139,7 @@ namespace CombatSystem.UI
             }
             logs.text = sb.ToString();
         }
+
+        #endregion
     }
 }

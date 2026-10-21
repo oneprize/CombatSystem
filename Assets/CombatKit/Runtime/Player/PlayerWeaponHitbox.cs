@@ -3,9 +3,16 @@ using CombatSystem.Combat;
 using CombatSystem.Data.Player;
 namespace CombatSystem.Player
 {
+    /// <summary>
+    /// 플레이어 무기에 붙는 히트박스. 현재 재생 중인 공격 애니메이션의 진행도가 히트 구간에 들어오면
+    /// 공격 종류(지상/공중 콤보, 어퍼, 스킬, 발차기, 파워 공격 등)에 맞는 범위로 겹침 검사를 해 적과 보스에 피해를 준다.
+    /// 같은 공격 안에서 한 대상은 한 번만 맞도록 공격 시퀀스/콤보 단계가 바뀔 때마다 명중 목록을 초기화한다.
+    /// </summary>
     [RequireComponent(typeof(BoxCollider))]
     public class PlayerWeaponHitbox : MonoBehaviour
     {
+        #region 필드
+
         [SerializeField] private PlayerWeaponHitboxConfig config;
         private Transform kickFoot;
         private Vector3 previousFootPosition;
@@ -27,13 +34,22 @@ namespace CombatSystem.Player
             new System.Collections.Generic.HashSet<CombatSystem.Boss.BossCombat>();
         private readonly System.Collections.Generic.HashSet<CombatSystem.Boss.BossCombat> secondBossHits =
             new System.Collections.Generic.HashSet<CombatSystem.Boss.BossCombat>();
+
+        #endregion
+
+        #region 명중 처리 헬퍼
+
+        /// <summary>
+        /// 겹친 콜라이더가 보스라면 이번 공격(또는 두 번째 타격)에서 아직 맞지 않은 경우에만 피해를 준다.
+        /// 파워 공격 해제 중이면 파워 배율을 적용한다.
+        /// </summary>
         private void HitBoss(Collider other, bool secondStrike)
         {
             var boss = other.GetComponentInParent<CombatSystem.Boss.BossCombat>();
             var struck = secondStrike ? secondBossHits : bossHits;
             if (boss != null && struck.Add(boss)) boss.TryReceivePlayerHit(combat.IsReleasingPower ? combat.PowerDamageMultiplier : 1f);
         }
-        /// <summary>Marks the enemy as hit by this attack; repeated overlap is ignored.</summary>
+        /// <summary>적을 이번 공격의 명중 대상으로 기록한다. 이미 맞은 적이면 false를 반환해 중복 피해를 막는다.</summary>
         private bool Struck(System.Collections.Generic.HashSet<EnemyDamageReaction> set, EnemyDamageReaction enemy)
         {
             if (!set.Add(enemy)) return false;
@@ -41,7 +57,10 @@ namespace CombatSystem.Player
         }
         private float previousPowerProgress;
         private Vector3 previousPowerPosition;
-        /// <summary>Power attack release: dash slashes sweep the travelled path, then the slam hits all around.</summary>
+        /// <summary>
+        /// 파워 공격 해제 판정. 돌진 베기 구간에는 지난 프레임부터 이동한 경로를 캡슐로 쓸어 맞히고,
+        /// 이어지는 내려찍기 구간에는 주변 전체를 구 범위로 맞힌다.
+        /// </summary>
         private void UpdatePowerHits(AnimatorStateInfo state)
         {
             var power = player.Profile.powerAttack;
@@ -71,6 +90,12 @@ namespace CombatSystem.Player
             previousPowerProgress = progress;
             previousPowerPosition = owner.position;
         }
+
+        #endregion
+
+        #region Unity 생명주기와 공격별 히트 판정
+
+        /// <summary>설정과 플레이어/애니메이터 참조를 준비하고, 발차기 판정에 쓸 오른발 본을 찾는다.</summary>
         private void Awake()
         {
             if (config == null)
@@ -85,7 +110,12 @@ namespace CombatSystem.Player
             kickFoot = animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightFoot) : null;
             if (kickFoot != null) previousFootPosition = kickFoot.position;
         }
+        /// <summary>이번 프레임에 공격의 히트 구간이 열려 있었는지 여부. 검기 등 다른 연출이 타이밍을 맞추는 데 쓴다.</summary>
         public bool HitWindowActive { get; private set; }
+        /// <summary>
+        /// 애니메이션 포즈가 확정된 뒤 매 프레임 히트 판정을 수행한다. 현재 공격 종류를 판별해 해당 히트 구간과
+        /// 범위로 겹침 검사를 하고, 새 공격이 시작되면 명중 목록과 진행도 기록을 초기화한다.
+        /// </summary>
         private void LateUpdate()
         {
             HitWindowActive = false;
@@ -100,6 +130,7 @@ namespace CombatSystem.Player
                 return;
             }
             int index = combat.AttackComboIndex;
+            // 새 공격(시퀀스) 또는 다음 콤보 단계로 넘어가면 명중 기록을 초기화한다.
             if (sequence != combat.AttackSequence || combo != index)
             {
                 hits.Clear();
@@ -118,6 +149,7 @@ namespace CombatSystem.Player
             }
             string name = "Base Layer." + combat.CurrentAttackStateName;
             var state = animator.GetCurrentAnimatorStateInfo(0);
+            // 크로스페이드 중에는 다음 상태가 현재 공격이면 그 진행도를 기준으로 판정한다.
             if (animator.IsInTransition(0))
             {
                 var next = animator.GetNextAnimatorStateInfo(0);
@@ -221,6 +253,7 @@ namespace CombatSystem.Player
                 }
                 return;
             }
+            // 지상 콤보의 발차기 단계는 무기 박스 대신 오른발이 이동한 경로를 캡슐로 쓸어 판정한다.
             if (combat.IsUsingGroundCombo && index == config.groundKickComboIndex && kickFoot != null)
             {
                 float progress = state.normalizedTime;
@@ -239,6 +272,7 @@ namespace CombatSystem.Player
             Vector2 window = combat.IsSheathedCombo ? player.Profile.combat.sheathedHitWindow : combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
                 combat.IsUsingGroundCombo && config.groundHitWindows != null && index < config.groundHitWindows.Length
                     ? config.groundHitWindows[index] : config.hitWindow;
+            // 지상 콤보는 프레임이 히트 구간을 건너뛰어도 놓치지 않도록 이전 진행도와 함께 구간 통과 여부로 판정한다.
             if (combat.IsUsingGroundCombo)
             {
                 bool active = state.normalizedTime >= window.x && previousGroundProgress <= window.y;
@@ -253,6 +287,7 @@ namespace CombatSystem.Player
             foreach (var other in Physics.OverlapBox(transform.TransformPoint(box.center),
                 Vector3.Scale(box.size * 0.5f, scale), transform.rotation, ~0, QueryTriggerInteraction.Ignore))
             {
+                // 납도 콤보 중에는 검기 컴포넌트가 칼날 명중을 대신 처리한다.
                 if (combat.IsSheathedCombo && swordWave != null && swordWave.isActiveAndEnabled)
                 {
                     swordWave.TryHitWithBlade(other);
@@ -269,5 +304,7 @@ namespace CombatSystem.Player
                 }
             }
         }
+
+        #endregion
     }
 }
