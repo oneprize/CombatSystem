@@ -275,8 +275,8 @@ namespace CombatSystem.Player
             // 지상 콤보는 프레임이 히트 구간을 건너뛰어도 놓치지 않도록 이전 진행도와 함께 구간 통과 여부로 판정한다.
             if (combat.IsUsingGroundCombo)
             {
-                bool active = state.normalizedTime >= window.x && previousGroundProgress <= window.y;
-                previousGroundProgress = state.normalizedTime;
+                bool active = combat.SourceAttackProgress(state) >= window.x && previousGroundProgress <= window.y;
+                previousGroundProgress = combat.SourceAttackProgress(state);
                 if (!active) return;
                 HitWindowActive = true;
             }

@@ -154,6 +154,17 @@ namespace CombatSystem.Data.Player
             [Min(0f)] public float fallStartDelay = 0.15f;
             /// <summary>이동 방향을 반대로 뒤집었을 때 방향 전환 상태를 유지하는 시간(초).</summary>
             public float turningHoldTime = 0.2f;
+            [Header("Run turn")]
+            [Tooltip("Minimum angle (degrees) between facing and move input while running that plays the 180° run turn.")]
+            [Range(90f, 180f)] public float runTurnMinAngle = 135f;
+            [Tooltip("Seconds after running stops during which a reversed input still triggers the run turn (covers key-switch gaps and opposite keys held together).")]
+            [Min(0f)] public float runTurnInputGrace = .15f;
+            [Tooltip("Cross-fade time from Run into the run turn.")]
+            [Min(0f)] public float runTurnBlendIn = .08f;
+            [Tooltip("Normalized run turn time at which normal locomotion resumes.")]
+            [Range(.5f, 1f)] public float runTurnExitProgress = .85f;
+            [Tooltip("Cross-fade time from the run turn back into Run/Walk/Idle.")]
+            [Min(0f)] public float runTurnBlendOut = .15f;
         }
 
         /// <summary>플레이어 이름, 최대 체력, 적의 약공격/강공격에 받는 피해량 설정.</summary>
@@ -177,6 +188,9 @@ namespace CombatSystem.Data.Player
             [Tooltip("Normalized dodge time at which an attack pressed during the dodge starts the ground combo.")]
             [Range(0f, 1f)] public float attackCancelProgress = .7f;
             [Min(0f)] public float attackBlendTime = .15f;
+            [Header("Perfect dodge")]
+            [Tooltip("Seconds after the dodge starts during which an evaded hit counts as a perfect dodge (slow motion + zoom out).")]
+            [Min(0f)] public float perfectDodgeWindow = .2f;
         }
 
         /// <summary>링크 지점 사이를 포물선으로 뛰어넘는 링크 점프 설정.</summary>

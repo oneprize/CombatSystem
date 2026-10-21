@@ -105,6 +105,8 @@ namespace CombatSystem.Player
             if (Player.IsDodging)
             {
                 LastResult = PlayerHitResult.Evaded;
+                // 회피 직후 짧은 구간 안에 흘린 공격이면 저스트 회피 연출을 재생한다.
+                if (Player.Dodge.TryConsumePerfectDodge()) Player.PlayPerfectDodgeFeedback();
                 return true;
             }
             LastComboIndex = comboIndex;

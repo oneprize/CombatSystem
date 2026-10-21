@@ -49,7 +49,7 @@ namespace CombatSystem.Player
             if (layerIndex != 0 || !animator.isHuman) return;
             var currentState = animator.GetCurrentAnimatorStateInfo(0);
             var nextState = animator.IsInTransition(0) ? animator.GetNextAnimatorStateInfo(0) : default(AnimatorStateInfo);
-            bool groundedReaction = currentState.IsName("BossKnockDown") || currentState.IsName("BossStandUpFront") || currentState.IsName("BossStandUpBack") ||
+            bool groundedReaction = currentState.IsName("HighFallRoll") || nextState.IsName("HighFallRoll") || currentState.IsName("BossKnockDown") || currentState.IsName("BossStandUpFront") || currentState.IsName("BossStandUpBack") ||
                 nextState.IsName("BossKnockDown") || nextState.IsName("BossStandUpFront") || nextState.IsName("BossStandUpBack");
             // 낙하와 착지 구간 전체에서도 보이는 몸 높이가 어긋나지 않도록 유지한다.
             if (currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo") || groundedReaction || Player.AirCombo.Active ||

@@ -12,17 +12,18 @@ public class EnemyFsmGraphWindow : EditorWindow
 {
     #region 그래프 데이터 타입
 
-    /// <summary>그래프의 상태 노드. 상태 ID, 요약 설명, 더블클릭 시 열 상태 스크립트 경로를 가진다.</summary>
+    /// <summary>그래프의 상태 노드. 상태 ID, 요약 설명, 더블클릭 시 열 상태 스크립트의 클래스 이름을 가진다.</summary>
     private class Node
     {
-        public string id, summary, path;
+        public string id, summary, scriptName;
         public Rect rect;
-        /// <summary>노드를 만들고 상태 ID 규칙(Enemy{Id}State.cs, HIT는 EnemyDamageReaction.cs)으로 소스 경로를 정한다.</summary>
+        /// <summary>노드를 만들고 상태 ID 규칙(Enemy{Id}State, HIT는 EnemyDamageReaction)으로 소스 클래스 이름을 정한다.</summary>
         public Node(string id, string summary, float x, float y)
         {
             this.id = id; this.summary = summary; rect = new Rect(x, y, 190, 80);
-            path = id == "HIT" ? "Assets/Enemy/EnemyDamageReaction.cs" :
-                "Assets/Enemy/States/Enemy" + char.ToUpper(id[0]) + id.Substring(1).ToLower() + "State.cs";
+            // 경로 대신 클래스 이름을 저장해, CombatKit이 Assets나 Packages 어디로 옮겨져도 찾을 수 있게 한다.
+            scriptName = id == "HIT" ? "EnemyDamageReaction" :
+                "Enemy" + char.ToUpper(id[0]) + id.Substring(1).ToLower() + "State";
         }
     }
     /// <summary>상태 간 전이 하나와 그 조건 설명. Inspector 패널에서 선택 상태의 나가는 전이를 보여 줄 때 쓴다.</summary>
@@ -50,7 +51,7 @@ public class EnemyFsmGraphWindow : EditorWindow
     #region 창 열기와 갱신
 
     /// <summary>FSM 그래프 창을 연다.</summary>
-    [MenuItem("Tools/Combat System/FSM Graph")]
+    [MenuItem("Tools/Combat Kit/FSM Graph")]
     public static void Open()
     {
         var window = GetWindow<EnemyFsmGraphWindow>("Enemy FSM Graph");
@@ -351,11 +352,19 @@ public class EnemyFsmGraphWindow : EditorWindow
 
     #region 소스 열기
 
-    /// <summary>노드에 연결된 상태 스크립트를 외부 편집기로 연다. 경로에 스크립트가 없으면 아무 것도 하지 않는다.</summary>
+    /// <summary>노드에 연결된 상태 스크립트를 클래스 이름으로 검색해 외부 편집기로 연다. 찾지 못하면 경고를 남긴다.</summary>
     private void OpenSource(Node node)
     {
-        var script=AssetDatabase.LoadAssetAtPath<MonoScript>(node.path);
-        if(script!=null) AssetDatabase.OpenAsset(script);
+        if(node==null) return;
+        // FindAssets는 부분 일치도 반환하므로 파일 이름이 정확히 같은 스크립트만 연다.
+        foreach(var guid in AssetDatabase.FindAssets(node.scriptName+" t:MonoScript"))
+        {
+            var path=AssetDatabase.GUIDToAssetPath(guid);
+            if(System.IO.Path.GetFileNameWithoutExtension(path)!=node.scriptName) continue;
+            AssetDatabase.OpenAsset(AssetDatabase.LoadAssetAtPath<MonoScript>(path));
+            return;
+        }
+        Debug.LogWarning("[Enemy FSM Graph] 상태 스크립트를 찾을 수 없습니다: "+node.scriptName+".cs");
     }
 
     #endregion

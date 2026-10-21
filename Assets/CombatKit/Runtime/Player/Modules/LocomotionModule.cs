@@ -12,6 +12,9 @@ namespace CombatSystem.Player
         #region 필드
 
         private const int MaxJumps = 2; // 최대 연속 점프 횟수
+        private const string RunTurnState = "Base Layer.RunTurn";
+        /// <summary>Player_RunTurn180 클립이 루트 모션으로 도는 각도(좌회전). 실제 목표 각도에 맞춰 회전량을 비례 조정하는 기준이다.</summary>
+        private const float RunTurnClipYaw = 181f;
 
         private PlayerProfile.LocomotionSettings config;
         /// <summary>급격한 방향 반전 후 방향 전환 모션(isTurning)을 유지할 남은 시간.</summary>
@@ -26,6 +29,14 @@ namespace CombatSystem.Player
         private string landingState;
         /// <summary>공중 회피가 끝나 낙하 중임을 표시. 착지 시 이동 입력과 관계없이 JumpEnd 착지 모션을 재생하게 한다.</summary>
         private bool airDodgeLanding;
+        /// <summary>달리기 턴 애니메이션에 실제로 진입했는지. 진입 전에는 다른 동작이 애니메이터를 가져갔다고 판정하지 않는다.</summary>
+        private bool enteredRunTurn;
+        /// <summary>달리기 턴을 요청한 뒤 아직 진입하지 못한 프레임 수. 진입이 끝내 일어나지 않으면 턴을 포기한다.</summary>
+        private int runTurnWaitFrames;
+        /// <summary>클립의 회전량(181°)을 턴 시작 시점의 목표 각도에 맞추는 배율.</summary>
+        private float runTurnYawScale = 1f;
+        /// <summary>Run 애니메이션으로 마지막으로 달린 시각(Time.time). 달리기 턴 입력 유예 판정의 기준이다.</summary>
+        private float lastRunTime = float.NegativeInfinity;
 
         #endregion
 
@@ -36,6 +47,8 @@ namespace CombatSystem.Player
         public bool IsJumping { get; private set; }
         public bool IsGrounded { get; private set; }
         public bool IsTurning { get; private set; }
+        /// <summary>달리던 중 반대 방향 입력으로 180° 달리기 턴을 재생 중인지. 이 동안 이동과 회전은 클립의 루트 모션이 담당한다.</summary>
+        public bool IsRunTurning { get; private set; }
 
         #endregion
 
@@ -54,6 +67,8 @@ namespace CombatSystem.Player
         public void Tick(float dt)
         {
             var air = Player.AirCombo;
+            // 공중 콤보·회피·링크 점프가 이동을 가져가면 진행 중이던 달리기 턴은 끝난 것으로 본다.
+            if (air.Active || Player.Dodge.IsDodging || Player.LinkJump.IsTraversing) IsRunTurning = false;
             if (air.Active)
             {
                 air.Tick(dt);
@@ -158,6 +173,7 @@ namespace CombatSystem.Player
             bool isCombatLocked = Player.IsAttacking || Player.IsGuarding || Player.IsHitReacting;
             if (isCombatLocked)
             {
+                IsRunTurning = false;
                 animator.SetBool("isMoving", false);
                 animator.SetBool("isRunning", false);
                 animator.SetBool("isTurning", false);
@@ -165,6 +181,12 @@ namespace CombatSystem.Player
                 animator.SetFloat("moveY", 0f);
                 IsMoving = false;
                 IsRunning = false;
+                return;
+            }
+
+            if (IsRunTurning)
+            {
+                TickRunTurn();
                 return;
             }
 
@@ -177,6 +199,8 @@ namespace CombatSystem.Player
             Vector3 currentMoveDirection = cam.forward * move.y + cam.right * move.x;
             currentMoveDirection.y = 0f;
             currentMoveDirection.Normalize();
+
+            if (isRunning && TryBeginRunTurn(currentMoveDirection)) return;
 
             if (isMoving && lastMoveDirection.magnitude > 0.1f)
             {
@@ -218,6 +242,101 @@ namespace CombatSystem.Player
 
             IsMoving = isMoving;
             IsRunning = isRunning;
+            if (isRunning && IsRunAnimationActive()) lastRunTime = Time.time;
+        }
+
+        #endregion
+
+        #region 달리기 턴
+
+        /// <summary>
+        /// 현재 상태 또는 전이 대상이 Run인지. 입력이 잠깐 끊겨 Run에서 빠져나가는 전이 중이거나
+        /// Walk/Idle에서 Run으로 들어오는 중이어도 달리기 턴을 시작할 수 있게 한다.
+        /// </summary>
+        private bool IsRunAnimationActive()
+        {
+            if (animator.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Run")) return true;
+            return animator.IsInTransition(0) && animator.GetNextAnimatorStateInfo(0).IsName("Base Layer.Run");
+        }
+
+        /// <summary>
+        /// 접지 상태로 Run 애니메이션을 재생하는 중에 입력이 바라보는 방향과 runTurnMinAngle 이상 반대이면 180° 달리기 턴을 시작한다.
+        /// 클립은 항상 왼쪽으로 돌므로, 목표 방향까지의 왼쪽 회전량에 맞춰 루트 모션 회전을 비례 조정한다.
+        /// </summary>
+        /// <returns>턴을 시작했으면 true.</returns>
+        private bool TryBeginRunTurn(Vector3 desiredDirection)
+        {
+            if (!IsGrounded || landingState != null || desiredDirection.sqrMagnitude < .01f) return false;
+            // 키를 바꾸는 사이 이동 입력이 몇 프레임 0이 되어도(공백, 또는 정반대 키 동시 입력) 턴이 되도록
+            // 직전 프레임이 아니라 유예 시간 안에 달리고 있었는지로 판정한다.
+            if (Time.time - lastRunTime > config.runTurnInputGrace || !IsRunAnimationActive()) return false;
+            if (!animator.HasState(0, Animator.StringToHash(RunTurnState))) return false;
+            Vector3 forward = transform.forward;
+            forward.y = 0f;
+            float signedAngle = Vector3.SignedAngle(forward, desiredDirection, Vector3.up);
+            if (Mathf.Abs(signedAngle) < config.runTurnMinAngle) return false;
+            // 왼쪽 회전량으로 환산: 왼쪽 목표(-160°)는 160°, 오른쪽 목표(+160°)는 200°를 돈다.
+            float leftTurn = signedAngle <= 0f ? -signedAngle : 360f - signedAngle;
+            runTurnYawScale = leftTurn / RunTurnClipYaw;
+            IsRunTurning = true;
+            enteredRunTurn = false;
+            runTurnWaitFrames = 0;
+            turningTimer = 0f;
+            IsTurning = false;
+            animator.SetBool("isTurning", false);
+            animator.CrossFadeInFixedTime(RunTurnState, config.runTurnBlendIn, 0, 0f);
+            return true;
+        }
+
+        /// <summary>
+        /// 달리기 턴 진행을 감시한다. 다른 동작(회피, 점프, 낙하 등)이 애니메이터를 가져가면 턴을 끝내고,
+        /// runTurnExitProgress에 도달하면 그 시점의 입력에 맞춰 Run/Walk/Idle로 복귀한다.
+        /// </summary>
+        private void TickRunTurn()
+        {
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            bool inTurn = state.IsName(RunTurnState);
+            bool inTransition = animator.IsInTransition(0);
+            bool turnIsNext = inTransition && animator.GetNextAnimatorStateInfo(0).IsName(RunTurnState);
+            bool leaving = inTurn && inTransition && !turnIsNext;
+            if (inTurn && !leaving) enteredRunTurn = true;
+            if (!enteredRunTurn)
+            {
+                // CrossFade 요청은 다음 애니메이터 갱신부터 반영되므로 몇 프레임은 진입을 기다린다.
+                if (!turnIsNext && ++runTurnWaitFrames > 3) IsRunTurning = false;
+                return;
+            }
+            if (!inTurn || leaving)
+            {
+                IsRunTurning = false;
+                return;
+            }
+            if (state.normalizedTime < config.runTurnExitProgress) return;
+
+            IsRunTurning = false;
+            bool moving = Player.Controls.Move.sqrMagnitude > .01f;
+            bool running = moving && Player.Controls.RunHeld;
+            animator.SetBool("isMoving", moving);
+            animator.SetBool("isRunning", running);
+            animator.CrossFadeInFixedTime(running ? "Base Layer.Run" : moving ? "Base Layer.Walk" : "Base Layer.Idle",
+                config.runTurnBlendOut, 0, 0f);
+            // 턴 직후 같은 입력이 다시 '반대 방향'으로 판정되지 않도록 기준 방향을 새 정면으로 맞춘다.
+            lastMoveDirection = transform.forward;
+            IsMoving = moving;
+            IsRunning = running;
+        }
+
+        /// <summary>
+        /// 달리기 턴 동안 클립의 루트 모션을 적용한다. 회전은 목표 각도에 맞게 비례 조정하고,
+        /// 수직 이동은 버려 중력과 접지는 점프·중력 처리에 맡긴다.
+        /// </summary>
+        public void ApplyRunTurnRootMotion(Vector3 delta, Quaternion deltaRotation)
+        {
+            if (!IsRunTurning || !character.enabled) return;
+            float yaw = Mathf.DeltaAngle(0f, deltaRotation.eulerAngles.y) * runTurnYawScale;
+            transform.rotation = Quaternion.AngleAxis(yaw, Vector3.up) * transform.rotation;
+            delta.y = 0f;
+            character.Move(delta);
         }
 
         #endregion

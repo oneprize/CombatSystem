@@ -9,7 +9,7 @@ namespace CombatSystem.Player
     public enum PlayerAction { Attack, Skill, UpperAttack, Dodge, LinkJump }
 
     /// <summary>플레이어의 현재 상태. 여러 상태가 겹치면 앞에 선언된 것이 우선한다.</summary>
-    public enum PlayerState { HitReact, Dodge, LinkJump, Attack, AirRecovery, Guard, Jump, Run, Walk, Idle, Dead }
+    public enum PlayerState { HitReact, Dodge, LinkJump, Attack, AirRecovery, Guard, Jump, Run, Walk, Idle, Dead, Hanging, WallRun, SlopeSlide, HighFallRoll }
 
     /// <summary>
     /// 플레이어의 유일한 컴포넌트. 모든 플레이어 모듈을 소유하고 고정된 순서로 구동하므로,
@@ -36,6 +36,11 @@ namespace CombatSystem.Player
         public CombatTeam Team => CombatTeam.Player;
 
         public PlayerContext Context { get; private set; }
+        public PlayerHang Hang { get; private set; }
+        public PlayerWallRun WallRun { get; private set; }
+        public PlayerSlopeSlide SlopeSlide { get; private set; }
+        public PlayerHighFallRoll HighFallRoll { get; private set; }
+        public PlayerWeaponStance WeaponStance { get; private set; }
         /// <summary>캐릭터 조작 입력. 같은 GameObject의 IPlayerInput을 쓰고, 없으면 아무 입력도 없는 NullPlayerInput을 쓴다.</summary>
         public IPlayerInput Controls { get; private set; } = NullPlayerInput.Instance;
         public HealthModule Health { get; private set; }
@@ -101,6 +106,10 @@ namespace CombatSystem.Player
             {
                 if (IsDead) return PlayerState.Dead;
                 if (IsHitReacting) return PlayerState.HitReact;
+                if (Hang != null && Hang.IsHanging) return PlayerState.Hanging;
+                if (WallRun != null && WallRun.IsWallRunning) return PlayerState.WallRun;
+                if (SlopeSlide != null && SlopeSlide.IsSliding) return PlayerState.SlopeSlide;
+                if (HighFallRoll != null && HighFallRoll.IsRolling) return PlayerState.HighFallRoll;
                 if (IsDodging) return PlayerState.Dodge;
                 if (IsLinkJumping) return PlayerState.LinkJump;
                 if (IsAttacking) return PlayerState.Attack;
@@ -123,7 +132,7 @@ namespace CombatSystem.Player
         /// </summary>
         public bool CanStartAction(PlayerAction action)
         {
-            if (IsDead || IsHitReacting || IsGuarding || IsDodging || IsLinkJumping) return false;
+            if ((HighFallRoll != null && HighFallRoll.IsRolling) || (WallRun != null && WallRun.IsWallRunning) || (WeaponStance != null && WeaponStance.IsTransitioning) || (Hang != null && Hang.IsHanging) || IsDead || IsHitReacting || IsGuarding || IsDodging || IsLinkJumping) return false;
             switch (action)
             {
                 case PlayerAction.Attack: return true;
@@ -142,6 +151,14 @@ namespace CombatSystem.Player
             if (parryFeedback != null) parryFeedback.Play();
         }
 
+        /// <summary>저스트 회피 연출(슬로 모션 + 카메라 줌아웃)을 재생한다. 참조가 비어 있으면 같은 GameObject에서 찾아 쓴다.</summary>
+        public void PlayPerfectDodgeFeedback()
+        {
+            if (parryFeedback == null) parryFeedback = GetComponent<ParryFeedback>();
+            if (parryFeedback != null && parryFeedback.PlayPerfectDodge())
+                Debug.Log("[Perfect Dodge] Attack evaded at the last moment", this);
+        }
+
         #endregion
 
         #region Unity 생명주기
@@ -154,6 +171,11 @@ namespace CombatSystem.Player
             if (controls as UnityEngine.Object != null) Controls = controls;
             else Debug.LogWarning("PlayerCharacter: no IPlayerInput component (e.g. PlayerInputReader); the character will ignore input.", this);
             Context = new PlayerContext(this);
+            Hang = GetComponent<PlayerHang>();
+            WallRun = GetComponent<PlayerWallRun>();
+            SlopeSlide = GetComponent<PlayerSlopeSlide>();
+            HighFallRoll = GetComponent<PlayerHighFallRoll>();
+            WeaponStance = GetComponent<PlayerWeaponStance>();
             Health = new HealthModule();
             Combat = new CombatModule();
             Locomotion = new LocomotionModule();
@@ -208,6 +230,11 @@ namespace CombatSystem.Player
             }
             float dt = Time.deltaTime;
             Health.Tick();
+            if (HighFallRoll != null && HighFallRoll.Tick(dt)) return;
+            if (WeaponStance != null && WeaponStance.Tick(dt)) return;
+            if (Hang != null && Hang.Tick(dt)) return;
+            if (WallRun != null && WallRun.Tick(dt)) return;
+            if (SlopeSlide != null && SlopeSlide.Tick(dt)) return;
             LockOn.Tick(); // 새 공격이 현재 락온 대상을 바라보도록 Combat보다 먼저 갱신
             Combat.Tick();
             Locomotion.Tick(dt); // 진행 중인 공중 콤보 / 회피 / 링크 점프도 여기서 함께 Tick됨
@@ -225,6 +252,11 @@ namespace CombatSystem.Player
         private void OnAnimatorMove()
         {
             if (IsDead) return;
+            if (Hang != null && Hang.IsHanging) return;
+            if (WeaponStance != null && WeaponStance.IsTransitioning) return;
+            if (WallRun != null && WallRun.IsWallRunning) return;
+            if (SlopeSlide != null && SlopeSlide.IsSliding) return;
+            if (HighFallRoll != null && HighFallRoll.IsRolling) { HighFallRoll.ApplyRootMotion(Context.Animator.deltaPosition); return; }
             RootMotion.Apply(Context.Animator.deltaPosition);
         }
 
@@ -238,6 +270,10 @@ namespace CombatSystem.Player
         /// </summary>
         public void EnterDeath()
         {
+            if (Hang != null) Hang.Release(false);
+            if (WallRun != null) WallRun.End(false);
+            if (SlopeSlide != null) SlopeSlide.End(false);
+            if (HighFallRoll != null) HighFallRoll.Cancel();
             Combat.CancelForDamage();
             foreach (var module in Modules()) if (module != Health) module.OnDisable();
             CombatRegistry.Unregister(this);

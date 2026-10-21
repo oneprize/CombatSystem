@@ -36,7 +36,7 @@ namespace CombatSystem.Player
                 if (next.IsName("Base Layer.Attack4")) state = next;
             }
             if (!state.IsName("Base Layer.Attack4")) return;
-            float sample = Mathf.Clamp01(state.normalizedTime) * (GroundFinisherHeights.Length - 1);
+            float sample = Mathf.Clamp01(combat.SourceAttackProgress(state)) * (GroundFinisherHeights.Length - 1);
             int index = Mathf.Min(Mathf.FloorToInt(sample), GroundFinisherHeights.Length - 2);
             float height = Mathf.Lerp(GroundFinisherHeights[index], GroundFinisherHeights[index + 1],
                 sample - index) * animator.humanScale;
@@ -94,6 +94,12 @@ namespace CombatSystem.Player
                 return;
             }
             if (Player.IsLinkJumping || Player.IsAirComboActive) return;
+            if (Player.Locomotion.IsRunTurning)
+            {
+                // 달리기 턴은 클립의 루트 모션 회전까지 적용해야 몸과 캐릭터 정면이 함께 돈다.
+                if (animator.applyRootMotion) Player.Locomotion.ApplyRunTurnRootMotion(delta, animator.deltaRotation);
+                return;
+            }
             if (!animator.applyRootMotion || (!Player.IsHitReacting && !Player.IsAttacking)) return;
             // 중력은 이동 모듈이 담당하고 정면 회전은 전투 코드가 담당한다.
             delta.y = 0f;

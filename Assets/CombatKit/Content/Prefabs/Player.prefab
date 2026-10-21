@@ -110,7 +110,7 @@ GameObject:
   - component: {fileID: 2283617206835477100}
   - component: {fileID: 8109761572581232288}
   m_Layer: 0
-  m_Name: Sword5_FBX 1 (1)
+  m_Name: Sword Hitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -128,7 +128,8 @@ Transform:
   m_LocalPosition: {x: -0.06171346, y: 0.11517071, z: 0.045653936}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5641928163575564513}
   m_Father: {fileID: 8953393317365558740}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!33 &1657653707689497409
@@ -138,7 +139,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 533998238785645064}
-  m_Mesh: {fileID: -1685661997809985041, guid: d9d3e3c48b5beab42838904b55b428a6, type: 3}
+  m_Mesh: {fileID: 0}
 --- !u!23 &5635078073993159054
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -146,7 +147,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 533998238785645064}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -574,6 +575,96 @@ Transform:
   - {fileID: 6111678395262438769}
   m_Father: {fileID: 5850890104411284676}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2290690819040664459
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5641928163575564513}
+  - component: {fileID: 606966073488774248}
+  - component: {fileID: 4530194075418266168}
+  m_Layer: 0
+  m_Name: 9CG_Sword
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5641928163575564513
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2290690819040664459}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 1, w: -0.00000004371139}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.84, y: 0.84, z: 0.84}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6882863521315606862}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &606966073488774248
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2290690819040664459}
+  m_Mesh: {fileID: 6687708012848683952, guid: f9782f1232a3d52409016196edff269e, type: 3}
+--- !u!23 &4530194075418266168
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2290690819040664459}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 5a49095893f65ac4d97360787c3d5d17, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &2436618672908495078
 GameObject:
   m_ObjectHideFlags: 0
@@ -2513,6 +2604,11 @@ GameObject:
   - component: {fileID: 4453132257430460683}
   - component: {fileID: 7478605907185220490}
   - component: {fileID: 5468033471326990424}
+  - component: {fileID: 7544025995665364505}
+  - component: {fileID: 4823203719582608801}
+  - component: {fileID: 6330510402583372415}
+  - component: {fileID: 3015635140655592146}
+  - component: {fileID: 1787474374525431983}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2629,6 +2725,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatSystem.Player.ParryFeedback
   targetCamera: {fileID: 0}
   config: {fileID: 11400000, guid: 2a8907637eee4278bd82e29b5e0f96a0, type: 2}
+  perfectDodgeConfig: {fileID: 11400000, guid: 4c448650dbe00b348849d75706908f3d, type: 2}
 --- !u!114 &7261923500150219931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2717,6 +2814,82 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &7544025995665364505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 496ce36179b306e48b5cb865c658ac88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerHang
+  grabRange: 1.8
+  maxGrabHeight: 3.6
+--- !u!114 &4823203719582608801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b4623c01644116498e4d5c6253fbd6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerWeaponStance
+  weaponRoot: {fileID: 0}
+  holsterPosition: {x: -0.22, y: 0, z: -0.1}
+  holsterEuler: {x: 0, y: 0, z: 130}
+  drawAttachTime: 0.25
+  sheathAttachTime: 0.65
+--- !u!114 &6330510402583372415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5637dd42aefcfc34ba05cf81d60c929f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerWallRun
+  speed: 7
+  wallCheckDistance: 1
+  maxDuration: 1.8
+  downwardSpeed: 0.7
+  reattachDelay: 0.5
+--- !u!114 &3015635140655592146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b298fe48f43e154aab9e19088213558, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerSlopeSlide
+  minimumAngle: 18
+  maxSpeed: 6
+  acceleration: 8
+--- !u!114 &1787474374525431983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e33b3eb65bfd504cbfa122ae0a89ce6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerHighFallRoll
+  minimumFallHeight: 6
 --- !u!1 &9095833428554535245
 GameObject:
   m_ObjectHideFlags: 0

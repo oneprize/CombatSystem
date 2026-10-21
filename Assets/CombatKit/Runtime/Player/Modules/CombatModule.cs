@@ -222,6 +222,7 @@ namespace CombatSystem.Player
         /// </summary>
         public void Tick()
         {
+            if (Player.WeaponStance != null && !Player.WeaponStance.IsDrawn) return;
             if (bossParryConsumedFrame == Time.frameCount) return;
             if (Player.Controls.AttackPressed && !Player.IsHitReacting && !Player.IsDodging &&
                 !Player.IsLinkJumping && bossParryConsumedFrame != Time.frameCount)
@@ -625,6 +626,21 @@ namespace CombatSystem.Player
         }
 
         /// <summary>현재 공격 상태(전이 중이면 전이 대상 상태)의 정규화 시간. 해당 상태가 재생 중이 아니면 -1.</summary>
+        // Trimmed ground clips retain their original hit/cancel time domain.
+        private float GroundClipRetainedFraction(AnimatorStateInfo state)
+        {
+            if (state.IsName("Base Layer.Attack")) return .5f;
+            if (state.IsName("Base Layer.Attack2")) return 6f / 11f;
+            if (state.IsName("Base Layer.Attack3")) return 20f / 37f;
+            if (state.IsName("Base Layer.Attack4")) return 15f / 28f;
+            return 1f;
+        }
+
+        public float SourceAttackProgress(AnimatorStateInfo state)
+        {
+            return state.normalizedTime * GroundClipRetainedFraction(state);
+        }
+
         private float CurrentAttackProgress()
         {
             string expected = "Base Layer." + AttackStateName;
@@ -634,7 +650,7 @@ namespace CombatSystem.Player
                 var next = animator.GetNextAnimatorStateInfo(0);
                 if (next.IsName(expected)) info = next;
             }
-            return info.IsName(expected) ? info.normalizedTime : -1f;
+            return info.IsName(expected) ? SourceAttackProgress(info) : -1f;
         }
 
         #endregion
@@ -797,7 +813,7 @@ namespace CombatSystem.Player
             if (bufferedSkillIndex >= 0 && Time.time > bufferedSkillUntil) bufferedSkillIndex = -1;
             bool bufferedPiercingSkill = bufferedSkillIndex == SkillAIndex || bufferedSkillIndex == SkillBIndex;
             float skillTransitionProgress = bufferedPiercingSkill ? config.piercingSkillTransitionProgress : config.normalSkillTransitionProgress;
-            if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && info.normalizedTime >= skillTransitionProgress)
+            if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && SourceAttackProgress(info) >= Mathf.Min(GroundClipRetainedFraction(info), skillTransitionProgress))
             {
                 BeginSkill(bufferedSkillIndex, bufferedPiercingSkill ? config.piercingSkillBlendTime : config.normalSkillBlendTime);
                 return;
@@ -855,7 +871,7 @@ namespace CombatSystem.Player
             }
 
             if (queuedAttack && IsUsingGroundCombo && attackIndex < GroundComboCount - 1 &&
-                info.normalizedTime >= GroundChainProgress(attackIndex))
+                SourceAttackProgress(info) >= GroundChainProgress(attackIndex))
             {
                 FaceNearbyEnemy();
                 attackIndex++;
@@ -866,7 +882,7 @@ namespace CombatSystem.Player
             }
             else if (info.normalizedTime >= 1f)
             {
-                float idleBlend = IsUsingGroundCombo ? config.groundAttackIdleBlendTime : config.crossFadeTime;
+                float idleBlend = IsUsingGroundCombo ? .3f : config.crossFadeTime;
                 bufferedSkillIndex = -1;
                 IsAttacking = false;
                 queuedAttack = false;

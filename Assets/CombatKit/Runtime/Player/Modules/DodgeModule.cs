@@ -20,6 +20,10 @@ namespace CombatSystem.Player
         private bool enteredDodgeAnimation;
         /// <summary>회피 도중 한 번이라도 공중에 있었는지. 끝날 때 공중 상태로 복귀할지 결정한다.</summary>
         private bool airborneDodge;
+        /// <summary>회피를 시작한 시각(Time.time). 저스트 회피 판정 구간의 기준이다.</summary>
+        private float dodgeStartTime;
+        /// <summary>이번 회피에서 저스트 회피를 이미 인정했는지. 여러 공격을 한 번에 흘려도 연출이 한 번만 나오게 한다.</summary>
+        private bool perfectDodgeUsed;
 
         #endregion
 
@@ -51,6 +55,8 @@ namespace CombatSystem.Player
             if (hasDirectionInput && direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction);
             airborneDodge = !character.isGrounded;
             enteredDodgeAnimation = false;
+            dodgeStartTime = Time.time;
+            perfectDodgeUsed = false;
             IsDodging = true;
             animator.SetBool("isMoving", false);
             animator.SetBool("isRunning", false);
@@ -105,6 +111,18 @@ namespace CombatSystem.Player
             // 캐릭터가 이미 회피 방향을 보고 있으므로, 클립의 수평 이동(옆으로 흐르는 성분 포함)을 제작된 그대로 적용한다.
             delta.y = 0f;
             character.Move(delta * config.distanceMultiplier);
+        }
+
+        /// <summary>
+        /// 회피 시작 후 perfectDodgeWindow 안에 공격을 흘렸다면 저스트 회피로 인정한다.
+        /// 회피하지 않았다면 그대로 맞았을 타이밍에 피했다는 뜻이며, 회피 한 번당 한 번만 인정한다.
+        /// </summary>
+        /// <returns>이번 호출로 저스트 회피가 인정되었으면 true.</returns>
+        public bool TryConsumePerfectDodge()
+        {
+            if (!IsDodging || perfectDodgeUsed || Time.time - dodgeStartTime > config.perfectDodgeWindow) return false;
+            perfectDodgeUsed = true;
+            return true;
         }
 
         /// <summary>플레이어 비활성화 시 회피 상태를 해제한다.</summary>
