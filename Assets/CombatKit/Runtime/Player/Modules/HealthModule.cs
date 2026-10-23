@@ -111,6 +111,14 @@ namespace CombatSystem.Player
             }
             LastComboIndex = comboIndex;
             var boss = attacker != null ? attacker.GetComponentInParent<CombatSystem.Boss.BossCombat>() : null;
+            var enemy = attacker != null ? attacker.GetComponentInParent<CombatSystem.Combat.EnemyCombat>() : null;
+            if ((enemy != null || (allowBossParry && boss != null)) && combat.TryParryIncoming(attacker))
+            {
+                LastResult = PlayerHitResult.Parried;
+                if (enemy != null) enemy.RegisterParry(Player.transform);
+                else boss.RegisterParry();
+                return true;
+            }
             if (allowBossParry && boss != null && combat.TryConsumeBossParry())
             {
                 LastResult = PlayerHitResult.Parried;
@@ -140,7 +148,7 @@ namespace CombatSystem.Player
             if (bossDown) return true;
             // 공격 중에는 강공격에 맞더라도 애니메이션 주도권을 공격이 유지한다.
             // 피해는 위에서 이미 적용했으므로, 무적이 아니라 경직 저항(슈퍼아머)이다.
-            if (combat.IsAttacking) return true;
+            if (combat.IsAttacking && !combat.IsParryAttempt) return true;
             bossDown = knockDown; awaitingStandUp = false;
             stateName = knockDown ? "Base Layer.BossKnockDown" : "Base Layer.Damage" + (comboIndex + 1);
             if (!animator.HasState(0, Animator.StringToHash(stateName))) return false;

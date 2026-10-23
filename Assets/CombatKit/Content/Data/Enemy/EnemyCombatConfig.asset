@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fab2d2a990b94e729a04d1e45cf6ff25, type: 3}
   m_Name: EnemyCombatConfig
   m_EditorClassIdentifier: 
+  parriesForLargeGroggy: 4
+  shortGroggyDuration: 1.2
+  largeGroggyDuration: 4
+  parryDeflectEndProgress: 0.18
   idleDuration: 2
   comboSteps:
   - animStateName: Attack.Combo1

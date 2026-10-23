@@ -9,6 +9,7 @@ namespace CombatSystem.Player
         public float LastFallHeight {get;private set;}
         PlayerCharacter player;Animator animator;CharacterController controller;
         bool airborne;float apex,airTime,elapsed;
+        Vector3 rollDirection;
         void Awake(){player=GetComponent<PlayerCharacter>();animator=GetComponent<Animator>();controller=GetComponent<CharacterController>();}
         public bool Tick(float dt)
         {
@@ -42,12 +43,15 @@ namespace CombatSystem.Player
             if(airTime<.15f||LastFallHeight<Mathf.Max(minimumFallHeight,doubleJumpHeight+1f))return false;
             if(!animator.HasState(0,Animator.StringToHash("Base Layer.HighFallRoll")))return false;
             player.Locomotion.OnCombatLanded();IsRolling=true;elapsed=0;
+            rollDirection=Vector3.ProjectOnPlane(transform.forward,Vector3.up).normalized;
             animator.CrossFadeInFixedTime("Base Layer.HighFallRoll",.08f,0,0);return true;
         }
         public void ApplyRootMotion(Vector3 delta)
         {
             if(!IsRolling||!controller.enabled)return;
-            delta.y=0;controller.Move(delta);
+            // Keep the landing heading: body rotation and blend-out must not curve or reverse the roll.
+            float forwardDistance=Mathf.Max(0f,Vector3.Dot(delta,rollDirection));
+            controller.Move(rollDirection*forwardDistance);
         }
         public void Cancel(){IsRolling=false;airborne=false;airTime=0;}
         void OnDisable(){Cancel();}

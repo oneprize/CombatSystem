@@ -5,7 +5,7 @@ using CombatSystem.Player;
 namespace CombatSystem.Training
 {
     /// <summary>
-    /// 콤보 훈련 구역 안에서 4개 레슨(지상 콤보 / 띄우기 연계 공중 콤보 / E 연계 / R 연계)의 입력 순서를 아이콘으로 안내하고,
+    /// 콤보 훈련 구역 안에서 3개 레슨(지상 콤보 / 띄우기 연계 공중 콤보 / R 연계)의 입력 순서를 아이콘으로 안내하고,
     /// 플레이어의 실제 공격을 관찰해 순서대로 성공할 때마다 진행도를 올린다. 레슨을 완료하면 잠시 뒤 다음 레슨으로 넘어간다.
     /// </summary>
     [DefaultExecutionOrder(100)]
@@ -59,14 +59,14 @@ namespace CombatSystem.Training
             {
                 if (Time.time >= restartAt)
                 {
-                    lesson=(lesson+1)%4;
+                    lesson=(lesson+1)%3;
                     ResetPractice();
                 }
                 return;
             }
             var c=player.Combat;
             if (c==null) return;
-            int kind=player.AirCombo.IsAirDashing?9:c.IsUsingGroundCombo?1:c.IsUsingSkillC?2:c.IsUsingAirCombo?3:c.IsUsingChaseAttack?4:c.IsUsingSkillA?6:c.IsUsingSkillB?7:c.IsUsingEFollowUp?8:c.IsAttacking?5:0;
+            int kind=player.AirCombo.IsAirDashing?9:c.IsUsingGroundCombo?1:c.IsUsingSkillC?2:c.IsUsingAirCombo?3:c.IsUsingChaseAttack?4:c.IsUsingSkillA?6:c.IsUsingEFollowUp?8:c.IsAttacking?5:0;
             ObserveAttack(c.AttackSequence,kind,c.IsUsingAirCombo?c.AirComboIndex:c.AttackComboIndex);
         }
 
@@ -103,7 +103,7 @@ namespace CombatSystem.Training
             }
             else
             {
-                int expectedSkill=lesson==2?6:7;
+                int expectedSkill=6;
                 if(kind==expectedSkill) { ClearProgress(); Advance(); return; }
                 bool valid=completed==1 && kind==8;
                 valid |= completed>=2 && completed<=5 && kind==1 && step==completed-2;
@@ -140,8 +140,11 @@ namespace CombatSystem.Training
             if(basicRow!=null) basicRow.SetActive(lesson==0);
             if(advancedRow!=null) advancedRow.SetActive(lesson==1);
             if(skillRow!=null) skillRow.SetActive(lesson>=2);
-            if(skillKeyLabel!=null) skillKeyLabel.text=lesson==2?"E":"R";
-            if(titleLabel!=null) titleLabel.text=lesson==0?"01 / GROUND COMBO":lesson==1?"02 / LAUNCH > CHASE > AIR 1-3 > E":lesson==2?"03 / E > FOLLOW-UP > GROUND COMBO":"04 / R > FOLLOW-UP > GROUND COMBO";
+            if(skillKeyLabel!=null) skillKeyLabel.text="R";
+            if(advancedIcons!=null && advancedIcons.Length>0 && advancedIcons[advancedIcons.Length-1]!=null)
+                foreach(var label in advancedIcons[advancedIcons.Length-1].GetComponentsInChildren<Text>(true))
+                    if(label.text=="E") label.text="R";
+            if(titleLabel!=null) titleLabel.text=lesson==0?"01 / GROUND COMBO":lesson==1?"02 / LAUNCH > CHASE > AIR 1-3 > R":lesson==2?"03 / R > FOLLOW-UP > GROUND COMBO":"04 / R > FOLLOW-UP > GROUND COMBO";
             ClearProgress();
             lastAttackSequence=player!=null && player.Combat!=null?player.Combat.AttackSequence:-1;
         }

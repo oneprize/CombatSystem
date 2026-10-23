@@ -8,14 +8,14 @@ namespace CombatSystem.Player
     /// 플레이어 전투 입력과 공격 진행을 담당한다. 지상 콤보, 스킬(G/A/B/C), 파워 공격(차지),
     /// UpperAttack·공중 콤보·추격 공격 연계, 관통 돌진 후 E 후속 공격, 보스 패리 입력과 가드를 처리한다.
     /// </summary>
-    public sealed class CombatModule : PlayerModule
+    public sealed partial class CombatModule : PlayerModule
     {
         #region 필드
 
         private const int GroundComboCount = 4;
         private const int AirComboCount = 4;
         // attackIndex 값별 공격 종류. 0~3은 지상 콤보, AirStartIndex부터 4개는 공중 콤보, 21은 공중 대시 공격이다.
-        private const int SkillGIndex = 5, SkillAIndex = 6, UpperIndex = 7, AirStartIndex = 8, SkillBIndex = 14, SkillCIndex = 16, ChaseIndex = 17, PowerChargeIndex = 18, PowerReleaseIndex = 19, EFollowUpIndex = 20;
+        private const int SkillGIndex = 5, SkillAIndex = 6, UpperIndex = 7, AirStartIndex = 8, SkillCIndex = 16, ChaseIndex = 17, PowerChargeIndex = 18, PowerReleaseIndex = 19, EFollowUpIndex = 20;
 
         private PlayerProfile.CombatSettings config;
         /// <summary>현재 공격 종류/콤보 단계를 나타내는 인덱스. 재생할 애니메이터 상태명도 이 값으로 정해진다.</summary>
@@ -123,9 +123,8 @@ namespace CombatSystem.Player
         public bool IsAirComboFinisher => IsUsingAirCombo && AirComboIndex == AirComboCount - 1;
         public bool IsUsingSkill => IsAttacking && attackIndex == SkillGIndex;
         public bool IsUsingSkillA => IsAttacking && attackIndex == SkillAIndex;
-        public bool IsUsingSkillB => IsAttacking && attackIndex == SkillBIndex;
         public bool IsUsingSkillC => IsAttacking && attackIndex == SkillCIndex;
-        public bool IsUsingPiercingSkill => IsUsingSkillA || IsUsingSkillB;
+        public bool IsUsingPiercingSkill => IsUsingSkillA;
         public bool IsUsingUpperAttack => IsAttacking && attackIndex == UpperIndex;
         /// <summary>스킬 C로 띄운 적을 향해 뛰어오르는 추격 공격 중인지.</summary>
         public bool IsUsingChaseAttack => IsAttacking && attackIndex == ChaseIndex;
@@ -146,7 +145,7 @@ namespace CombatSystem.Player
             Mathf.Max(powerConfig.minDamageMultiplier, powerConfig.maxDamageMultiplier), PowerChargeNormalized);
         public string CurrentAttackStateName => AttackStateName;
         /// <summary>attackIndex에 대응하는 애니메이터 상태 이름("Base Layer." 접두사 제외).</summary>
-        private string AttackStateName => IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex == SkillBIndex ? "Skill_B" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => IsParryAttempt ? "Skill_F" : IsParryCounter ? "ParryCounter" : IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
 
         private AirComboModule airCombo => Player.AirCombo;
 
@@ -193,6 +192,7 @@ namespace CombatSystem.Player
         /// <summary>피격·사망·공중 대시 시작 등으로 전투 동작을 강제로 끊을 때, 공격·가드·예약 입력을 모두 초기화한다.</summary>
         public void CancelForDamage()
         {
+            ResetParry();
             sheathedQueued = false; sheathedStep = 0;
             airCombo.CancelAirDash();
             lastBossParryInput = float.NegativeInfinity;
@@ -232,6 +232,8 @@ namespace CombatSystem.Player
                 ClearGroundAttackInput();
                 return;
             }
+            if (Player.Controls.ParryPressed) TryParry();
+            if (IsParryAction) { TickParry(); return; }
             if (airCombo.IsAirDashing)
             {
 
@@ -296,8 +298,6 @@ namespace CombatSystem.Player
                 TrySkill();
             if (controls.SkillAPressed)
                 TrySkillA();
-            if (controls.SkillBPressed)
-                TrySkillB();
             if (controls.UpperAttackPressed)
                 TryUpperAttack();
 
@@ -417,7 +417,7 @@ namespace CombatSystem.Player
             if (IsUsingSkill || IsUsingPiercingSkill || IsUsingSkillC)
             {
                 float followUp = IsUsingSkill ? config.skillGFollowUpProgress :
-                    IsUsingSkillA ? config.skillAFollowUpProgress : IsUsingSkillB ? config.skillBFollowUpProgress : .75f;
+                    IsUsingSkillA ? config.skillAFollowUpProgress : .75f;
                 return CurrentAttackProgress() >= followUp && (!IsUsingPiercingSkill || !Player.PiercingDash.IsDashing);
             }
             return false;
@@ -486,8 +486,6 @@ namespace CombatSystem.Player
             queuedAttack = false;
             attackIndex = 0;
         }
-        /// <summary>관통 돌진 스킬 B 사용을 요청한다.</summary>
-        public void TrySkillB() { RequestSkill(SkillBIndex); }
         /// <summary>적을 띄우는 스킬 C 사용을 요청한다.</summary>
         public void TrySkillC() { RequestSkill(SkillCIndex); }
 
@@ -497,7 +495,7 @@ namespace CombatSystem.Player
         private void RequestSkill(int index)
         {
             if (!Player.CanStartAction(PlayerAction.Skill)) return;
-            string state = index == SkillCIndex ? "Skill_C" : index == SkillGIndex ? "Skill_G" : index == SkillAIndex ? "Skill_A" : "Skill_B";
+            string state = index == SkillCIndex ? "Skill_C" : index == SkillGIndex ? "Skill_G" : "Skill_A";
             if (!animator.HasState(0, Animator.StringToHash("Base Layer." + state))) return;
             if (IsUsingGroundCombo)
             {
@@ -799,7 +797,7 @@ namespace CombatSystem.Player
             }
             if (!info.IsName(expected)) return;
             if (IsUsingPiercingSkill && eFollowUpQueued && !Player.PiercingDash.IsDashing &&
-                info.normalizedTime >= (IsUsingSkillB ? config.skillBFollowUpProgress : config.skillAFollowUpProgress))
+                info.normalizedTime >= (config.skillAFollowUpProgress))
             {
                 BeginEFollowUp();
                 return;
@@ -811,7 +809,7 @@ namespace CombatSystem.Player
             }
 
             if (bufferedSkillIndex >= 0 && Time.time > bufferedSkillUntil) bufferedSkillIndex = -1;
-            bool bufferedPiercingSkill = bufferedSkillIndex == SkillAIndex || bufferedSkillIndex == SkillBIndex;
+            bool bufferedPiercingSkill = bufferedSkillIndex == SkillAIndex;
             float skillTransitionProgress = bufferedPiercingSkill ? config.piercingSkillTransitionProgress : config.normalSkillTransitionProgress;
             if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && SourceAttackProgress(info) >= Mathf.Min(GroundClipRetainedFraction(info), skillTransitionProgress))
             {
@@ -988,6 +986,7 @@ namespace CombatSystem.Player
         /// <summary>플레이어 비활성화 시 공격·가드·예약 입력 상태를 모두 초기화한다.</summary>
         public override void OnDisable()
         {
+            ResetParry();
             sheathedQueued = false; sheathedStep = 0;
             lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();

@@ -394,7 +394,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""priority"": 0
                 },
                 {
-                    ""name"": ""SkillB"",
+                    ""name"": ""Parry"",
                     ""type"": ""Button"",
                     ""id"": ""ca7582c3-1762-4893-94e9-b5fa143b29e8"",
                     ""expectedControlType"": """",
@@ -645,7 +645,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""dd5180e8-fc21-4ef2-95c5-8a90387fe9a0"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -656,11 +656,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""6024d3cc-b2cf-4740-bd87-fb74fcdea934"",
-                    ""path"": ""<Keyboard>/r"",
+                    ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""SkillB"",
+                    ""action"": ""Parry"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -743,7 +743,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Combat_Guard = m_Combat.FindAction("Guard", throwIfNotFound: true);
         m_Combat_SkillG = m_Combat.FindAction("SkillG", throwIfNotFound: true);
         m_Combat_SkillA = m_Combat.FindAction("SkillA", throwIfNotFound: true);
-        m_Combat_SkillB = m_Combat.FindAction("SkillB", throwIfNotFound: true);
+        m_Combat_Parry = m_Combat.FindAction("Parry", throwIfNotFound: true);
         m_Combat_SkillI = m_Combat.FindAction("SkillI", throwIfNotFound: true);
         m_Combat_UpperAttack = m_Combat.FindAction("UpperAttack", throwIfNotFound: true);
         m_Combat_SkillCModifier = m_Combat.FindAction("SkillCModifier", throwIfNotFound: true);
@@ -1000,7 +1000,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Combat_Guard;
     private readonly InputAction m_Combat_SkillG;
     private readonly InputAction m_Combat_SkillA;
-    private readonly InputAction m_Combat_SkillB;
+    private readonly InputAction m_Combat_Parry;
     private readonly InputAction m_Combat_SkillI;
     private readonly InputAction m_Combat_UpperAttack;
     private readonly InputAction m_Combat_SkillCModifier;
@@ -1050,9 +1050,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @SkillA => m_Wrapper.m_Combat_SkillA;
         /// <summary>
-        /// Provides access to the underlying input action "Combat/SkillB".
+        /// Provides access to the underlying input action "Combat/Parry".
         /// </summary>
-        public InputAction @SkillB => m_Wrapper.m_Combat_SkillB;
+        public InputAction @Parry => m_Wrapper.m_Combat_Parry;
         /// <summary>
         /// Provides access to the underlying input action "Combat/SkillI".
         /// </summary>
@@ -1123,9 +1123,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SkillA.started += instance.OnSkillA;
             @SkillA.performed += instance.OnSkillA;
             @SkillA.canceled += instance.OnSkillA;
-            @SkillB.started += instance.OnSkillB;
-            @SkillB.performed += instance.OnSkillB;
-            @SkillB.canceled += instance.OnSkillB;
+            @Parry.started += instance.OnParry;
+            @Parry.performed += instance.OnParry;
+            @Parry.canceled += instance.OnParry;
             @SkillI.started += instance.OnSkillI;
             @SkillI.performed += instance.OnSkillI;
             @SkillI.canceled += instance.OnSkillI;
@@ -1176,9 +1176,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SkillA.started -= instance.OnSkillA;
             @SkillA.performed -= instance.OnSkillA;
             @SkillA.canceled -= instance.OnSkillA;
-            @SkillB.started -= instance.OnSkillB;
-            @SkillB.performed -= instance.OnSkillB;
-            @SkillB.canceled -= instance.OnSkillB;
+            @Parry.started -= instance.OnParry;
+            @Parry.performed -= instance.OnParry;
+            @Parry.canceled -= instance.OnParry;
             @SkillI.started -= instance.OnSkillI;
             @SkillI.performed -= instance.OnSkillI;
             @SkillI.canceled -= instance.OnSkillI;
@@ -1348,12 +1348,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSkillA(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "SkillB" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Parry" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSkillB(InputAction.CallbackContext context);
+        void OnParry(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "SkillI" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

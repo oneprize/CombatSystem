@@ -165,6 +165,7 @@ namespace CombatSystem.Combat
         /// <summary>일반 피격. 데미지를 주고 기본 경직 리액션을 재생하되, 공격 중이거나 공중 리액션 중이면 데미지만 받는다.</summary>
         public void ReceiveHit()
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             ApplyDamage();
             // 일반 피격으로는 공격 동작이 끊기지 않는다.
             if (aerialReaction || machine.CurrentState == machine.AttackState) return;
@@ -175,6 +176,7 @@ namespace CombatSystem.Combat
         /// <summary>관통 돌진 피격. 돌진 방향을 마주 보게 돌린 뒤 3단 관통 리액션(PiercingHitA→B→C)을 시작한다.</summary>
         public void ReceivePiercingHit(Transform attacker, Vector3 dashDirection)
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
@@ -193,6 +195,7 @@ namespace CombatSystem.Combat
         /// </summary>
         public void ReceiveGroundComboHit(Transform attacker, int comboIndex, bool finisher)
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             ConsumeBounceFollowUp();
             // 공격 중 아머와 이미 진행 중인 공중/다운 리액션은 그대로 유지한다.
             if (aerialReaction || machine.CurrentState == machine.AttackState)
@@ -216,6 +219,7 @@ namespace CombatSystem.Combat
         /// <summary>스킬 피격. 공격자 반대 방향으로 날려 보내 넉백 물리로 다운시킨다.</summary>
         public void ReceiveSkillHit(Transform attacker = null)
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
@@ -234,6 +238,7 @@ namespace CombatSystem.Combat
         /// <summary>올려베기 피격. 적을 위로 띄워 공중 콤보를 이어 갈 수 있는 상태로 만든다.</summary>
         public void ReceiveUpperHit(Transform attacker)
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
@@ -259,6 +264,7 @@ namespace CombatSystem.Combat
         /// </summary>
         public void ReceiveAirComboHit(Transform attacker, int comboIndex, bool finisher)
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             // 공중 공격은 지상의 적을 띄우거나 기존 다운 상태를 무시하지 않는다.
             if (!IsAirborneForCombo) return;
             ApplyDamage();
@@ -277,6 +283,7 @@ namespace CombatSystem.Combat
         /// </summary>
         public void ReceiveAerialHit(Transform attacker, int strikeIndex = 0)
         {
+            if (combat.IsGroggy) { ApplyDamage(); return; }
             ApplyDamage();
             // Q의 두 번째 타격은 공중 피니시와 1회 바운스 허용치를 공유한다.
             bool bounceOnLanding = strikeIndex == 1 && !bounceUsed;

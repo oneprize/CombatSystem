@@ -24,7 +24,8 @@ namespace CombatSystem.UI
         }
         private Canvas canvas;
         private Text enemyName, state, conditions, logs, hpText, duration;
-        private Image hpFill;
+        private Image hpFill, groggyFill;
+        private Text groggyText;
         private float refreshAt;
 
         #endregion
@@ -64,7 +65,7 @@ namespace CombatSystem.UI
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
             var panel = LabUIKit.Panel(root.transform, "AI MONITOR", LabUIKit.PanelBg);
-            LabUIKit.TopRight(panel, 18, -18, 400, 700);
+            LabUIKit.TopRight(panel, 18, -18, 400, 780);
             Label(panel, "Title", 16, 36, LabUIKit.FsHead, LabUIKit.Accent).text = "AI MONITOR";
             enemyName = Label(panel, "Enemy", 55, 32, LabUIKit.FsBody, LabUIKit.TextMain);
             hpFill = LabUIKit.Bar(panel, "Health", 20, -96, 360, 12, LabUIKit.PanelEdge, LabUIKit.Good);
@@ -75,8 +76,10 @@ namespace CombatSystem.UI
             LabUIKit.HLine(panel, 20, -258, 360, LabUIKit.PanelEdge, 1);
             Label(panel, "Conditions Heading", 272, 32, LabUIKit.FsHead, LabUIKit.TextMain).text = "CONDITION";
             conditions = Label(panel, "Conditions", 310, 205, LabUIKit.FsSmall, LabUIKit.TextMain);
-            Label(panel, "Log Heading", 497, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
-            logs = Label(panel, "Logs", 537, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
+            groggyFill = LabUIKit.Bar(panel, "Groggy", 20, -526, 360, 10, LabUIKit.PanelEdge, LabUIKit.AccentWarm);
+            groggyText = Label(panel, "Groggy Value", 540, 28, LabUIKit.FsSmall, LabUIKit.TextMain);
+            Label(panel, "Log Heading", 577, 32, LabUIKit.FsBody, LabUIKit.AccentWarm).text = "ENTER / EXECUTE / EXIT";
+            logs = Label(panel, "Logs", 617, 148, LabUIKit.FsSmall, LabUIKit.TextDim);
         }
         /// <summary>컴포넌트가 켜지면 모니터 캔버스도 함께 표시한다.</summary>
         private void OnEnable() { if (canvas != null) canvas.gameObject.SetActive(true); }
@@ -100,6 +103,7 @@ namespace CombatSystem.UI
                 enemyName.text = "No Enemy assigned";
                 state.text = "-"; duration.text = ""; conditions.text = ""; logs.text = "";
                 hpFill.fillAmount = 0; hpText.text = "HP —";
+                groggyFill.fillAmount = 0; groggyText.text = "GROGGY —";
                 return;
             }
             var combat = target.GetComponent<EnemyCombat>();
@@ -111,6 +115,10 @@ namespace CombatSystem.UI
             hpFill.fillAmount = health != null ? health.CurrentHealth / health.MaxHealth : 0;
             hpFill.color = hpFill.fillAmount <= .3f ? LabUIKit.Bad : LabUIKit.Good;
             hpText.text = health != null ? string.Format("HP  {0:0} / {1:0}   ({2:0}%)", health.CurrentHealth, health.MaxHealth, hpFill.fillAmount * 100) : "HP —";
+            groggyFill.fillAmount = combat != null ? combat.GroggyNormalized : 0;
+            groggyText.text = combat == null ? "GROGGY —" : combat.IsLargeGroggy
+                ? string.Format("BIG GROGGY  {0:0.0}s", combat.GroggyRemaining)
+                : string.Format("GROGGY  {0} / {1}  ({2:0}%)", combat.ParryCount, combat.ParriesForLargeGroggy, combat.GroggyNormalized * 100);
             if (combat != null)
             {
                 bool hasPlayer = combat.PlayerTransform != null;

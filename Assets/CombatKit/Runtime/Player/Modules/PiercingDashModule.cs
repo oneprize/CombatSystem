@@ -58,9 +58,9 @@ namespace CombatSystem.Player
                 direction = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
             }
             if (finished) return;
-            float dashDistance = combat.IsUsingSkillB ? config.skillBDistance : config.distance;
-            float dashDuration = Mathf.Max(.01f, combat.IsUsingSkillB ? config.skillBDuration : config.duration);
-            float begin = combat.IsUsingSkillB ? config.skillBStartProgress : config.startProgress;
+            float dashDistance = config.distance;
+            float dashDuration = Mathf.Max(.01f, config.duration);
+            float begin = config.startProgress;
             string animationState = "Base Layer." + combat.CurrentAttackStateName;
             var state = animator.GetCurrentAnimatorStateInfo(0);
             if (animator.IsInTransition(0))

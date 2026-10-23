@@ -10,6 +10,15 @@ namespace CombatSystem.Data.Player
     [CreateAssetMenu(menuName = "CombatKit/Player/Player Profile", fileName = "PlayerProfile")]
     public class PlayerProfile : ScriptableObject
     {
+        public ParrySettings parry = new ParrySettings();
+        [Serializable]
+        public class ParrySettings
+        {
+            [Min(.05f)] public float inputWindow = .24f;
+            [Range(0,180)] public float facingHalfAngle = 80f;
+            public Vector2 counterHitWindow = new Vector2(.27f,.40f);
+            [Range(.4f,1f)] public float followUpProgress = .55f;
+        }
         public CombatSettings combat = new CombatSettings();
         public LocomotionSettings locomotion = new LocomotionSettings();
         public HealthSettings health = new HealthSettings();

@@ -10,6 +10,12 @@ namespace CombatSystem.Data.Enemy
     [CreateAssetMenu(menuName = "CombatKit/Enemy/Enemy Combat Config", fileName = "EnemyCombatConfig")]
     public class EnemyCombatConfig : ScriptableObject
     {
+        [Header("Parry and groggy")]
+        [Min(1)] public int parriesForLargeGroggy = 4;
+        [Min(.1f)] public float shortGroggyDuration = 1.2f;
+        [Min(.1f)] public float largeGroggyDuration = 4f;
+        [Range(.05f,.5f)] public float parryDeflectEndProgress = .18f;
+
         [Header("Timing (seconds)")]
         public float idleDuration = 2.0f;
 

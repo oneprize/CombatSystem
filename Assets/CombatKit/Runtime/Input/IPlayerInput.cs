@@ -21,7 +21,7 @@ namespace CombatSystem.Player
         bool GuardHeld { get; }
         bool SkillGPressed { get; }
         bool SkillAPressed { get; }
-        bool SkillBPressed { get; }
+        bool ParryPressed { get; }
         bool UpperAttackPressed { get; }
         /// <summary>공격과 함께 누르고 있으면 Skill C가 발동되는 보조 키.</summary>
         bool SkillCModifierHeld { get; }
@@ -44,7 +44,7 @@ namespace CombatSystem.Player
         public bool GuardHeld => false;
         public bool SkillGPressed => false;
         public bool SkillAPressed => false;
-        public bool SkillBPressed => false;
+        public bool ParryPressed => false;
         public bool UpperAttackPressed => false;
         public bool SkillCModifierHeld => false;
         public bool LockOnPressed => false;

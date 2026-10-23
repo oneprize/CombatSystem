@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 246f38f5ac545a44f88110bd93c0b013, type: 3}
   m_Name: BossArenaPlayerProfile
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Data.Player.PlayerProfile
+  parry:
+    inputWindow: 0.24
+    facingHalfAngle: 80
+    counterHitWindow: {x: 0.27, y: 0.4}
+    followUpProgress: 0.55
   combat:
     attackAnimStateName: Attack
     comboTransitionProgress: 0.5
@@ -67,6 +72,11 @@ MonoBehaviour:
     groundCheckDistance: 0.2
     fallStartDelay: 0.15
     turningHoldTime: 0.2
+    runTurnMinAngle: 135
+    runTurnInputGrace: 0.15
+    runTurnBlendIn: 0.08
+    runTurnExitProgress: 0.85
+    runTurnBlendOut: 0.15
   health:
     playerName: Player
     maxHealth: 100
@@ -77,6 +87,7 @@ MonoBehaviour:
     distanceMultiplier: 1
     attackCancelProgress: 0.7
     attackBlendTime: 0.15
+    perfectDodgeWindow: 0.2
   linkJump:
     activationDistance: 1.2
     endpointHeightTolerance: 1
@@ -84,6 +95,10 @@ MonoBehaviour:
     arcHeight: 1.6
     takeoffTime: 0.18
   airCombo:
+    airDashMaxDistance: 2.5
+    airDashMotionScale: 0.38
+    airDashFollowUpProgress: 0.7
+    airDashFollowUpGrace: 0.2
     fallGravity: 18
     maximumHoldTime: 10
     finisherFallSpeed: 12

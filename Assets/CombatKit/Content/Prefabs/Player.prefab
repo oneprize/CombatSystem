@@ -2609,6 +2609,7 @@ GameObject:
   - component: {fileID: 6330510402583372415}
   - component: {fileID: 3015635140655592146}
   - component: {fileID: 1787474374525431983}
+  - component: {fileID: 3029157085618882406}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2828,6 +2829,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerHang
   grabRange: 1.8
   maxGrabHeight: 3.6
+  gripSpacing: 0.42
+  gripHeightOffset: 0.035
+  gripBackOffset: 0.035
+  maximumSwingArc: 90
+  swingBuildRate: 16
+  swingDecayRate: 12
+  swingCycleDuration: 0.8
+  releaseJumpUpSpeed: 4
+  releaseJumpForwardSpeed: 3
 --- !u!114 &4823203719582608801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2841,8 +2851,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerWeaponStance
   weaponRoot: {fileID: 0}
-  holsterPosition: {x: -0.22, y: 0, z: -0.1}
-  holsterEuler: {x: 0, y: 0, z: 130}
+  holsterPosition: {x: -0.23544, y: 0.21759, z: -0.22986}
+  holsterEuler: {x: 14.5717, y: 13.97522, z: 173.2926}
   drawAttachTime: 0.25
   sheathAttachTime: 0.65
 --- !u!114 &6330510402583372415
@@ -2852,16 +2862,20 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9026544333553245887}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5637dd42aefcfc34ba05cf81d60c929f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerWallRun
   speed: 7
   wallCheckDistance: 1
-  maxDuration: 1.8
+  maxDuration: 2
   downwardSpeed: 0.7
   reattachDelay: 0.5
+  jumpAwaySpeed: 3.5
+  jumpUpSpeed: 4.5
+  startSpeedFraction: 0.15
+  startWallApproachSpeed: 1.5
 --- !u!114 &3015635140655592146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2890,6 +2904,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerHighFallRoll
   minimumFallHeight: 6
+--- !u!114 &3029157085618882406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 170bd5ce6d705bc4ead39ab23e38f2a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerLedgeHang
+  reach: 1
+  maxHeight: 3.4
+  shimmySpeed: 1.2
 --- !u!1 &9095833428554535245
 GameObject:
   m_ObjectHideFlags: 0

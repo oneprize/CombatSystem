@@ -50,6 +50,7 @@ namespace CombatSystem.Training
         public void ResetDummy()
         {
             machine.ChangeState(Idle);
+            GetComponent<EnemyCombat>().ClearParryGauge();
             transform.SetPositionAndRotation(SpawnPosition, spawnRotation);
             reaction.RestoreHealth();
             TotalHits = ComboHits = 0; TotalDamage = LastDamage = 0; LastHitTime = -100f;

@@ -79,7 +79,8 @@ namespace CombatSystem.Player
             if(animator.IsInTransition(0)){var next=animator.GetNextAnimatorStateInfo(0);if(next.IsName(name))state=next;}
             if(!state.IsName(name))return false;
             float t=c.SourceAttackProgress(state);bool active=false;
-            if(c.IsUsingSkill)active=Window(t,hitConfig.skillFirstHitWindow)||Window(t,hitConfig.skillHitWindow);
+            if(c.IsCounterAttacking)active=Window(t,player.Profile.parry.counterHitWindow);
+            else if(c.IsUsingSkill)active=Window(t,hitConfig.skillFirstHitWindow)||Window(t,hitConfig.skillHitWindow);
             else if(c.IsReleasingPower)active=Window(t,player.Profile.powerAttack.dashHitWindow)||Window(t,player.Profile.powerAttack.slamHitWindow);
             else if(c.IsUsingPiercingSkill)active=player.PiercingDash.IsDashing;
             else if(c.IsUsingSkillC)active=Window(t,hitConfig.skillCHitWindow);

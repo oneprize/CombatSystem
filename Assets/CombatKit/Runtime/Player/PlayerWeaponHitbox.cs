@@ -156,6 +156,7 @@ namespace CombatSystem.Player
                 if (next.IsName(name)) state = next;
             }
             if (!state.IsName(name)) return;
+            if (combat.IsParryAttempt || (combat.IsParryCounter && !combat.IsCounterAttacking)) return;
             if (combat.IsChargingPower || combat.IsSheathedReady) return;
             if (combat.IsReleasingPower) { UpdatePowerHits(state); return; }
             if (combat.IsUsingSkillC)
@@ -269,7 +270,7 @@ namespace CombatSystem.Player
                 }
                 return;
             }
-            Vector2 window = combat.IsSheathedCombo ? player.Profile.combat.sheathedHitWindow : combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
+            Vector2 window = combat.IsParryCounter ? player.Profile.parry.counterHitWindow : combat.IsSheathedCombo ? player.Profile.combat.sheathedHitWindow : combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
                 combat.IsUsingGroundCombo && config.groundHitWindows != null && index < config.groundHitWindows.Length
                     ? config.groundHitWindows[index] : config.hitWindow;
             // 지상 콤보는 프레임이 히트 구간을 건너뛰어도 놓치지 않도록 이전 진행도와 함께 구간 통과 여부로 판정한다.
@@ -297,7 +298,7 @@ namespace CombatSystem.Player
                 HitBoss(other, false);
                 if (enemy != null && Struck(hits, enemy))
                 {
-                    if (combat.IsSheathedCombo) enemy.ReceiveGroundComboHit(player.transform, combat.SheathedComboStep % 2, false); else if (combat.IsUsingEFollowUp) enemy.ReceiveGroundComboHit(player.transform, 1, false);
+                    if (combat.IsSheathedCombo) enemy.ReceiveGroundComboHit(player.transform, combat.SheathedComboStep % 2, false); else if (combat.IsUsingEFollowUp || combat.IsParryCounter) enemy.ReceiveGroundComboHit(player.transform, 1, false);
                     else if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(player.transform);
                     else if (combat.IsUsingGroundCombo) enemy.ReceiveGroundComboHit(player.transform, index, combat.IsGroundComboFinisher);
                     else enemy.ReceiveHit();

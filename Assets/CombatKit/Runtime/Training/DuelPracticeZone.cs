@@ -98,7 +98,7 @@ namespace CombatSystem.Training
             opponent.ChangeState(opponent.IdleState);
 
             opponent.transform.SetPositionAndRotation(spawn,facing);
-            health.RestoreHealth(); defeatTime=-1;
+            health.RestoreHealth(); opponent.GetComponent<EnemyCombat>().ClearParryGauge(); defeatTime=-1;
             Physics.SyncTransforms();
         }
         /// <summary>

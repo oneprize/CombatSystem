@@ -54,6 +54,7 @@ namespace CombatSystem.Player
         {
             if (Player.AirCombo.IsAirDashing) { Player.AirCombo.ApplyAirDashRootMotion(delta); return; }
             var combat = Player.Combat;
+            if (combat.IsParryAttempt || (combat.IsParryCounter && !combat.IsCounterAttacking)) return;
             if (combat.IsUsingPiercingSkill)
             {
                 Player.PiercingDash.TickAnimation();

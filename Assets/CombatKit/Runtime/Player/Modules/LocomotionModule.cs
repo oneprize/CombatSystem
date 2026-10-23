@@ -21,12 +21,17 @@ namespace CombatSystem.Player
         private float turningTimer;
         private int jumpCount; // 현재 공중에서 사용한 점프 횟수
         private Vector3 velocity;
+        private Vector3 wallJumpHorizontalVelocity;
+        private bool wallJumpAirControl;
+        private int wallJumpFrame = -1;
         private Vector3 lastMoveDirection; // 방향 반전 감지용 직전 이동 방향
         /// <summary>지상 콤보 도중 누른 회피 입력을 회피 캔슬 시점까지 보관해 두는 플래그.</summary>
         private bool dodgeBuffered;
         private float airborneTime;
         /// <summary>재생 중인 착지 애니메이터 상태. 착지 모션이 끝나거나 이동을 시작하면 null로 비운다.</summary>
         private string landingState;
+        // Wall exits must show the landing pose before held movement resumes.
+        private float minimumLandingProgress;
         /// <summary>공중 회피가 끝나 낙하 중임을 표시. 착지 시 이동 입력과 관계없이 JumpEnd 착지 모션을 재생하게 한다.</summary>
         private bool airDodgeLanding;
         /// <summary>달리기 턴 애니메이션에 실제로 진입했는지. 진입 전에는 다른 동작이 애니메이터를 가져갔다고 판정하지 않는다.</summary>
@@ -42,6 +47,9 @@ namespace CombatSystem.Player
 
         #region 프로퍼티
 
+        /// <summary>Normal movement momentum handed to an airborne traversal grab.</summary>
+        public Vector3 TraversalVelocity => Vector3.up * velocity.y + (wallJumpAirControl ? wallJumpHorizontalVelocity : IsMoving ? lastMoveDirection *
+            (IsRunning ? config.runSpeed : config.walkSpeed) * (IsTurning ? .3f : 1f) : Vector3.zero);
         public bool IsMoving { get; private set; }
         public bool IsRunning { get; private set; }
         public bool IsJumping { get; private set; }
@@ -109,7 +117,7 @@ namespace CombatSystem.Player
                 ResetJumpState();
                 return;
             }
-            if (Player.Controls.JumpPressed && linkJump.TryBegin())
+            if (JumpInputAvailable && !wallJumpAirControl && linkJump.TryBegin())
             {
                 velocity = Vector3.zero;
                 ResetJumpState();
@@ -137,18 +145,54 @@ namespace CombatSystem.Player
             animator.SetBool("isGrounded", true);
         }
 
-        /// <summary>공중 회피가 끝났을 때 일반 낙하(또는 이미 바닥이면 착지)로 이어지도록 점프 상태를 복원한다.</summary>
+        /// <summary>새 벽에 실제로 붙으면 이전 공중 이동을 끝내고 추가 점프 한 번을 다시 준비한다.</summary>
+        public void OnWallRunAttached()
+        {
+            ResumeAirMovement(0f, true, .6f, false);
+        }
+
+        /// <summary>벽에서 뛰어오르는 속도를 유지하면서 공중 조작과 추가 점프 한 번을 활성화한다.</summary>
+        public void BeginWallJump(Vector3 launchVelocity)
+        {
+            ResumeAirMovement(launchVelocity.y, true, .6f);
+            wallJumpAirControl = true;
+            wallJumpHorizontalVelocity = Vector3.ProjectOnPlane(launchVelocity, Vector3.up);
+            wallJumpFrame = Time.frameCount;
+        }
+
+        /// <summary>벽 이탈 속도를 이어받고 JumpLoop에서 JumpEnd까지 재생한 뒤 이동으로 복귀한다.</summary>
+        public void ResumeWallExit(float verticalSpeed)
+        {
+            ResumeAirMovement(verticalSpeed, false, .6f);
+        }
+
         public void ResumeAirDodge()
         {
+            ResumeAirMovement(-2f, false, 0f);
+        }
+
+        private void ResumeAirMovement(float verticalSpeed, bool forceAirborne, float landingProgress, bool playJumpAnimation = true)
+        {
+            IsRunTurning = false;
+            IsTurning = false;
+            turningTimer = 0f;
+            landingState = null;
+            minimumLandingProgress = landingProgress;
+            wallJumpAirControl = false;
+            wallJumpHorizontalVelocity = Vector3.zero;
             airDodgeLanding = true;
-            velocity = Vector3.down * 2f;
-            IsGrounded = character.isGrounded;
+            airborneTime = 0f;
+            IsGrounded = !forceAirborne && character.isGrounded;
             IsJumping = !IsGrounded;
             jumpCount = IsGrounded ? 0 : 1;
+            velocity = Vector3.up * (IsGrounded ? -2f : verticalSpeed);
             animator.SetBool("isGrounded", IsGrounded);
             animator.SetBool("isJumping", IsJumping);
+            animator.SetBool("isTurning", false);
+            animator.SetInteger("jumpCount", jumpCount);
             animator.SetBool("isMoving", false);
             animator.SetBool("isRunning", false);
+            if (!playJumpAnimation) return;
             if (IsGrounded) Land();
             else animator.CrossFadeInFixedTime(JumpLoopState, .08f, 0, 0f);
         }
@@ -173,6 +217,8 @@ namespace CombatSystem.Player
             bool isCombatLocked = Player.IsAttacking || Player.IsGuarding || Player.IsHitReacting;
             if (isCombatLocked)
             {
+                wallJumpAirControl = false;
+                wallJumpHorizontalVelocity = Vector3.zero;
                 IsRunTurning = false;
                 animator.SetBool("isMoving", false);
                 animator.SetBool("isRunning", false);
@@ -202,7 +248,7 @@ namespace CombatSystem.Player
 
             if (isRunning && TryBeginRunTurn(currentMoveDirection)) return;
 
-            if (isMoving && lastMoveDirection.magnitude > 0.1f)
+            if (!wallJumpAirControl && isMoving && lastMoveDirection.magnitude > 0.1f)
             {
                 float dot = Vector3.Dot(lastMoveDirection.normalized, currentMoveDirection.normalized);
                 if (dot < -0.8f)
@@ -227,9 +273,18 @@ namespace CombatSystem.Player
 
                 float speed = isRunning ? config.runSpeed : config.walkSpeed;
                 if (IsTurning) speed *= 0.3f;
-                character.Move(currentMoveDirection * speed * dt);
+                if (!wallJumpAirControl) character.Move(currentMoveDirection * speed * dt);
 
                 lastMoveDirection = currentMoveDirection;
+            }
+
+            if (wallJumpAirControl)
+            {
+                // Steer the wall impulse toward camera-relative input instead of locking its direction.
+                Vector3 targetVelocity = isMoving ? currentMoveDirection * (isRunning ? config.runSpeed : config.walkSpeed) : Vector3.zero;
+                float acceleration = isMoving ? 24f : 8f;
+                wallJumpHorizontalVelocity = Vector3.MoveTowards(wallJumpHorizontalVelocity, targetVelocity, acceleration * dt);
+                character.Move(wallJumpHorizontalVelocity * dt);
             }
 
             animator.SetBool("isMoving", isMoving);
@@ -374,12 +429,13 @@ namespace CombatSystem.Player
                 }
             }
 
-            if (Player.Controls.JumpPressed && jumpCount < MaxJumps && CanPlayJumpAnimation)
+            if (JumpInputAvailable && jumpCount < MaxJumps && CanPlayJumpAnimation)
             {
                 velocity.y = config.jumpForce;
                 IsJumping = true;
                 jumpCount++;
                 landingState = null;
+                if (!wallJumpAirControl) minimumLandingProgress = 0f;
                 animator.CrossFadeInFixedTime(jumpCount == 1 ? JumpStartState : DoubleJumpStartState, .08f, 0, 0f);
             }
 
@@ -390,6 +446,9 @@ namespace CombatSystem.Player
             velocity.y += config.gravity * dt;
             character.Move(velocity * dt);
         }
+
+        // The Space press that leaves the wall must not also consume the extra jump in the same frame.
+        private bool JumpInputAvailable => Player.Controls.JumpPressed && Time.frameCount != wallJumpFrame;
 
         private const string JumpStartState = "Base Layer.JumpStart";
         private const string JumpLoopState = "Base Layer.JumpLoop";
@@ -419,6 +478,8 @@ namespace CombatSystem.Player
         /// </summary>
         private void Land()
         {
+            wallJumpAirControl = false;
+            wallJumpHorizontalVelocity = Vector3.zero;
             bool fromDoubleJump = jumpCount >= MaxJumps;
             IsJumping = false;
             if (!CanPlayJumpAnimation) return;
@@ -443,25 +504,29 @@ namespace CombatSystem.Player
         private void UpdateLanding()
         {
             if (landingState == null) return;
-            if (!CanPlayJumpAnimation || IsJumping) { landingState = null; return; }
+            if (!CanPlayJumpAnimation || IsJumping) { landingState = null; minimumLandingProgress = 0f; return; }
             var state = animator.GetCurrentAnimatorStateInfo(0);
             if (animator.IsInTransition(0))
             {
                 if (animator.GetNextAnimatorStateInfo(0).IsName(landingState)) return;
                 state = animator.GetNextAnimatorStateInfo(0);
             }
-            if (!state.IsName(landingState)) { landingState = null; return; }
-            if (IsMoving)
+            if (!state.IsName(landingState)) { landingState = null; minimumLandingProgress = 0f; return; }
+            if (IsMoving && state.normalizedTime >= minimumLandingProgress)
                 animator.CrossFadeInFixedTime(IsRunning ? "Base Layer.Run" : "Base Layer.Walk", .15f, 0, 0f);
             else if (state.normalizedTime >= 1f)
                 animator.CrossFadeInFixedTime("Base Layer.Idle", .15f, 0, 0f);
             else return;
             landingState = null;
+            minimumLandingProgress = 0f;
         }
 
         /// <summary>다른 동작(공중 콤보, 회피, 링크 점프, UpperAttack 등)이 이동을 가져갔을 때 점프·착지 상태를 모두 초기화한다.</summary>
         private void ResetJumpState()
         {
+            wallJumpAirControl = false;
+            wallJumpHorizontalVelocity = Vector3.zero;
+            minimumLandingProgress = 0f;
             airDodgeLanding = false;
             jumpCount = 0;
             IsJumping = false;

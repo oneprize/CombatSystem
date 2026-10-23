@@ -52,7 +52,7 @@ namespace CombatSystem.Player
             bool groundedReaction = currentState.IsName("HighFallRoll") || nextState.IsName("HighFallRoll") || currentState.IsName("BossKnockDown") || currentState.IsName("BossStandUpFront") || currentState.IsName("BossStandUpBack") ||
                 nextState.IsName("BossKnockDown") || nextState.IsName("BossStandUpFront") || nextState.IsName("BossStandUpBack");
             // 낙하와 착지 구간 전체에서도 보이는 몸 높이가 어긋나지 않도록 유지한다.
-            if (currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo") || groundedReaction || Player.AirCombo.Active ||
+            if (currentState.IsTag("GroundedParry") || nextState.IsTag("GroundedParry") || currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo") || groundedReaction || Player.AirCombo.Active ||
                 currentState.IsTag("AirCombo") || nextState.IsTag("AirCombo") ||
                 currentState.IsName("UpperAttack") || nextState.IsName("UpperAttack"))
             {

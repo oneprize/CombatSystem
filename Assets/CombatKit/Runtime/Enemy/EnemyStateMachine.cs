@@ -28,6 +28,8 @@ namespace CombatSystem.Combat
         public static string StateName(IEnemyState state)
         {
             if (state == null) return "-";
+            var groggy = state as EnemyGroggyState;
+            if (groggy != null) return groggy.IsDeflecting ? "PARRY DEFLECT" : groggy.IsLarge ? "BIG GROGGY" : "GROGGY";
             return state is EnemyDamageReaction ? "HIT" :
                 state.GetType().Name.Replace("Enemy", "").Replace("State", "").ToUpperInvariant();
         }
@@ -58,6 +60,7 @@ namespace CombatSystem.Combat
         public EnemyObserveState ObserveState { get; private set; }
         public EnemyDecisionState DecisionState { get; private set; }
         public EnemyRetreatState RetreatState { get; private set; }
+        public EnemyGroggyState GroggyState { get; private set; }
 
         #endregion
 
@@ -76,6 +79,7 @@ namespace CombatSystem.Combat
             ObserveState = new EnemyObserveState(this, combat);
             DecisionState = new EnemyDecisionState(this, combat);
             RetreatState = new EnemyRetreatState(this, combat);
+            GroggyState = new EnemyGroggyState(this, combat);
         }
 
         /// <summary>다른 컴포넌트 초기화가 끝난 뒤 대기 상태에서 AI를 시작한다.</summary>
@@ -106,7 +110,7 @@ namespace CombatSystem.Combat
         public void ChangeState(IEnemyState next)
         {
             var dummy = GetComponent<CombatSystem.Training.PracticeDummy>();
-            if (dummy != null && !(next is EnemyDamageReaction)) next = dummy.Idle;
+            if (dummy != null && !(next is EnemyDamageReaction) && !(next is EnemyGroggyState)) next = dummy.Idle;
             if (next == null || next == CurrentState)
             {
                 return;

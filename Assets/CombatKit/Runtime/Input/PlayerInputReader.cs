@@ -19,7 +19,7 @@ namespace CombatSystem.Player
 
         private InputActionMap map;
         private InputAction move, run, jump, dodge, attack, guard;
-        private InputAction skillG, skillA, skillB, upperAttack, skillCModifier;
+        private InputAction skillG, skillA, parry, upperAttack, skillCModifier;
         private InputAction lockOn, lockOnNext;
 
         #endregion
@@ -35,7 +35,7 @@ namespace CombatSystem.Player
         public bool GuardHeld => Held(guard);
         public bool SkillGPressed => Pressed(skillG);
         public bool SkillAPressed => Pressed(skillA);
-        public bool SkillBPressed => Pressed(skillB);
+        public bool ParryPressed => Pressed(parry);
         public bool UpperAttackPressed => Pressed(upperAttack);
         public bool SkillCModifierHeld => Held(skillCModifier);
         public bool LockOnPressed => Pressed(lockOn);
@@ -66,7 +66,7 @@ namespace CombatSystem.Player
             guard = map.FindAction("Guard", true);
             skillG = map.FindAction("SkillG", true);
             skillA = map.FindAction("SkillA", true);
-            skillB = map.FindAction("SkillB", true);
+            parry = map.FindAction("Parry", true);
             upperAttack = map.FindAction("UpperAttack", true);
             skillCModifier = map.FindAction("SkillCModifier", true);
             lockOn = map.FindAction("LockOn", true);

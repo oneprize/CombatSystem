@@ -37,6 +37,7 @@ namespace CombatSystem.Player
 
         public PlayerContext Context { get; private set; }
         public PlayerHang Hang { get; private set; }
+        public PlayerLedgeHang LedgeHang { get; private set; }
         public PlayerWallRun WallRun { get; private set; }
         public PlayerSlopeSlide SlopeSlide { get; private set; }
         public PlayerHighFallRoll HighFallRoll { get; private set; }
@@ -106,6 +107,7 @@ namespace CombatSystem.Player
             {
                 if (IsDead) return PlayerState.Dead;
                 if (IsHitReacting) return PlayerState.HitReact;
+                if (LedgeHang != null && LedgeHang.IsHanging) return PlayerState.Hanging;
                 if (Hang != null && Hang.IsHanging) return PlayerState.Hanging;
                 if (WallRun != null && WallRun.IsWallRunning) return PlayerState.WallRun;
                 if (SlopeSlide != null && SlopeSlide.IsSliding) return PlayerState.SlopeSlide;
@@ -132,7 +134,7 @@ namespace CombatSystem.Player
         /// </summary>
         public bool CanStartAction(PlayerAction action)
         {
-            if ((HighFallRoll != null && HighFallRoll.IsRolling) || (WallRun != null && WallRun.IsWallRunning) || (WeaponStance != null && WeaponStance.IsTransitioning) || (Hang != null && Hang.IsHanging) || IsDead || IsHitReacting || IsGuarding || IsDodging || IsLinkJumping) return false;
+            if ((LedgeHang != null && LedgeHang.IsHanging) || (HighFallRoll != null && HighFallRoll.IsRolling) || (WallRun != null && WallRun.IsWallRunning) || (WeaponStance != null && WeaponStance.IsTransitioning) || (Hang != null && Hang.IsHanging) || IsDead || IsHitReacting || IsGuarding || IsDodging || IsLinkJumping) return false;
             switch (action)
             {
                 case PlayerAction.Attack: return true;
@@ -172,6 +174,7 @@ namespace CombatSystem.Player
             else Debug.LogWarning("PlayerCharacter: no IPlayerInput component (e.g. PlayerInputReader); the character will ignore input.", this);
             Context = new PlayerContext(this);
             Hang = GetComponent<PlayerHang>();
+            LedgeHang = GetComponent<PlayerLedgeHang>();
             WallRun = GetComponent<PlayerWallRun>();
             SlopeSlide = GetComponent<PlayerSlopeSlide>();
             HighFallRoll = GetComponent<PlayerHighFallRoll>();
@@ -232,6 +235,7 @@ namespace CombatSystem.Player
             Health.Tick();
             if (HighFallRoll != null && HighFallRoll.Tick(dt)) return;
             if (WeaponStance != null && WeaponStance.Tick(dt)) return;
+            if (LedgeHang != null && LedgeHang.Tick(dt)) return;
             if (Hang != null && Hang.Tick(dt)) return;
             if (WallRun != null && WallRun.Tick(dt)) return;
             if (SlopeSlide != null && SlopeSlide.Tick(dt)) return;
@@ -252,6 +256,7 @@ namespace CombatSystem.Player
         private void OnAnimatorMove()
         {
             if (IsDead) return;
+            if (LedgeHang != null && LedgeHang.IsHanging) return;
             if (Hang != null && Hang.IsHanging) return;
             if (WeaponStance != null && WeaponStance.IsTransitioning) return;
             if (WallRun != null && WallRun.IsWallRunning) return;
@@ -270,6 +275,7 @@ namespace CombatSystem.Player
         /// </summary>
         public void EnterDeath()
         {
+            if (LedgeHang != null) LedgeHang.Release(false);
             if (Hang != null) Hang.Release(false);
             if (WallRun != null) WallRun.End(false);
             if (SlopeSlide != null) SlopeSlide.End(false);
@@ -319,6 +325,8 @@ namespace CombatSystem.Player
         private void OnAnimatorIK(int layerIndex)
         {
             AttackHeightOffset.OnAnimatorIK(layerIndex);
+            if(Hang!=null)Hang.ApplyHandIK(layerIndex);
+            if(LedgeHang!=null)LedgeHang.ApplyIK(layerIndex);
         }
 
         #endregion

@@ -33,6 +33,29 @@ namespace CombatSystem.Combat
 
         #region 설정값 패스스루
 
+        public int ParryCount { get; private set; }
+        public int ParriesForLargeGroggy => Mathf.Max(1, config.parriesForLargeGroggy);
+        public float GroggyNormalized => Mathf.Clamp01((float)ParryCount / ParriesForLargeGroggy);
+        public bool IsGroggy => stateMachine != null && stateMachine.CurrentState == stateMachine.GroggyState;
+        public bool IsLargeGroggy => IsGroggy && stateMachine.GroggyState.IsLarge;
+        public float GroggyRemaining => IsGroggy ? stateMachine.GroggyState.Remaining : 0f;
+        public float ShortGroggyDuration => config.shortGroggyDuration;
+        public float LargeGroggyDuration => config.largeGroggyDuration;
+        public float ParryDeflectEndProgress => config.parryDeflectEndProgress;
+        public void ClearParryGauge() { ParryCount = 0; }
+        public void RegisterParry(Transform attacker)
+        {
+            if (IsGroggy) return;
+            ParryCount = Mathf.Min(ParriesForLargeGroggy, ParryCount + 1);
+            if (attacker != null)
+            {
+                Vector3 direction = attacker.position - transform.position; direction.y = 0;
+                if (direction.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(direction);
+            }
+            stateMachine.GroggyState.Configure(ParryCount >= ParriesForLargeGroggy);
+            stateMachine.ChangeState(stateMachine.GroggyState);
+        }
+
         public float IdleDuration => config.idleDuration;
 
         /// <summary>
