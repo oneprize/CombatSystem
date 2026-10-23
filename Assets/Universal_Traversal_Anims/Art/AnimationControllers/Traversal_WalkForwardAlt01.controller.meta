@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 173fe31b5b37ccf40a2574c08689f4a4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Traversal_WalkForwardAlt01.controller
+  uploadId: 952958

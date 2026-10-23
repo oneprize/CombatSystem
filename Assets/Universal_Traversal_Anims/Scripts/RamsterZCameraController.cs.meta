@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 952d71334e66c3a408810d87b77ffc16
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Scripts/RamsterZCameraController.cs
+  uploadId: 952958

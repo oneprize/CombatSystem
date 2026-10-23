@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ce47fb5172936b64aa59d5cb41efd86c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Traversal_Paired_HelpPersonPullUpToLedge_Actor2_RootForward.controller
+  uploadId: 952958

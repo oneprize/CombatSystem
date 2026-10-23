@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 01948646714b41b45a1b563b225480fe
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Traversal_RunForwardJumpHurdle106cm.controller
+  uploadId: 952958

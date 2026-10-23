@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 9d7fdab81ccbe9c4ca7a168b21258c6c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Traversal_AimSpace_ForwardDown.controller
+  uploadId: 952958

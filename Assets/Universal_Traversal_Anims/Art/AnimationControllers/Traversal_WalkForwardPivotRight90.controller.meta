@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 316d06b1bfeecc347bc24432e4de592b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Traversal_WalkForwardPivotRight90.controller
+  uploadId: 952958

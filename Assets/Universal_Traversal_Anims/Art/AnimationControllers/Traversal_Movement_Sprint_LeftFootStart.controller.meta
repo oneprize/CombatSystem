@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bd4e3d195fb2fb7488c9f6cb7bc54901
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Traversal_Movement_Sprint_LeftFootStart.controller
+  uploadId: 952958

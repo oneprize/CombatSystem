@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 9c2d71fffe441734ebded1c975d916c0
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 217762
+  packageName: Ultimate Traversal Anims
+  packageVersion: 2.0
+  assetPath: Assets/Universal_Traversal_Anims/Art/AnimationControllers/Prop_DoorOpenWalkThrough.controller
+  uploadId: 952958
