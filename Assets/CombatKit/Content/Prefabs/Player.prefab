@@ -2827,6 +2827,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 496ce36179b306e48b5cb865c658ac88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerHang
+  interactionDistance: 2
+  airGrabBuffer: 0.55
   grabRange: 1.8
   maxGrabHeight: 3.6
   gripSpacing: 0.42

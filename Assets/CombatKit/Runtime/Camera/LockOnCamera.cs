@@ -42,6 +42,17 @@ namespace CombatSystem.CameraControl
         private float powerCameraWeight;
         private CameraDamping freeDamping, lockDamping;
 
+        [Header("Skill Camera")]
+        [Tooltip("Extra camera distance during the R skill wind-up (0.4 = 40%).")]
+        [Min(0f)] [SerializeField] private float rSkillZoomOut = .4f;
+        [Tooltip("Extra camera distance between the Q skill's first and second strikes.")]
+        [Min(0f)] [SerializeField] private float qSkillZoomOut = .4f;
+        [Min(.01f)] [SerializeField] private float skillZoomOutDuration = .14f;
+        [Min(.01f)] [SerializeField] private float skillZoomReturnDuration = .16f;
+        private Animator playerAnimator;
+        private PlayerWeaponHitbox playerHitbox;
+        private float skillZoom, skillZoomFrom, skillZoomTarget, skillZoomElapsed, skillZoomDuration;
+
         #endregion
 
         #region 파워 공격 카메라 댐핑
@@ -57,6 +68,9 @@ namespace CombatSystem.CameraControl
             private readonly CinemachineRotationComposer aim;
             private Vector3 position;
             private Vector2 rotation;
+            private bool zoomCaptured;
+            private float orbitRadius, thirdPersonDistance;
+            private Cinemachine3OrbitRig.Settings originalOrbits;
 
             /// <summary>카메라에 붙은 추적(OrbitalFollow 또는 ThirdPersonFollow)/조준(RotationComposer) 컴포넌트를 찾아 둔다.</summary>
             public CameraDamping(CinemachineCamera camera)
@@ -85,6 +99,30 @@ namespace CombatSystem.CameraControl
                 if (thirdPerson != null) thirdPerson.Damping = p;
                 if (aim != null) aim.Damping = r;
             }
+
+            /// <summary>기존 거리에서만 확대하고 종료 시 정확히 복구한다. 패링이 사용하는 FOV는 건드리지 않는다.</summary>
+            public void ApplySkillZoom(float extraDistance)
+            {
+                if (!zoomCaptured)
+                {
+                    if (extraDistance <= 0f) return;
+                    if (orbit != null) { orbitRadius = orbit.Radius; originalOrbits = orbit.Orbits; }
+                    if (thirdPerson != null) thirdPersonDistance = thirdPerson.CameraDistance;
+                    zoomCaptured = true;
+                }
+                float multiplier = 1f + Mathf.Max(0f, extraDistance);
+                if (orbit != null)
+                {
+                    orbit.Radius = orbitRadius * multiplier;
+                    var rings = originalOrbits;
+                    rings.Top.Radius *= multiplier;
+                    rings.Center.Radius *= multiplier;
+                    rings.Bottom.Radius *= multiplier;
+                    orbit.Orbits = rings;
+                }
+                if (thirdPerson != null) thirdPerson.CameraDistance = thirdPersonDistance * multiplier;
+                if (extraDistance <= 0f) zoomCaptured = false;
+            }
         }
 
         /// <summary>
@@ -108,13 +146,64 @@ namespace CombatSystem.CameraControl
             lockDamping.Apply(powerCameraWeight, powerPositionDamping, powerAimDamping);
         }
 
-        /// <summary>파워 공격 연출 중에 꺼지면 카메라 댐핑을 원래 값으로 즉시 되돌린다.</summary>
+        /// <summary>연출 중에 꺼져도 카메라 거리와 댐핑이 남지 않도록 즉시 복구한다.</summary>
         private void OnDisable()
         {
+            freeDamping?.ApplySkillZoom(0f);
+            lockDamping?.ApplySkillZoom(0f);
+            skillZoom = skillZoomFrom = skillZoomTarget = skillZoomElapsed = 0f;
             if (powerCameraWeight <= 0f) return;
             freeDamping?.Apply(0f, powerPositionDamping, powerAimDamping);
             lockDamping?.Apply(0f, powerPositionDamping, powerAimDamping);
             powerCameraWeight = 0f;
+        }
+
+        #endregion
+
+        #region 스킬 카메라 거리
+
+        /// <summary>입력 시각 대신 실제 스킬 애니메이션과 돌진/타격 판정 시점을 따른다.</summary>
+        private float RequestedSkillZoom()
+        {
+            if (player == null || !player.isActiveAndEnabled || player.IsDead || player.IsHitReacting ||
+                player.Combat == null || playerAnimator == null || !playerAnimator.isActiveAndEnabled)
+                return 0f;
+            var combat = player.Combat;
+            if (!combat.IsUsingPiercingSkill && !combat.IsUsingSkill) return 0f;
+            string expected = "Base Layer." + combat.CurrentAttackStateName;
+            var state = playerAnimator.GetCurrentAnimatorStateInfo(0);
+            if (playerAnimator.IsInTransition(0))
+            {
+                var next = playerAnimator.GetNextAnimatorStateInfo(0);
+                if (next.IsName(expected)) state = next;
+            }
+            if (!state.IsName(expected)) return 0f;
+            float progress = state.normalizedTime;
+            if (combat.IsUsingPiercingSkill)
+                return progress < player.Profile.piercingDash.startProgress && !player.PiercingDash.IsDashing
+                    ? rSkillZoomOut : 0f;
+            var hits = playerHitbox != null ? playerHitbox.Config : null;
+            return hits != null && progress >= hits.skillFirstHitWindow.x && progress < hits.skillHitWindow.x
+                ? qSkillZoomOut : 0f;
+        }
+
+        /// <summary>자유 시점과 락온 시점에 같은 거리 배율을 적용하고, 취소된 스킬도 부드럽게 복구한다.</summary>
+        private void UpdateSkillCamera(float dt)
+        {
+            float requested = Mathf.Max(0f, RequestedSkillZoom());
+            if (!Mathf.Approximately(requested, skillZoomTarget))
+            {
+                skillZoomFrom = skillZoom;
+                skillZoomTarget = requested;
+                skillZoomElapsed = 0f;
+                skillZoomDuration = requested > skillZoom ? skillZoomOutDuration : skillZoomReturnDuration;
+            }
+            if (skillZoom <= 0f && skillZoomTarget <= 0f) return;
+            skillZoomElapsed += Mathf.Max(0f, dt);
+            float t = Mathf.Clamp01(skillZoomElapsed / Mathf.Max(.01f, skillZoomDuration));
+            skillZoom = Mathf.Lerp(skillZoomFrom, skillZoomTarget, Mathf.SmoothStep(0f, 1f, t));
+            freeDamping.ApplySkillZoom(skillZoom);
+            lockDamping.ApplySkillZoom(skillZoom);
         }
 
         #endregion
@@ -138,8 +227,14 @@ namespace CombatSystem.CameraControl
         /// </summary>
         private void LateUpdate()
         {
-            if (player == null) player = FindPlayer();
+            if (player == null)
+            {
+                player = FindPlayer();
+                playerAnimator = player != null ? player.GetComponent<Animator>() : null;
+                playerHitbox = player != null ? player.GetComponentInChildren<PlayerWeaponHitbox>(true) : null;
+            }
             UpdatePowerCamera();
+            UpdateSkillCamera(Time.deltaTime);
             if (freeLookCamera == null || lockOnCamera == null || pivot == null || targetGroup == null || enemyAimPoint == null) return;
             var target = player != null ? player.LockOn.Target : null;
             Transform playerPoint = freeLookCamera.Target.TrackingTarget;

@@ -14,6 +14,8 @@ namespace CombatSystem.Player
         #region 필드
 
         [SerializeField] private PlayerWeaponHitboxConfig config;
+        /// <summary>카메라 등 연출이 실제 타격 판정과 같은 시점을 사용하도록 제공한다.</summary>
+        public PlayerWeaponHitboxConfig Config => config;
         private Transform kickFoot;
         private Vector3 previousFootPosition;
         private float previousGroundProgress;

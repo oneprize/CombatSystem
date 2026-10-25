@@ -407,7 +407,7 @@ GameObject:
   - component: {fileID: 2948551140454842487}
   - component: {fileID: 5821482892173681202}
   - component: {fileID: 3559641631024825450}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: PracticeDummy
   m_TagString: Untagged
   m_Icon: {fileID: 0}

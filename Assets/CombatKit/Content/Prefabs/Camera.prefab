@@ -220,6 +220,15 @@ MonoBehaviour:
   enemyAimPoint: {fileID: 4812401961486298640}
   enemyAimHeight: 1.2
   turnSharpness: 8
+  powerPositionDamping: {x: 1.5, y: 1.8, z: 1.5}
+  powerAimDamping: {x: 0.8, y: 0.8}
+  powerBlendIn: 0.15
+  powerBlendOut: 0.45
+  powerTurnSharpness: 2.5
+  rSkillZoomOut: 0.4
+  qSkillZoomOut: 0.4
+  skillZoomOutDuration: 0.14
+  skillZoomReturnDuration: 0.16
 --- !u!1 &6771529826106849579
 GameObject:
   m_ObjectHideFlags: 0

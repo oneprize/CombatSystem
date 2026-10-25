@@ -70,7 +70,7 @@ namespace CombatSystem.Player
             if (distance > .01f)
             {
                 foreach (var hit in Physics.SphereCastAll(focus, .15f, ray / distance, distance,
-                    ~0, QueryTriggerInteraction.Ignore))
+                    ~LayerMask.GetMask("Enemy", "HangRail"), QueryTriggerInteraction.Ignore))
                 {
                     if (hit.transform.IsChildOf(transform) ||
                         hit.collider.GetComponentInParent<CombatSystem.Combat.EnemyDamageReaction>() != null ||

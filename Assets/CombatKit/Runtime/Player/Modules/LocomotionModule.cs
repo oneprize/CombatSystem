@@ -30,6 +30,8 @@ namespace CombatSystem.Player
         private float airborneTime;
         /// <summary>재생 중인 착지 애니메이터 상태. 착지 모션이 끝나거나 이동을 시작하면 null로 비운다.</summary>
         private string landingState;
+        // 철봉 등에서 같은 프레임에 이동을 넘겨도 CrossFade가 평가되기 전에는 착지 추적을 지우지 않는다.
+        private int landingRequestedFrame = -1;
         // Wall exits must show the landing pose before held movement resumes.
         private float minimumLandingProgress;
         /// <summary>공중 회피가 끝나 낙하 중임을 표시. 착지 시 이동 입력과 관계없이 JumpEnd 착지 모션을 재생하게 한다.</summary>
@@ -57,6 +59,8 @@ namespace CombatSystem.Player
         public bool IsTurning { get; private set; }
         /// <summary>달리던 중 반대 방향 입력으로 180° 달리기 턴을 재생 중인지. 이 동안 이동과 회전은 클립의 루트 모션이 담당한다.</summary>
         public bool IsRunTurning { get; private set; }
+        /// <summary>일반 점프·더블 점프·벽 점프가 실제로 발동한 마지막 시각. 벽 달리기는 이 직후 잠시 새 벽에 붙지 않는다.</summary>
+        public float LastJumpTime { get; private set; } = float.NegativeInfinity;
 
         #endregion
 
@@ -145,25 +149,43 @@ namespace CombatSystem.Player
             animator.SetBool("isGrounded", true);
         }
 
-        /// <summary>새 벽에 실제로 붙으면 이전 공중 이동을 끝내고 추가 점프 한 번을 다시 준비한다.</summary>
+        /// <summary>
+        /// 새 벽에 붙으면 이전 공중 이동을 끝낸다. 점프 횟수는 그대로 두고, 충분히 달린 뒤
+        /// <see cref="RefreshAirJump"/>로만 추가 점프를 되돌려 준다(모서리에서 스치듯 붙어 점프가 무한히 생기지 않게).
+        /// </summary>
         public void OnWallRunAttached()
         {
-            ResumeAirMovement(0f, true, .6f, false);
+            ResumeAirMovement(0f, true, .6f, false, preserveJumpCount: true);
         }
 
-        /// <summary>벽에서 뛰어오르는 속도를 유지하면서 공중 조작과 추가 점프 한 번을 활성화한다.</summary>
+        /// <summary>벽 달리기가 확정되면 공중 점프 한 번을 다시 쓸 수 있게 한다.</summary>
+        public void RefreshAirJump()
+        {
+            if (IsGrounded) return;
+            jumpCount = 1;
+            animator.SetInteger("jumpCount", jumpCount);
+        }
+
+        /// <summary>벽에서 뛰어오르는 속도를 유지하면서 공중 조작을 넘긴다. 남은 점프 횟수는 벽 달리기 중의 값을 이어받는다.</summary>
         public void BeginWallJump(Vector3 launchVelocity)
         {
-            ResumeAirMovement(launchVelocity.y, true, .6f);
+            ResumeAirMovement(launchVelocity.y, true, .6f, preserveJumpCount: true);
             wallJumpAirControl = true;
             wallJumpHorizontalVelocity = Vector3.ProjectOnPlane(launchVelocity, Vector3.up);
             wallJumpFrame = Time.frameCount;
+            LastJumpTime = Time.time;
         }
 
-        /// <summary>벽 이탈 속도를 이어받고 JumpLoop에서 JumpEnd까지 재생한 뒤 이동으로 복귀한다.</summary>
+        /// <summary>벽 이탈 속도를 이어받고 JumpLoop에서 JumpEnd까지 재생한 뒤 이동으로 복귀한다. 점프 횟수는 보존한다.</summary>
         public void ResumeWallExit(float verticalSpeed)
         {
-            ResumeAirMovement(verticalSpeed, false, .6f);
+            ResumeAirMovement(verticalSpeed, false, .6f, preserveJumpCount: true);
+        }
+
+        /// <summary>다른 동작에 양보하며 벽 달리기를 즉시 끝낼 때 공중 이동을 이어받는다. 점프 횟수는 보존한다.</summary>
+        public void ResumeWallRelease()
+        {
+            ResumeAirMovement(-2f, false, 0f, preserveJumpCount: true);
         }
 
         public void ResumeAirDodge()
@@ -171,7 +193,8 @@ namespace CombatSystem.Player
             ResumeAirMovement(-2f, false, 0f);
         }
 
-        private void ResumeAirMovement(float verticalSpeed, bool forceAirborne, float landingProgress, bool playJumpAnimation = true)
+        private void ResumeAirMovement(float verticalSpeed, bool forceAirborne, float landingProgress, bool playJumpAnimation = true,
+            bool preserveJumpCount = false)
         {
             IsRunTurning = false;
             IsTurning = false;
@@ -184,7 +207,8 @@ namespace CombatSystem.Player
             airborneTime = 0f;
             IsGrounded = !forceAirborne && character.isGrounded;
             IsJumping = !IsGrounded;
-            jumpCount = IsGrounded ? 0 : 1;
+            // 공중이면 최소 첫 점프를 쓴 것으로 본다. 보존 모드에서는 이미 쓴 더블 점프를 되살리지 않는다.
+            jumpCount = IsGrounded ? 0 : preserveJumpCount ? Mathf.Max(jumpCount, 1) : 1;
             velocity = Vector3.up * (IsGrounded ? -2f : verticalSpeed);
             animator.SetBool("isGrounded", IsGrounded);
             animator.SetBool("isJumping", IsJumping);
@@ -434,6 +458,7 @@ namespace CombatSystem.Player
                 velocity.y = config.jumpForce;
                 IsJumping = true;
                 jumpCount++;
+                LastJumpTime = Time.time;
                 landingState = null;
                 if (!wallJumpAirControl) minimumLandingProgress = 0f;
                 animator.CrossFadeInFixedTime(jumpCount == 1 ? JumpStartState : DoubleJumpStartState, .08f, 0, 0f);
@@ -487,6 +512,7 @@ namespace CombatSystem.Player
             {
                 airDodgeLanding = false;
                 landingState = JumpEndState;
+                landingRequestedFrame = Time.frameCount;
                 animator.CrossFadeInFixedTime(landingState, .08f, 0, 0f);
                 return;
             }
@@ -497,6 +523,7 @@ namespace CombatSystem.Player
                 return;
             }
             landingState = fromDoubleJump ? DoubleJumpEndState : JumpEndState;
+            landingRequestedFrame = Time.frameCount;
             animator.CrossFadeInFixedTime(landingState, .08f, 0, 0f);
         }
 
@@ -505,6 +532,7 @@ namespace CombatSystem.Player
         {
             if (landingState == null) return;
             if (!CanPlayJumpAnimation || IsJumping) { landingState = null; minimumLandingProgress = 0f; return; }
+            if (Time.frameCount == landingRequestedFrame) return;
             var state = animator.GetCurrentAnimatorStateInfo(0);
             if (animator.IsInTransition(0))
             {

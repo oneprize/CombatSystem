@@ -1983,7 +1983,7 @@ GameObject:
   - component: {fileID: 1244849515607024194}
   - component: {fileID: 8208699492151668059}
   - component: {fileID: 3639799117938435537}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Boss
   m_TagString: Untagged
   m_Icon: {fileID: 0}

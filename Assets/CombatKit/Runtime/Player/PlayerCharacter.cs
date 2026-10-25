@@ -324,7 +324,10 @@ namespace CombatSystem.Player
         /// <summary>공격 높이 보정 모듈이 IK로 상체/무기 높이를 맞출 수 있도록 IK 패스를 전달한다.</summary>
         private void OnAnimatorIK(int layerIndex)
         {
+            Vector3 bodyBefore=Context.Animator.isHuman?Context.Animator.bodyPosition:Vector3.zero;
             AttackHeightOffset.OnAnimatorIK(layerIndex);
+            if(SlopeSlide!=null&&Context.Animator.isHuman)
+                SlopeSlide.ApplyGroundPose(layerIndex,Context.Animator.bodyPosition-bodyBefore);
             if(Hang!=null)Hang.ApplyHandIK(layerIndex);
             if(LedgeHang!=null)LedgeHang.ApplyIK(layerIndex);
         }
