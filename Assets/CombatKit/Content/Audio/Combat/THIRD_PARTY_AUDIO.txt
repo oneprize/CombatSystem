@@ -1,0 +1,25 @@
+CombatKit sword and parry sound effects
+Downloaded: 2026-10-26
+
+Swishes Sound Pack
+Author: artisticdude (OpenGameArt)
+Source: https://opengameart.org/content/swishes-sound-pack
+Download: https://opengameart.org/sites/default/files/swishes.zip
+Files: Swishes/swish-1.wav through swish-13.wav
+License: CC0 1.0 Universal
+
+20 Sword Sound Effects (Attacks and Clashes)
+Author: StarNinjas (OpenGameArt)
+Source: https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes
+Download: https://opengameart.org/sites/default/files/sword_clash_-_starninjas_0.zip
+Files: Clashes/sword_clash.1.wav through sword_clash.10.wav
+License: CC0 1.0 Universal
+The author appreciates optional credit and a link to their OGA profile.
+
+CC0 permits commercial use, modification and redistribution without attribution.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Swishes files are included without modification. Archive metadata is omitted.
+Clashes are converted from OGG to PCM16 WAV. Leading low-level padding is trimmed
+to 10 ms before the first sample exceeding 5% of peak, with a 2 ms fade-in.
+This aligns the audible clash with the successful parry. The remaining tail is retained.

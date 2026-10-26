@@ -1,0 +1,13 @@
+Fantozzi's Footsteps (Grass/Sand & Stone)
+Author: Fantozzi. Single-step extraction submitted by qubodup.
+Downloaded: 2026-10-26
+Source: https://opengameart.org/content/fantozzis-footsteps-grasssand-stone
+Archive: https://opengameart.org/sites/default/files/Fantozzi-footsteps.7z
+Included files: Stone/Fantozzi-StoneL1.ogg through StoneL3.ogg,
+                Stone/Fantozzi-StoneR1.ogg through StoneR3.ogg
+Only the six Stone files are included. The original OGG files are unchanged.
+Unity imports them as mono, preloaded PCM for positional, low-latency playback.
+License: CC0 1.0 Universal (commercial use, modification and redistribution;
+no attribution required).
+https://creativecommons.org/publicdomain/zero/1.0/
+https://creativecommons.org/publicdomain/zero/1.0/legalcode

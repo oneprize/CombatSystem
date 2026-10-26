@@ -2610,6 +2610,8 @@ GameObject:
   - component: {fileID: 3015635140655592146}
   - component: {fileID: 1787474374525431983}
   - component: {fileID: 3029157085618882406}
+  - component: {fileID: 490889274940498848}
+  - component: {fileID: 1248154756094481350}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2984,3 +2986,29 @@ Transform:
   - {fileID: 5312978701239192238}
   m_Father: {fileID: 2715631683448141540}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &490889274940498848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64d6344bad12d6141ad3cb612eb9fb2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Player.PlayerCombatAudio
+  config: {fileID: 11400000, guid: e486f3e208c6aab418936f2813b3ffd1, type: 2}
+--- !u!114 &1248154756094481350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9026544333553245887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}

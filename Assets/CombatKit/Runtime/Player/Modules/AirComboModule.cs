@@ -9,7 +9,7 @@ namespace CombatSystem.Player
     /// 공중 콤보의 체공·낙하·착지와 공중 대시 공격, UpperAttack 띄우기와 ChaseUpAttack 추격 도약의
     /// 스크립트 이동을 담당한다. 공중 전투 중에는 적 몸체 위에 올라서지 않도록 적 충돌도 관리한다.
     /// </summary>
-    public sealed class AirComboModule : PlayerModule
+    public sealed partial class AirComboModule : PlayerModule
     {
         #region 필드
 
@@ -339,6 +339,7 @@ namespace CombatSystem.Player
         public void Tick(float dt)
         {
             if (!Active) return;
+            if (IsAirSlamming) { TickAirSlam(dt); return; }
             if (IsAirDashing) { TickAirDash(dt); return; }
             if (!falling)
             {
@@ -374,7 +375,7 @@ namespace CombatSystem.Player
         }
 
         /// <summary>플레이어 비활성화 시 공중 대시·공중 콤보 상태를 모두 해제하고 적 충돌을 복구한다.</summary>
-        public override void OnDisable() { IsAirDashing = false; Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
+        public override void OnDisable() { slamPhase = SlamPhase.None; slamHits.Clear(); slamBossHits.Clear(); IsAirDashing = false; Active = fastFall = falling = landing = false; RestoreEnemyCollisions(); }
 
         #endregion
     }

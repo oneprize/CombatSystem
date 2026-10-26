@@ -49,7 +49,8 @@ namespace CombatSystem.Player
             if (layerIndex != 0 || !animator.isHuman) return;
             var currentState = animator.GetCurrentAnimatorStateInfo(0);
             var nextState = animator.IsInTransition(0) ? animator.GetNextAnimatorStateInfo(0) : default(AnimatorStateInfo);
-            bool groundedReaction = currentState.IsName("HighFallRoll") || nextState.IsName("HighFallRoll") || currentState.IsName("BossKnockDown") || currentState.IsName("BossStandUpFront") || currentState.IsName("BossStandUpBack") ||
+            bool groundedSlam = currentState.IsName("AirSlamEnd") || nextState.IsName("AirSlamEnd");
+            bool groundedReaction = groundedSlam || currentState.IsName("HighFallRoll") || nextState.IsName("HighFallRoll") || currentState.IsName("BossKnockDown") || currentState.IsName("BossStandUpFront") || currentState.IsName("BossStandUpBack") ||
                 nextState.IsName("BossKnockDown") || nextState.IsName("BossStandUpFront") || nextState.IsName("BossStandUpBack");
             // 낙하와 착지 구간 전체에서도 보이는 몸 높이가 어긋나지 않도록 유지한다.
             if (currentState.IsTag("GroundedParry") || nextState.IsTag("GroundedParry") || currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo") || groundedReaction || Player.AirCombo.Active ||
@@ -69,7 +70,7 @@ namespace CombatSystem.Player
                         // CharacterController의 skin 두께 때문에 bounds 하단이 실제 접촉면보다 위에 있다.
                         // 지상 콤보는 접촉면 높이를 써야 하지만, 캡슐의 점프 이동량은 그대로 두어
                         // 공중에 뜬 발을 레이캐스트 바닥으로 끌어내리지 않는다.
-                        bool groundCombo = currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo");
+                        bool groundCombo = groundedSlam || currentState.IsTag("GroundCombo") || nextState.IsTag("GroundCombo");
                         float skin = groundCombo ? character.skinWidth * Mathf.Abs(transform.lossyScale.y) : 0f;
                         float correction = character.bounds.min.y - skin + .04f - lowest;
                         animator.bodyPosition += Vector3.up * correction;

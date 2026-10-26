@@ -2165,6 +2165,8 @@ GameObject:
   - component: {fileID: 52963105}
   - component: {fileID: 52963104}
   - component: {fileID: 52963103}
+  - component: {fileID: 52963106}
+  - component: {fileID: 52963107}
   m_Layer: 9
   m_Name: Group Opponent 15
   m_TagString: Untagged
@@ -2354,6 +2356,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &52963106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 52963094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &52963107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 52963094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &54368447
 GameObject:
   m_ObjectHideFlags: 0
@@ -6836,6 +6864,8 @@ GameObject:
   - component: {fileID: 164697769}
   - component: {fileID: 164697768}
   - component: {fileID: 164697767}
+  - component: {fileID: 164697770}
+  - component: {fileID: 164697771}
   m_Layer: 9
   m_Name: Group Opponent 04
   m_TagString: Untagged
@@ -7025,6 +7055,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &164697770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164697758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &164697771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164697758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &166854506
 GameObject:
   m_ObjectHideFlags: 0
@@ -7292,6 +7348,8 @@ GameObject:
   - component: {fileID: 169016282}
   - component: {fileID: 169016281}
   - component: {fileID: 169016280}
+  - component: {fileID: 169016283}
+  - component: {fileID: 169016284}
   m_Layer: 9
   m_Name: Group Opponent 01
   m_TagString: Untagged
@@ -7481,6 +7539,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &169016283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169016271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &169016284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169016271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &172062357
 GameObject:
   m_ObjectHideFlags: 0
@@ -8136,6 +8220,8 @@ GameObject:
   - component: {fileID: 199540019}
   - component: {fileID: 199540018}
   - component: {fileID: 199540017}
+  - component: {fileID: 199540020}
+  - component: {fileID: 199540021}
   m_Layer: 9
   m_Name: Group Opponent 08
   m_TagString: Untagged
@@ -8325,6 +8411,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &199540020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199540008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &199540021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199540008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &200755066
 GameObject:
   m_ObjectHideFlags: 0
@@ -11613,6 +11725,8 @@ GameObject:
   - component: {fileID: 272288200}
   - component: {fileID: 272288199}
   - component: {fileID: 272288198}
+  - component: {fileID: 272288201}
+  - component: {fileID: 272288202}
   m_Layer: 9
   m_Name: Group Opponent 17
   m_TagString: Untagged
@@ -11802,6 +11916,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &272288201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 272288189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &272288202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 272288189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &272481747
 GameObject:
   m_ObjectHideFlags: 0
@@ -12967,6 +13107,8 @@ GameObject:
   - component: {fileID: 309528225}
   - component: {fileID: 309528224}
   - component: {fileID: 309528223}
+  - component: {fileID: 309528226}
+  - component: {fileID: 309528227}
   m_Layer: 9
   m_Name: Group Opponent 14
   m_TagString: Untagged
@@ -13156,6 +13298,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &309528226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309528214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &309528227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309528214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &310520183
 GameObject:
   m_ObjectHideFlags: 0
@@ -14629,6 +14797,8 @@ GameObject:
   - component: {fileID: 339818173}
   - component: {fileID: 339818172}
   - component: {fileID: 339818171}
+  - component: {fileID: 339818174}
+  - component: {fileID: 339818175}
   m_Layer: 9
   m_Name: Group Opponent 02
   m_TagString: Untagged
@@ -14818,6 +14988,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &339818174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339818162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &339818175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339818162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &340287567
 GameObject:
   m_ObjectHideFlags: 0
@@ -29831,6 +30027,8 @@ GameObject:
   - component: {fileID: 690941452}
   - component: {fileID: 690941451}
   - component: {fileID: 690941450}
+  - component: {fileID: 690941453}
+  - component: {fileID: 690941454}
   m_Layer: 9
   m_Name: Group Opponent 07
   m_TagString: Untagged
@@ -30020,6 +30218,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &690941453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690941441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &690941454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690941441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &691096764
 GameObject:
   m_ObjectHideFlags: 0
@@ -34970,6 +35194,8 @@ GameObject:
   - component: {fileID: 816791148}
   - component: {fileID: 816791147}
   - component: {fileID: 816791146}
+  - component: {fileID: 816791149}
+  - component: {fileID: 816791150}
   m_Layer: 9
   m_Name: Group Opponent 11
   m_TagString: Untagged
@@ -35159,6 +35385,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &816791149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816791137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &816791150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816791137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &818662374
 GameObject:
   m_ObjectHideFlags: 0
@@ -36287,6 +36539,8 @@ GameObject:
   - component: {fileID: 846332909}
   - component: {fileID: 846332908}
   - component: {fileID: 846332907}
+  - component: {fileID: 846332910}
+  - component: {fileID: 846332911}
   m_Layer: 9
   m_Name: Group Opponent 05
   m_TagString: Untagged
@@ -36476,6 +36730,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &846332910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846332898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &846332911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846332898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &847347050
 GameObject:
   m_ObjectHideFlags: 0
@@ -37235,6 +37515,8 @@ GameObject:
   - component: {fileID: 863083633}
   - component: {fileID: 863083632}
   - component: {fileID: 863083631}
+  - component: {fileID: 863083634}
+  - component: {fileID: 863083635}
   m_Layer: 9
   m_Name: Group Opponent 10
   m_TagString: Untagged
@@ -37424,6 +37706,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &863083634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 863083622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &863083635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 863083622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &863470580
 GameObject:
   m_ObjectHideFlags: 0
@@ -57587,6 +57895,8 @@ GameObject:
   - component: {fileID: 1322766335}
   - component: {fileID: 1322766334}
   - component: {fileID: 1322766333}
+  - component: {fileID: 1322766336}
+  - component: {fileID: 1322766337}
   m_Layer: 9
   m_Name: Duel Opponent
   m_TagString: Untagged
@@ -57776,6 +58086,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1322766336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1322766324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1322766337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1322766324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1324267879
 GameObject:
   m_ObjectHideFlags: 0
@@ -58172,6 +58508,8 @@ GameObject:
   - component: {fileID: 1336124068}
   - component: {fileID: 1336124067}
   - component: {fileID: 1336124066}
+  - component: {fileID: 1336124069}
+  - component: {fileID: 1336124070}
   m_Layer: 9
   m_Name: Group Opponent 19
   m_TagString: Untagged
@@ -58361,6 +58699,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1336124069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336124057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1336124070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336124057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1336465993
 GameObject:
   m_ObjectHideFlags: 0
@@ -61995,6 +62359,8 @@ GameObject:
   - component: {fileID: 1433786166}
   - component: {fileID: 1433786165}
   - component: {fileID: 1433786164}
+  - component: {fileID: 1433786167}
+  - component: {fileID: 1433786168}
   m_Layer: 9
   m_Name: Group Opponent 20
   m_TagString: Untagged
@@ -62184,6 +62550,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1433786167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433786155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1433786168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433786155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1435068847
 GameObject:
   m_ObjectHideFlags: 0
@@ -65021,6 +65413,8 @@ GameObject:
   - component: {fileID: 1520481969}
   - component: {fileID: 1520481968}
   - component: {fileID: 1520481967}
+  - component: {fileID: 1520481970}
+  - component: {fileID: 1520481971}
   m_Layer: 9
   m_Name: Group Opponent 03
   m_TagString: Untagged
@@ -65210,6 +65604,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1520481970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1520481958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1520481971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1520481958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1520597510
 GameObject:
   m_ObjectHideFlags: 0
@@ -77997,6 +78417,8 @@ GameObject:
   - component: {fileID: 1809587952}
   - component: {fileID: 1809587951}
   - component: {fileID: 1809587950}
+  - component: {fileID: 1809587953}
+  - component: {fileID: 1809587954}
   m_Layer: 9
   m_Name: Group Opponent 16
   m_TagString: Untagged
@@ -78186,6 +78608,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1809587953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809587941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1809587954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809587941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1810551487
 GameObject:
   m_ObjectHideFlags: 0
@@ -78962,6 +79410,8 @@ GameObject:
   - component: {fileID: 1834063342}
   - component: {fileID: 1834063341}
   - component: {fileID: 1834063340}
+  - component: {fileID: 1834063343}
+  - component: {fileID: 1834063344}
   m_Layer: 9
   m_Name: Group Opponent 06
   m_TagString: Untagged
@@ -79151,6 +79601,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1834063343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834063331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1834063344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834063331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1834495101
 GameObject:
   m_ObjectHideFlags: 0
@@ -80193,6 +80669,7 @@ Transform:
   - {fileID: 553786794}
   - {fileID: 275232869}
   - {fileID: 75632800}
+  - {fileID: 1046772624281407578}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1851226410
@@ -83081,6 +83558,8 @@ GameObject:
   - component: {fileID: 1913927993}
   - component: {fileID: 1913927992}
   - component: {fileID: 1913927991}
+  - component: {fileID: 1913927994}
+  - component: {fileID: 1913927995}
   m_Layer: 9
   m_Name: Group Opponent 13
   m_TagString: Untagged
@@ -83270,6 +83749,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1913927994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913927982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1913927995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913927982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1914529435
 GameObject:
   m_ObjectHideFlags: 0
@@ -85772,6 +86277,8 @@ GameObject:
   - component: {fileID: 1981859566}
   - component: {fileID: 1981859565}
   - component: {fileID: 1981859564}
+  - component: {fileID: 1981859567}
+  - component: {fileID: 1981859568}
   m_Layer: 9
   m_Name: Group Opponent 18
   m_TagString: Untagged
@@ -85961,6 +86468,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1981859567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981859555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &1981859568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981859555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &1981945726
 GameObject:
   m_ObjectHideFlags: 0
@@ -89129,6 +89662,8 @@ GameObject:
   - component: {fileID: 2069778428}
   - component: {fileID: 2069778427}
   - component: {fileID: 2069778426}
+  - component: {fileID: 2069778429}
+  - component: {fileID: 2069778430}
   m_Layer: 9
   m_Name: Group Opponent 12
   m_TagString: Untagged
@@ -89318,6 +89853,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &2069778429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2069778417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &2069778430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2069778417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &2070765065
 GameObject:
   m_ObjectHideFlags: 0
@@ -90701,6 +91262,8 @@ GameObject:
   - component: {fileID: 2101764336}
   - component: {fileID: 2101764335}
   - component: {fileID: 2101764334}
+  - component: {fileID: 2101764337}
+  - component: {fileID: 2101764338}
   m_Layer: 9
   m_Name: Group Opponent 09
   m_TagString: Untagged
@@ -90890,6 +91453,32 @@ NavMeshAgent:
   m_BaseOffset: 0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &2101764337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2101764325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &2101764338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2101764325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &2101952402
 GameObject:
   m_ObjectHideFlags: 0
@@ -92764,6 +93353,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2145437367}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1046772624281407577
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1850444877}
+    m_Modifications:
+    - target: {fileID: 2916823630794277932, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_Name
+      value: Locomotion Training Altar
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -18.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -12.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+--- !u!4 &1046772624281407578 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6366689025139290597, guid: 3ab7ddd78beb4874b89fc19ca9883132, type: 3}
+  m_PrefabInstance: {fileID: 1046772624281407577}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7820299348826276791
 PrefabInstance:
   m_ObjectHideFlags: 0

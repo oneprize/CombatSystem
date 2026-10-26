@@ -238,11 +238,17 @@ namespace CombatSystem.Data.Player
             [Min(1f)] public float finisherFallGravity = 40f;
             /// <summary>착지 직후 공격 입력을 지상 공격으로 이어 주는 선입력 유지 시간(초).</summary>
             [Min(.01f)] public float landingAttackBuffer = .3f;
-            [Header("Air E slam")]
+            [Header("Air Q slam")]
+            [Tooltip("공중 Q 대상 검색 시 허용할 위쪽 높이(m). 수평 범위는 Combat의 Skill Target Distance를 사용.")]
+            [Min(0f)] public float slamTargetHeightAbove = 2f;
+            [Tooltip("공중 Q 대상 검색 시 허용할 아래쪽 높이(m). 일반 공격의 높이 제한과 별개.")]
+            [Min(0f)] public float slamTargetDepth = 30f;
+            [Tooltip("선택 순간 저장한 적 위치로 내려찍을 때의 최대 수평 이동 속도(m/s).")]
+            [Min(.1f)] public float slamHorizontalSpeed = 18f;
             [Min(.1f)] public float slamFallSpeed = 18f;
             [Min(.1f)] public float slamGravity = 45f;
             [Min(.1f)] public float slamHitRadius = 2.5f;
-            /// <summary>내려찍기 착지 후 경직 시간(초). 현재 런타임 코드에서는 참조하지 않는다.</summary>
+            /// <summary>내려찍기 착지 후 지상 공격으로 연계할 수 있는 최소 회복 시간(초).</summary>
             [Min(.05f)] public float slamLandingRecovery = .35f;
         }
 

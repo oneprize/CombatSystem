@@ -139,7 +139,7 @@ namespace CombatSystem.Player
             {
                 case PlayerAction.Attack: return true;
                 case PlayerAction.Skill: return !IsAirComboActive;
-                case PlayerAction.UpperAttack: return !IsAttacking;
+                case PlayerAction.UpperAttack: return !IsAttacking || Combat.IsUsingGroundCombo;
                 case PlayerAction.Dodge: return !IsAirComboActive && (!IsAttacking || Combat.CanDodgeCancel);
                 default: return !IsAttacking && !IsAirComboActive;
             }
@@ -149,6 +149,8 @@ namespace CombatSystem.Player
         /// <summary>패리 성공 연출(슬로 모션 + 카메라 줌인)을 재생한다. 참조가 비어 있으면 같은 GameObject에서 찾아 쓴다.</summary>
         public void PlayParryFeedback()
         {
+            var combatAudio = GetComponent<PlayerCombatAudio>();
+            if (combatAudio != null) combatAudio.PlayParrySuccess();
             if (parryFeedback == null) parryFeedback = GetComponent<ParryFeedback>();
             if (parryFeedback != null) parryFeedback.Play();
         }
@@ -233,6 +235,7 @@ namespace CombatSystem.Player
             }
             float dt = Time.deltaTime;
             Health.Tick();
+            if (LedgeHang != null) LedgeHang.CaptureInput();
             if (HighFallRoll != null && HighFallRoll.Tick(dt)) return;
             if (WeaponStance != null && WeaponStance.Tick(dt)) return;
             if (LedgeHang != null && LedgeHang.Tick(dt)) return;
@@ -324,6 +327,8 @@ namespace CombatSystem.Player
         /// <summary>공격 높이 보정 모듈이 IK로 상체/무기 높이를 맞출 수 있도록 IK 패스를 전달한다.</summary>
         private void OnAnimatorIK(int layerIndex)
         {
+            // While hanging, align the body to the ledge instead of applying the grounded visual lowering.
+            if (LedgeHang != null && LedgeHang.IsHanging) { LedgeHang.ApplyIK(layerIndex); return; }
             Vector3 bodyBefore=Context.Animator.isHuman?Context.Animator.bodyPosition:Vector3.zero;
             AttackHeightOffset.OnAnimatorIK(layerIndex);
             if(SlopeSlide!=null&&Context.Animator.isHuman)

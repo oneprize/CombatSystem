@@ -14,6 +14,8 @@ namespace CombatSystem.Combat
         #region 필드
 
         [SerializeField] private EnemyWeaponHitboxConfig config;
+        /// <summary>효과음도 실제 무기 판정과 같은 애니메이션 구간을 사용한다.</summary>
+        public EnemyWeaponHitboxConfig Config => config;
         private Animator animator;
         private EnemyStateMachine machine;
         private EnemyCombat combat;

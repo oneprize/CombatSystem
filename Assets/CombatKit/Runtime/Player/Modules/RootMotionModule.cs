@@ -52,6 +52,7 @@ namespace CombatSystem.Player
         /// <summary>PlayerCharacter의 OnAnimatorMove에서 호출되어, 우선순위대로 현재 동작에 루트 모션 이동량을 넘긴다.</summary>
         public void Apply(Vector3 delta)
         {
+            if (Player.AirCombo.IsAirSlamming) return;
             if (Player.AirCombo.IsAirDashing) { Player.AirCombo.ApplyAirDashRootMotion(delta); return; }
             var combat = Player.Combat;
             if (combat.IsParryAttempt || (combat.IsParryCounter && !combat.IsCounterAttacking)) return;

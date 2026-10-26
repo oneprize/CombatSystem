@@ -799,6 +799,8 @@ GameObject:
   - component: {fileID: 8468966828080814569}
   - component: {fileID: 5105452794190918129}
   - component: {fileID: 7610709075700991467}
+  - component: {fileID: 951091056671592350}
+  - component: {fileID: 6893854985878069383}
   m_Layer: 9
   m_Name: Enemy
   m_TagString: Untagged
@@ -988,6 +990,32 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &951091056671592350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2564744421998689203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcd47dd9e06308439a6eb106bc576da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Combat.EnemyCombatAudio
+  config: {fileID: 11400000, guid: 13558b0129991034293ca2a2bfffa0ab, type: 2}
+--- !u!114 &6893854985878069383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2564744421998689203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e8428fbbc34414ba4fc3fa178e66a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Audio.CharacterFootstepAudio
+  config: {fileID: 11400000, guid: bcd2d97f6bf4c24439ee241432766529, type: 2}
 --- !u!1 &3085757664182218311
 GameObject:
   m_ObjectHideFlags: 0

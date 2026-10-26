@@ -13,6 +13,7 @@ namespace CombatSystem.Player
         #region 필드
 
         private const int GroundComboCount = 4;
+        private const int AirSlamIndex = 27;
         private const int AirComboCount = 4;
         // attackIndex 값별 공격 종류. 0~3은 지상 콤보, AirStartIndex부터 4개는 공중 콤보, 21은 공중 대시 공격이다.
         private const int SkillGIndex = 5, SkillAIndex = 6, UpperIndex = 7, AirStartIndex = 8, SkillCIndex = 16, ChaseIndex = 17, PowerChargeIndex = 18, PowerReleaseIndex = 19, EFollowUpIndex = 20;
@@ -125,6 +126,7 @@ namespace CombatSystem.Player
         public bool IsUsingSkillA => IsAttacking && attackIndex == SkillAIndex;
         public bool IsUsingSkillC => IsAttacking && attackIndex == SkillCIndex;
         public bool IsUsingPiercingSkill => IsUsingSkillA;
+        public bool IsUsingAirSlam => IsAttacking && attackIndex == AirSlamIndex;
         public bool IsUsingUpperAttack => IsAttacking && attackIndex == UpperIndex;
         /// <summary>스킬 C로 띄운 적을 향해 뛰어오르는 추격 공격 중인지.</summary>
         public bool IsUsingChaseAttack => IsAttacking && attackIndex == ChaseIndex;
@@ -145,7 +147,7 @@ namespace CombatSystem.Player
             Mathf.Max(powerConfig.minDamageMultiplier, powerConfig.maxDamageMultiplier), PowerChargeNormalized);
         public string CurrentAttackStateName => AttackStateName;
         /// <summary>attackIndex에 대응하는 애니메이터 상태 이름("Base Layer." 접두사 제외).</summary>
-        private string AttackStateName => IsParryAttempt ? "Skill_F" : IsParryCounter ? "ParryCounter" : IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => IsUsingAirSlam ? airCombo.SlamStateName : IsParryAttempt ? "Skill_F" : IsParryCounter ? "ParryCounter" : IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
 
         private AirComboModule airCombo => Player.AirCombo;
 
@@ -194,6 +196,7 @@ namespace CombatSystem.Player
         {
             ResetParry();
             sheathedQueued = false; sheathedStep = 0;
+            airCombo.CancelAirSlam();
             airCombo.CancelAirDash();
             lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
@@ -232,6 +235,12 @@ namespace CombatSystem.Player
                 ClearGroundAttackInput();
                 return;
             }
+            if (airCombo.IsAirSlamming)
+            {
+                if (airCombo.IsSlamLanding) CaptureGroundAttackInput(Player.Controls);
+                return;
+            }
+            if (Player.Controls.SkillGPressed && airCombo.TryBeginAirSlam()) return;
             if (Player.Controls.ParryPressed) TryParry();
             if (IsParryAction) { TickParry(); return; }
             if (airCombo.IsAirDashing)
@@ -279,7 +288,7 @@ namespace CombatSystem.Player
                 animator.SetBool("isRunning", moving && controls.RunHeld);
                 animator.CrossFadeInFixedTime(moving ? (controls.RunHeld ? "Base Layer.Run" : "Base Layer.Walk") : "Base Layer.Idle", .1f, 0, 0f);
             }
-            bool followUpPress = controls.AttackPressed && (IsUsingPiercingSkill || !IsAttacking) &&
+            bool followUpPress = controls.AttackPressed && !controls.UpperAttackPressed && (IsUsingPiercingSkill || !IsAttacking) &&
                 eFollowUpTarget != null && Time.time <= eFollowUpUntil && Player.CanStartAction(PlayerAction.Attack);
             if (followUpPress)
             {
@@ -293,13 +302,13 @@ namespace CombatSystem.Player
                 TickPowerCharge(controls);
                 return;
             }
+            // Capture the upper request before advancing an already queued normal combo.
+            if (controls.UpperAttackPressed && TryUpperAttack()) return;
             UpdateAttackProgress();
             if (controls.SkillGPressed)
                 TrySkill();
             if (controls.SkillAPressed)
                 TrySkillA();
-            if (controls.UpperAttackPressed)
-                TryUpperAttack();
 
 
 
@@ -460,7 +469,37 @@ namespace CombatSystem.Player
         #region 스킬 및 공중 대시
 
         /// <summary>스킬 G 사용을 요청한다.</summary>
-        public void TrySkill() { RequestSkill(SkillGIndex); }
+        public void TrySkill()
+        {
+            if (airCombo.TryBeginAirSlam()) return;
+            if (!Player.Locomotion.IsGrounded || Player.IsAirComboActive) return;
+            RequestSkill(SkillGIndex);
+        }
+
+        /// <summary>공중 Q가 기존 공격과 예약 입력을 정리하고 전투 주도권을 이어받는다.</summary>
+        public void BeginAirSlam(Transform target)
+        {
+            CancelForDamage();
+            attackIndex = AirSlamIndex;
+            IsAttacking = true;
+            AttackSequence++;
+            // AirComboModule uses its own above/below height limits for airborne Q.
+            AttackTarget = target != null ? target.GetComponent<CombatSystem.Combat.EnemyDamageReaction>() : null;
+            if (target == null) return;
+            Vector3 direction = target.position - transform.position;
+            direction.y = 0f;
+            if (direction.sqrMagnitude > .0001f)
+                transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
+
+        /// <summary>내려찍기의 착지 회복을 끝낸다. 착지 중 받은 공격 입력은 연계를 위해 유지한다.</summary>
+        public void FinishAirSlam()
+        {
+            if (!IsUsingAirSlam) return;
+            IsAttacking = false;
+            queuedAttack = false;
+            attackIndex = 0;
+        }
         /// <summary>스킬 A 입력 처리. 공중이면 공중 대시를 시도하고, 지상이면 관통 돌진 스킬 A를 요청한다.</summary>
         public void TrySkillA()
         {
@@ -529,13 +568,36 @@ namespace CombatSystem.Player
 
         #region 공격 시작
 
-        /// <summary>적을 띄우며 함께 뛰어오르는 UpperAttack을 시작한다. 이후 공중 콤보로 이어질 수 있다.</summary>
-        /// <returns>시작할 수 없는 상태이거나 애니메이터 상태가 없으면 false.</returns>
+        /// <summary>어퍼를 요청한다. 일반 콤보 중이면 현재 타의 연계 시점까지 입력을 보관한다.</summary>
+        /// <returns>즉시 시작하거나 연계를 예약했으면 true. 이 클릭을 일반 공격으로 중복 처리하지 않는다.</returns>
         public bool TryUpperAttack()
         {
             if (!Player.CanStartAction(PlayerAction.UpperAttack)) return false;
             if (!animator.HasState(0, Animator.StringToHash("Base Layer.UpperAttack"))) return false;
+            if (IsUsingGroundCombo)
+            {
+                ClearEFollowUp();
+                ClearGroundAttackInput();
+                queuedAttack = false;
+                bufferedSkillIndex = UpperIndex;
+                // Keep an early press until this attack's chain point; damage, dodge and
+                // replacement skills still clear/replace the shared skill buffer.
+                bufferedSkillUntil = float.PositiveInfinity;
+                UpdateAttackProgress();
+                return true;
+            }
+            BeginUpperAttack(config.crossFadeTime);
+            return true;
+        }
+
+        /// <summary>예약된 일반 공격·스킬 입력을 비우고 어퍼 도약과 애니메이션을 함께 시작한다.</summary>
+        private void BeginUpperAttack(float blendTime)
+        {
+            ClearEFollowUp();
             ClearGroundAttackInput();
+            launchedEnemy = null;
+            bufferedSkillIndex = -1;
+            bufferedSkillUntil = float.NegativeInfinity;
             airCombo.BeginUpperMotion();
             attackIndex = UpperIndex;
             queuedAttack = false;
@@ -543,8 +605,7 @@ namespace CombatSystem.Player
             FaceNearbyEnemy(config.attackTargetDistance);
             AttackSequence++;
             IsAttacking = true;
-            animator.CrossFadeInFixedTime("Base Layer.UpperAttack", config.crossFadeTime, 0, 0f);
-            return true;
+            animator.CrossFadeInFixedTime("Base Layer.UpperAttack", blendTime, 0, 0f);
         }
 
         /// <summary>
@@ -810,10 +871,13 @@ namespace CombatSystem.Player
 
             if (bufferedSkillIndex >= 0 && Time.time > bufferedSkillUntil) bufferedSkillIndex = -1;
             bool bufferedPiercingSkill = bufferedSkillIndex == SkillAIndex;
-            float skillTransitionProgress = bufferedPiercingSkill ? config.piercingSkillTransitionProgress : config.normalSkillTransitionProgress;
+            bool bufferedUpperAttack = bufferedSkillIndex == UpperIndex;
+            float skillTransitionProgress = bufferedUpperAttack ? GroundChainProgress(attackIndex) :
+                bufferedPiercingSkill ? config.piercingSkillTransitionProgress : config.normalSkillTransitionProgress;
             if (IsUsingGroundCombo && bufferedSkillIndex >= 0 && SourceAttackProgress(info) >= Mathf.Min(GroundClipRetainedFraction(info), skillTransitionProgress))
             {
-                BeginSkill(bufferedSkillIndex, bufferedPiercingSkill ? config.piercingSkillBlendTime : config.normalSkillBlendTime);
+                if (bufferedUpperAttack) BeginUpperAttack(config.normalSkillBlendTime);
+                else BeginSkill(bufferedSkillIndex, bufferedPiercingSkill ? config.piercingSkillBlendTime : config.normalSkillBlendTime);
                 return;
             }
 

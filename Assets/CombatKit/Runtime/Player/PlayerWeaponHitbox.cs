@@ -125,7 +125,7 @@ namespace CombatSystem.Player
             Vector3 footFrom = previousFootPosition;
             previousFootPosition = footPosition;
             if (!player.IsAttacking || player.IsGuarding || player.IsHitReacting || !box.enabled) return;
-            if (player.AirCombo.IsAirDashing) return;
+            if (player.AirCombo.IsAirDashing || player.AirCombo.IsAirSlamming) return;
             if (combat.IsUsingPiercingSkill)
             {
                 HitWindowActive = player.PiercingDash.IsDashing;

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2406421d5fe2349a0bb7944d0915e3, type: 3}
+  m_Name: EnemyCombatAudioConfig
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Data.Enemy.EnemyCombatAudioConfig
+  weakSwishes:
+  - {fileID: 8300000, guid: 2521ec8cf271f0543976d21b39f17c64, type: 3}
+  - {fileID: 8300000, guid: 7b811de2edefce94197fd78801971b9b, type: 3}
+  - {fileID: 8300000, guid: 69307e3a1bf175944bbbd3aaad548d04, type: 3}
+  - {fileID: 8300000, guid: e69b5e7801725b440b95baef1c1484a3, type: 3}
+  strongSwishes:
+  - {fileID: 8300000, guid: 02e1bcc5327ee554686f5f84ede4f233, type: 3}
+  - {fileID: 8300000, guid: 184f769c32d8e87449d032b775dabf57, type: 3}
+  - {fileID: 8300000, guid: d4d3c77c0f3d84e4ba6ffa6741cb099a, type: 3}
+  - {fileID: 8300000, guid: ca2905a5756b06a44b4c05c6d83d95d8, type: 3}
+  - {fileID: 8300000, guid: a4be38aec1beaa04eb4aada746312efd, type: 3}
+  - {fileID: 8300000, guid: 9dd52fb1700f3b24da31ca92fae8e4d2, type: 3}
+  - {fileID: 8300000, guid: 5d05d99e953b3b74abd147d15d6c99cb, type: 3}
+  - {fileID: 8300000, guid: 0fc0e47e0015aa74997f3c997c06b8fb, type: 3}
+  - {fileID: 8300000, guid: 6908c9c55cc2d49499f339e31690da75, type: 3}
+  weakVolume: 0.45
+  strongVolume: 0.6
+  minDistance: 5
+  maxDistance: 25
+  outputMixerGroup: {fileID: 0}

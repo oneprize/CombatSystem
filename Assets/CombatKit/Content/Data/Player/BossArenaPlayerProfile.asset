@@ -104,6 +104,9 @@ MonoBehaviour:
     finisherFallSpeed: 12
     finisherFallGravity: 40
     landingAttackBuffer: 0.3
+    slamTargetHeightAbove: 2
+    slamTargetDepth: 30
+    slamHorizontalSpeed: 18
     slamFallSpeed: 18
     slamGravity: 45
     slamHitRadius: 2.5

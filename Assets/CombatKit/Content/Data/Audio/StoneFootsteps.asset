@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be1d623de0d444948bf8f67f22c6eb55, type: 3}
+  m_Name: StoneFootsteps
+  m_EditorClassIdentifier: OnePrize.CombatKit::CombatSystem.Data.Audio.FootstepAudioConfig
+  leftSteps:
+  - {fileID: 8300000, guid: 57226cc5850fffb4e9f2a20d4baab016, type: 3}
+  - {fileID: 8300000, guid: b702c217ae343a044ab7876e66d80789, type: 3}
+  - {fileID: 8300000, guid: 0d9224060cda1e94990e5bf8fb02c984, type: 3}
+  rightSteps:
+  - {fileID: 8300000, guid: 3d6debe729da3784987761582d817ff9, type: 3}
+  - {fileID: 8300000, guid: e59146e9782d14c41ac4d06c1ba44116, type: 3}
+  - {fileID: 8300000, guid: c24f1273151f5bd4ba92376cb0286374, type: 3}
+  gaits:
+  - clip: {fileID: 7400000, guid: ed3020957d9c41345815272847c44f52, type: 2}
+    leftContact: 0.30833
+    rightContact: 0.81667
+    running: 0
+  - clip: {fileID: 7400000, guid: fadf4aa235d4dda4186809bb70f52441, type: 2}
+    leftContact: 0.85
+    rightContact: 0.35833
+    running: 0
+  - clip: {fileID: 7400000, guid: 8a5d9c5f7362a9e4abf623df1b52bea1, type: 2}
+    leftContact: 0.2
+    rightContact: 0.725
+    running: 1
+  - clip: {fileID: 7400000, guid: b42ce77f90aed3245b3bb6610d65950e, type: 2}
+    leftContact: 0.84167
+    rightContact: 0.34167
+    running: 1
+  - clip: {fileID: 7400000, guid: 566406c8a5646db43bd39912c42007cf, type: 2}
+    leftContact: 0.59167
+    rightContact: 0.09167
+    running: 0
+  - clip: {fileID: 7400000, guid: d49400c908147264a870613838246f01, type: 2}
+    leftContact: 0.74167
+    rightContact: 0.24167
+    running: 1
+  - clip: {fileID: 7400000, guid: a241933fa56e06141ab6325c5af273c6, type: 2}
+    leftContact: 0.59167
+    rightContact: 0.09167
+    running: 0
+  - clip: {fileID: 7400000, guid: 50aa1abe3418b1c46b2cda1c0df7024e, type: 2}
+    leftContact: 0.86667
+    rightContact: 0.3
+    running: 0
+  - clip: {fileID: 7400000, guid: 803fc53723e4f3d4294683a575b300a5, type: 2}
+    leftContact: 0.64167
+    rightContact: 0.13333
+    running: 0
+  - clip: {fileID: 7400000, guid: 951f8d47745764a4a8a99e89bf5a7267, type: 2}
+    leftContact: 0.65
+    rightContact: 0.13333
+    running: 0
+  - clip: {fileID: 7400000, guid: 53c41c06be23c5744ade0a8aade8442a, type: 2}
+    leftContact: 0.64167
+    rightContact: 0.13333
+    running: 0
+  - clip: {fileID: 7400000, guid: 5ba9b015ae3589a4ba1c39800db5c236, type: 2}
+    leftContact: 0.71667
+    rightContact: 0.16667
+    running: 0
+  - clip: {fileID: 7400000, guid: 79c7cc108d3d8f645acb69c41c356cc9, type: 2}
+    leftContact: 0.59167
+    rightContact: 0.08333
+    running: 0
+  playerWalkVolume: 0.32
+  playerRunVolume: 0.45
+  enemyWalkVolume: 0.2
+  enemyRunVolume: 0.3
+  minDistance: 3
+  maxDistance: 18
+  outputMixerGroup: {fileID: 0}

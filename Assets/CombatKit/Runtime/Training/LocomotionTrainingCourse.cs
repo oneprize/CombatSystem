@@ -6,12 +6,14 @@ using CombatSystem.Player;
 
 namespace CombatSystem.Training
 {
-    /// <summary>이 훈련 씬의 도착 판정, 추락 시 재시작만 담당한다.</summary>
+    /// <summary>이동 훈련의 완료 복귀와 추락 시 재시작을 담당한다.</summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(100)]
     public sealed class LocomotionTrainingCourse : MonoBehaviour
     {
         public PlayerCharacter player;
         public BoxCollider finishArea;
+        [SerializeField] private TrainingScenePortal returnPortal;
+        [SerializeField, Min(0f)] private float completionMessageDuration = 1.2f;
         public float resetBelowY = -5f;
         public float startZ = 3f;
         public bool Completed { get; private set; }
@@ -28,7 +30,7 @@ namespace CombatSystem.Training
 
         private void Update()
         {
-            if (restarting || player == null) return;
+            if (restarting || player == null || (returnPortal != null && returnPortal.IsLoading)) return;
             var keyboard = Keyboard.current;
             if (player.transform.position.y < resetBelowY || player.IsDead ||
                 (keyboard != null && keyboard.backspaceKey.wasPressedThisFrame))
@@ -38,13 +40,19 @@ namespace CombatSystem.Training
             }
             if (!started && player.transform.position.z > startZ + .5f) started = true;
             if (started && !Completed) Elapsed += Time.deltaTime;
-            if (finishArea != null && finishArea.bounds.Contains(player.transform.position)) Completed = true;
+            if (!Completed && finishArea != null && finishArea.bounds.Contains(player.transform.position))
+            {
+                Completed = true;
+                if (returnPortal != null)
+                    restarting = returnPortal.BeginTravel(player, "훈련 완료!  콤보 훈련장으로 복귀합니다.", completionMessageDuration);
+                else Debug.LogError("LocomotionTrainingCourse: return altar is not assigned.", this);
+            }
         }
 
         /// <summary>씬을 다시 로드해 점프 횟수, 매달림, 슬라이드, 카메라까지 시작 상태로 복구한다.</summary>
         public void RestartCourse()
         {
-            if (restarting) return;
+            if (restarting || (returnPortal != null && returnPortal.IsLoading)) return;
             restarting = true;
             Time.timeScale = 1f;
             var scene = gameObject.scene;

@@ -51,7 +51,7 @@ namespace CombatSystem.Player
                 return true;
             }
             if(player.IsAttacking||player.IsDodging||player.IsLinkJumping||player.IsAirComboActive||
-                (player.Hang!=null&&player.Hang.IsHanging)||!player.Locomotion.IsGrounded)return false;
+                (player.Hang!=null&&player.Hang.IsHanging)||(player.LedgeHang!=null&&player.LedgeHang.IsHanging)||!player.Locomotion.IsGrounded)return false;
             int action=Request();
             if(!IsDrawn&&action!=0){StartTransition(true);return IsTransitioning;}
             if(Keyboard.current!=null&&Keyboard.current.tKey.wasPressedThisFrame)

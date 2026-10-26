@@ -130,7 +130,7 @@ namespace CombatSystem.Combat
         /// 현재 진행 단계보다 앞선 단계로 되돌아간 것으로는 인정하지 않는다.
         /// </summary>
         /// <returns>현재 단계 이상의 콤보 상태가 재생 중이면 true.</returns>
-        private bool TryGetAttackProgress(out AnimatorStateInfo animation, out int index)
+        public bool TryGetAttackProgress(out AnimatorStateInfo animation, out int index)
         {
             animation = default(AnimatorStateInfo);
             index = -1;
