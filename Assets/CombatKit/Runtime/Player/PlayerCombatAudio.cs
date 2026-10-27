@@ -57,7 +57,7 @@ namespace CombatSystem.Player
                 previousProgress = 0f;
             }
             if (player.IsDead || player.IsHitReacting || player.IsDodging || player.IsGuarding ||
-                !combat.IsAttacking || combat.IsChargingPower || combat.IsSheathedReady || combat.IsParryAttempt) return;
+                !combat.IsAttacking || combat.IsChargingPower || combat.IsParryAttempt) return;
 
             string expected = "Base Layer." + combat.CurrentAttackStateName;
             var state = animator.GetCurrentAnimatorStateInfo(0);
@@ -100,8 +100,6 @@ namespace CombatSystem.Player
                 PlayWindow(progress, hit.chaseHitWindow, 0, true);
             else if (combat.IsUsingEFollowUp)
                 PlayWindow(progress, player.Profile.combat.eFollowUpHitWindow, 0, true);
-            else if (combat.IsSheathedCombo)
-                PlayWindow(progress, player.Profile.combat.sheathedHitWindow, 0, false);
             else if (combat.IsUsingAirCombo)
                 PlayWindow(progress, GetWindow(hit.airHitWindows, combat.AirComboIndex, hit.hitWindow), 0, false);
             else if (combat.IsUsingGroundCombo)

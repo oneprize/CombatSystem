@@ -69,6 +69,7 @@ namespace CombatSystem.Combat
         public float OpeningHitRadius => config.openingHitRadius;
         public float AttackRange => config.attackRange;
         public float DetectionRange => config.detectionRange;
+        public float DisengageRange => Mathf.Max(0.1f, config.disengageRange);
         public float MoveSpeed => config.moveSpeed;
         public float RotationSpeed => config.rotationSpeed;
         public float PatrolRadius => config.patrolRadius;

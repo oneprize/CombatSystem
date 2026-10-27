@@ -44,6 +44,7 @@ MonoBehaviour:
   openingHitRadius: 1.3
   attackRange: 2
   detectionRange: 6
+  disengageRange: 12
   moveSpeed: 4
   rotationSpeed: 300
   moveAnimStateName: Run

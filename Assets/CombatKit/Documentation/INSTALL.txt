@@ -1,7 +1,7 @@
 Combat Kit - independent Assets distribution
 
 Location: Assets/CombatKit
-Export: Tools > Combat Kit > Export unitypackage
+Export from editor code: CombatSystem.EditorTools.CombatKitExporter.ExportTo(outputPath).
 Import the resulting .unitypackage in another project. Imported files are independent copies; editing them never changes CombatSystem.
 
 Tested source environment: Unity 6000.3.21f1, URP.

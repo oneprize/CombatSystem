@@ -38,6 +38,8 @@ namespace CombatSystem.Data.Enemy
         [Header("Movement (이동↔공격 연동)")]
         public float attackRange = 2.0f;
         public float detectionRange = 6.0f;
+        [Tooltip("플레이어와의 수평 거리가 이 값 이상이면 전투를 중단하고 순찰로 돌아간다. 피격·그로기는 종료 후 적용한다.")]
+        [Min(0.1f)] public float disengageRange = 12.0f;
         public float moveSpeed = 4.0f;
         public float rotationSpeed = 300f;
         public string moveAnimStateName = "Run";

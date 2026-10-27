@@ -61,13 +61,13 @@ namespace CombatSystem.Combat
                     motion.ApplyRecoveryMotion(animator.deltaPosition);
                 return;
             }
-            if (enemyReaction != null && enemy != null && enemy.CurrentState == enemyReaction && enemyReaction.IsGroundComboReaction)
+            if (enemyReaction != null && enemy != null && ReferenceEquals(enemy.CurrentState, enemyReaction) && enemyReaction.IsGroundComboReaction)
             {
                 if (animator.applyRootMotion) enemyReaction.ApplyGroundReactionMotion(animator.deltaPosition);
                 return;
             }
             bool attack = enemy != null && enemy.CurrentState == enemy.AttackState;
-            bool enemyReactionMotion = enemy != null && enemyReaction != null && enemy.CurrentState == enemyReaction &&
+            bool enemyReactionMotion = enemy != null && enemyReaction != null && ReferenceEquals(enemy.CurrentState, enemyReaction) &&
                 (HasEnemyReactionMotion(animator.GetCurrentAnimatorStateInfo(0)) ||
                  (animator.IsInTransition(0) && HasEnemyReactionMotion(animator.GetNextAnimatorStateInfo(0))));
             if (!animator.applyRootMotion || (!attack && !enemyReactionMotion)) return;

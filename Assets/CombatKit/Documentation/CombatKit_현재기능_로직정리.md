@@ -415,4 +415,4 @@ Combat Kit는 `Assets/CombatKit` 안에 코드, 설정, 프리팹과 콘텐츠�
 | 보스 패턴·투사체 | `BossCombatConfig`, `BossPattern1Config`, `BossPattern2Config`, `BossProjectileConfig` |
 | 벽·철봉·모서리·경사면 액션 | 플레이어의 해당 이동 컴포넌트 |
 
-에디터 메뉴에서 캐릭터·카메라 스폰, 현재 씬 NavMesh 베이크와 패키지 내보내기를 실행할 수 있다. 내보내기 도구는 `CombatKit` 밖의 `Assets` 의존성을 검사한다. 다른 프로젝트에서 사용할 때 필요한 Input System, Cinemachine, AI Navigation, UGUI와 URP 패키지 정보는 `Documentation/INSTALL.txt`와 `DependencyVersions.json`에서 관리한다.
+에디터 메뉴에서 캐릭터·카메라 스폰, 현재 씬 NavMesh 베이크와 FSM 그래프를 실행할 수 있다. 패키지 내보내기는 에디터 코드에서 `CombatSystem.EditorTools.CombatKitExporter.ExportTo(outputPath)`로 실행한다. 내보내기 도구는 `CombatKit` 밖의 `Assets` 의존성을 검사한다. 다른 프로젝트에서 사용할 때 필요한 Input System, Cinemachine, AI Navigation, UGUI와 URP 패키지 정보는 `Documentation/INSTALL.txt`와 `DependencyVersions.json`에서 관리한다.

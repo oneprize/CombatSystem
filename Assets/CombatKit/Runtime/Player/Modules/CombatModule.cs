@@ -94,18 +94,10 @@ namespace CombatSystem.Player
         /// <summary>같은 프레임에 입력을 두 번 수집하지 않도록 마지막 수집 프레임을 기록한다.</summary>
         private int capturedInputFrame = -1;
 
-        // 납도(Sheathed) 공격의 attackIndex: 준비 자세와 2단 공격.
-        private const int SheathedReadyIndex = 22, SheathedFirstIndex = 23;
-        private int sheathedStep;
-        private bool sheathedQueued;
-
         #endregion
 
         #region 프로퍼티
 
-        public bool IsSheathedReady => IsAttacking && attackIndex == SheathedReadyIndex;
-        public bool IsSheathedCombo => IsAttacking && attackIndex >= SheathedFirstIndex && attackIndex < SheathedFirstIndex + 2;
-        public int SheathedComboStep => IsSheathedCombo ? attackIndex - SheathedFirstIndex : -1;
         public bool IsGuarding { get; private set; }
         public bool IsAttacking { get; private set; }
         public int AttackComboIndex => attackIndex;
@@ -147,7 +139,7 @@ namespace CombatSystem.Player
             Mathf.Max(powerConfig.minDamageMultiplier, powerConfig.maxDamageMultiplier), PowerChargeNormalized);
         public string CurrentAttackStateName => AttackStateName;
         /// <summary>attackIndex에 대응하는 애니메이터 상태 이름("Base Layer." 접두사 제외).</summary>
-        private string AttackStateName => IsUsingAirSlam ? airCombo.SlamStateName : IsParryAttempt ? "Skill_F" : IsParryCounter ? "ParryCounter" : IsSheathedReady ? "SheathedReady" : IsSheathedCombo ? "SheathedAttack" + (SheathedComboStep + 1) : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
+        private string AttackStateName => IsUsingAirSlam ? airCombo.SlamStateName : IsParryAttempt ? "Skill_F" : IsParryCounter ? "ParryCounter" : attackIndex == 21 ? "AirDashAttack" : attackIndex == EFollowUpIndex ? "EFollowUp" : attackIndex == PowerReleaseIndex ? "PowerAttackEnd" : attackIndex == PowerChargeIndex ? "PowerAttackLoop" : attackIndex == ChaseIndex ? "ChaseUpAttack" : attackIndex == SkillCIndex ? "Skill_C" : attackIndex >= AirStartIndex ? "AirAttack" + (attackIndex - AirStartIndex + 1) : attackIndex == UpperIndex ? "UpperAttack" : attackIndex == SkillAIndex ? "Skill_A" : attackIndex == SkillGIndex ? "Skill_G" : attackIndex == 0 ? config.attackAnimStateName : config.attackAnimStateName + (attackIndex + 1);
 
         private AirComboModule airCombo => Player.AirCombo;
 
@@ -195,7 +187,6 @@ namespace CombatSystem.Player
         public void CancelForDamage()
         {
             ResetParry();
-            sheathedQueued = false; sheathedStep = 0;
             airCombo.CancelAirSlam();
             airCombo.CancelAirDash();
             lastBossParryInput = float.NegativeInfinity;
@@ -970,74 +961,6 @@ namespace CombatSystem.Player
 
         #endregion
 
-        #region 납도 공격
-
-        /// <summary>납도 공격 준비 자세(SheathedStart)로 들어간다. reset이면 공격 단계를 1단부터 다시 센다.</summary>
-        private void BeginSheathedReady(bool reset)
-        {
-            ClearGroundAttackInput(); ClearEFollowUp();
-            queuedAttack = false; sheathedQueued = false;
-            bufferedSkillIndex = -1; skillAttackBufferedUntil = float.NegativeInfinity;
-            IsGuarding = false; IsAttacking = true;
-            attackIndex = SheathedReadyIndex;
-            if (reset) sheathedStep = 0;
-            animator.CrossFadeInFixedTime("Base Layer.SheathedStart", .1f, 0, 0);
-        }
-
-        /// <summary>납도 공격 1단/2단을 번갈아 시작한다.</summary>
-        private void BeginSheathedAttack()
-        {
-            sheathedQueued = false;
-            attackIndex = SheathedFirstIndex + sheathedStep;
-            sheathedStep = (sheathedStep + 1) % 2;
-            IsAttacking = true; AttackSequence++;
-            FaceNearbyEnemy();
-            animator.CrossFadeInFixedTime("Base Layer." + AttackStateName, config.sheathedBlendTime, 0, 0);
-        }
-
-        /// <summary>납도 공격 흐름을 끝내고 대기 상태로 돌아간다.</summary>
-        private void EndSheathed()
-        {
-            sheathedQueued = false; sheathedStep = 0;
-            IsAttacking = false; attackIndex = 0;
-            ClearGroundAttackInput();
-            animator.CrossFadeInFixedTime(config.idleAnimStateName, .15f, 0, 0);
-        }
-
-        /// <summary>
-        /// 우클릭(가드 키)을 누른 채 공격 입력으로 납도 공격을 이어 가고, 키를 떼면 종료한다.
-        /// 현재는 Tick에서 호출되지 않는다.
-        /// </summary>
-        private void TickSheathed(IPlayerInput controls)
-        {
-            // 우클릭을 떼면 예약된 다음 공격만 취소하며, PowerAttackEnd를 발동하지 않는다.
-            if (!controls.GuardHeld)
-            {
-                sheathedQueued = false;
-                if (IsSheathedReady) { EndSheathed(); return; }
-            }
-            else if (controls.AttackPressed) sheathedQueued = true;
-            if (IsSheathedReady)
-            {
-                var current = animator.GetCurrentAnimatorStateInfo(0);
-                if (sheathedQueued && (current.IsName("SheathedReady") ||
-                    (current.IsName("SheathedStart") && current.normalizedTime >= .85f)))
-                    BeginSheathedAttack();
-                return;
-            }
-            float progress = CurrentAttackProgress();
-            if (progress < 0) return;
-            if (sheathedQueued && controls.GuardHeld && progress >= config.sheathedChainProgress)
-            { BeginSheathedAttack(); return; }
-            if (progress >= 1f)
-            {
-                if (controls.GuardHeld) BeginSheathedReady(false);
-                else EndSheathed();
-            }
-        }
-
-        #endregion
-
         #region 가드 및 정리
 
         /// <summary>가드 중 공격을 막았을 때 가드 피격(GuardAccept) 애니메이션을 재생한다.</summary>
@@ -1051,7 +974,6 @@ namespace CombatSystem.Player
         public override void OnDisable()
         {
             ResetParry();
-            sheathedQueued = false; sheathedStep = 0;
             lastBossParryInput = float.NegativeInfinity;
             ClearEFollowUp();
             ClearGroundAttackInput();

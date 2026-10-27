@@ -22,7 +22,7 @@ namespace CombatSystem.Player
         private BoxCollider sword;
         private Mesh mesh;
         private GameObject trailObject;
-        private MeshRenderer renderer;
+        private MeshRenderer trailRenderer;
         /// <summary>한 프레임의 칼날 시작/끝 위치 샘플. stroke가 다르면 서로 잇지 않아 별개의 궤적으로 그린다.</summary>
         private struct Sample { public Vector3 a,b; public float time; public int stroke; }
         private readonly List<Sample> samples = new List<Sample>(96);
@@ -52,9 +52,9 @@ namespace CombatSystem.Player
             trailObject=new GameObject("Sword Motion Trail");
             mesh=new Mesh { name="Sword swept blade ribbon" }; mesh.MarkDynamic();
             trailObject.AddComponent<MeshFilter>().sharedMesh=mesh;
-            renderer=trailObject.AddComponent<MeshRenderer>(); renderer.sharedMaterial=trailMaterial;
-            renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows=false; renderer.enabled=false;
+            trailRenderer=trailObject.AddComponent<MeshRenderer>(); trailRenderer.sharedMaterial=trailMaterial;
+            trailRenderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+            trailRenderer.receiveShadows=false; trailRenderer.enabled=false;
         }
 
         #endregion
@@ -87,7 +87,7 @@ namespace CombatSystem.Player
             else if(c.IsUsingSkillC)active=Window(t,hitConfig.skillCHitWindow);
             else if(c.IsUsingUpperAttack)active=Window(t,hitConfig.upperHitWindow);
             else if(c.IsUsingChaseAttack)active=Window(t,hitConfig.chaseHitWindow);
-            else if(c.IsSheathedCombo)active=Window(t,player.Profile.combat.sheathedHitWindow); else if(c.IsUsingEFollowUp)active=Window(t,player.Profile.combat.eFollowUpHitWindow);
+            else if(c.IsUsingEFollowUp)active=Window(t,player.Profile.combat.eFollowUpHitWindow);
             else if(c.IsUsingAirCombo){int i=c.AirComboIndex;active=Window(t,hitConfig.airHitWindows!=null&&i<hitConfig.airHitWindows.Length?hitConfig.airHitWindows[i]:hitConfig.hitWindow);}
             else if(c.IsUsingGroundCombo&&c.AttackComboIndex!=hitConfig.groundKickComboIndex){int i=c.AttackComboIndex;active=Window(t,hitConfig.groundHitWindows!=null&&i<hitConfig.groundHitWindows.Length?hitConfig.groundHitWindows[i]:hitConfig.hitWindow);}
             previousProgress=t;return active;
@@ -129,10 +129,10 @@ namespace CombatSystem.Player
                 int a=(i-1)*3,b=i*3;
                 for(int j=0;j<2;j++){triangles.Add(a+j);triangles.Add(b+j);triangles.Add(a+j+1);triangles.Add(a+j+1);triangles.Add(b+j);triangles.Add(b+j+1);}
             }
-            mesh.Clear();mesh.SetVertices(vertices);mesh.SetColors(colors);mesh.SetUVs(0,uv);mesh.SetTriangles(triangles,0);mesh.RecalculateBounds();renderer.enabled=triangles.Count>0;
+            mesh.Clear();mesh.SetVertices(vertices);mesh.SetColors(colors);mesh.SetUVs(0,uv);mesh.SetTriangles(triangles,0);mesh.RecalculateBounds();trailRenderer.enabled=triangles.Count>0;
         }
         /// <summary>남은 궤적을 지우고 샘플링 상태를 초기화해 다시 켜졌을 때 이전 궤적과 이어지지 않게 한다.</summary>
-        private void OnDisable(){samples.Clear();wasActive=previousValid=false;sequence=-1;if(mesh!=null)mesh.Clear();if(renderer!=null)renderer.enabled=false;}
+        private void OnDisable(){samples.Clear();wasActive=previousValid=false;sequence=-1;if(mesh!=null)mesh.Clear();if(trailRenderer!=null)trailRenderer.enabled=false;}
         /// <summary>Awake에서 만든 궤적 GameObject와 메시를 함께 파괴한다.</summary>
         private void OnDestroy(){if(trailObject!=null)Destroy(trailObject);if(mesh!=null)Destroy(mesh);}
 

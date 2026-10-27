@@ -51,6 +51,7 @@ namespace CombatSystem.Combat
         #region 상태 참조
 
         public EnemyNavigation Navigation { get; private set; }
+        private EnemyCombat combat;
         public IEnemyState CurrentState { get; private set; }
 
         public EnemyIdleState IdleState { get; private set; }
@@ -70,7 +71,7 @@ namespace CombatSystem.Combat
         private void Awake()
         {
             Navigation = GetComponent<EnemyNavigation>();
-            var combat = GetComponent<EnemyCombat>();
+            combat = GetComponent<EnemyCombat>();
 
             IdleState = new EnemyIdleState(this, combat);
             PatrolState = new EnemyPatrolState(this, combat);
@@ -92,11 +93,32 @@ namespace CombatSystem.Combat
         private void Update()
         {
             var executing = CurrentState;
+            if (ShouldReturnToPatrol(executing))
+            {
+                ChangeState(PatrolState);
+                return;
+            }
             if (executing != null)
             {
                 Record(executing, "EXECUTE");
                 executing.Tick(Time.deltaTime);
             }
+        }
+
+        /// <summary>일반 전투 상태에서만 거리 이탈을 검사해 피격·공중 다운·그로기 반응을 끊지 않는다.</summary>
+        private bool ShouldReturnToPatrol(IEnemyState state)
+        {
+            if (state == null || (state != ChaseState && state != AttackState &&
+                state != ObserveState && state != DecisionState && state != RetreatState))
+                return false;
+
+            Transform player = combat.PlayerTransform;
+            if (player == null) return false;
+
+            Vector3 offset = player.position - transform.position;
+            offset.y = 0f;
+            float range = combat.DisengageRange;
+            return offset.sqrMagnitude >= range * range;
         }
 
         #endregion

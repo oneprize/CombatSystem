@@ -117,12 +117,6 @@ namespace CombatSystem.Data.Player
             /// <summary>보스 패리 판정 시 직전 공격 입력을 유효로 인정하는 시간(초, unscaled).</summary>
             [Header("Boss parry")]
             [Min(0f)] public float bossParryInputWindow = .15f;
-            /// <summary>납도 콤보에서 다음 베기로 이어질 수 있는 정규화 시간.</summary>
-            [Header("RMB sheathed combo")]
-            [Range(.1f, 1f)] public float sheathedChainProgress = .4f;
-            [Min(0f)] public float sheathedBlendTime = .03f;
-            /// <summary>납도 콤보 베기의 히트 구간(정규화 시간 시작/끝). 검기 발사 시점도 이 구간 시작을 따른다.</summary>
-            public Vector2 sheathedHitWindow = new Vector2(.12f, .35f);
             /// <summary>E 스킬 명중 후 후속 공격 입력을 받아 주는 시간(초).</summary>
             [Header("E hit follow-up")]
             [Min(.05f)] public float eFollowUpInputWindow = .8f;

@@ -65,12 +65,12 @@ namespace CombatSystem.Combat
         public bool BeginGather(Vector3 destination, Transform attacker, float duration)
         {
             if (physicalKnockdown) return false;
-            if (machine.CurrentState == this && !physicalKnockdown) ResetReaction();
+            if (ReferenceEquals(machine.CurrentState, this) && !physicalKnockdown) ResetReaction();
             gatherTarget = destination; gatherRemaining = Mathf.Max(.05f, duration);
             reactionState = "Base Layer.Hit";
             Vector3 face = attacker.position - transform.position; face.y=0;
             if (face.sqrMagnitude>.001f) transform.rotation=Quaternion.LookRotation(face);
-            if (machine.CurrentState == this) Enter(); else machine.ChangeState(this);
+            if (ReferenceEquals(machine.CurrentState, this)) Enter(); else machine.ChangeState(this);
             IsBeingGathered = true;
             return true;
         }
@@ -170,7 +170,7 @@ namespace CombatSystem.Combat
             // 일반 피격으로는 공격 동작이 끊기지 않는다.
             if (aerialReaction || machine.CurrentState == machine.AttackState) return;
             reactionState = "Base Layer.Hit";
-            if (machine.CurrentState == this) Enter();
+            if (ReferenceEquals(machine.CurrentState, this)) Enter();
             else machine.ChangeState(this);
         }
         /// <summary>관통 돌진 피격. 돌진 방향을 마주 보게 돌린 뒤 3단 관통 리액션(PiercingHitA→B→C)을 시작한다.</summary>
@@ -180,13 +180,13 @@ namespace CombatSystem.Combat
             ConsumeBounceFollowUp();
             ApplyDamage();
             if (aerialReaction) return;
-            if (machine.CurrentState == this && !physicalKnockdown) ResetReaction();
+            if (ReferenceEquals(machine.CurrentState, this) && !physicalKnockdown) ResetReaction();
             IsGroundComboReaction = false;
             piercingReaction = true; piercingStep = 0; piercingElapsed = 0;
             dashDirection.y = 0;
             if (dashDirection.sqrMagnitude > .001f) transform.rotation = Quaternion.LookRotation(-dashDirection);
             reactionState = "Base Layer.PiercingHitA";
-            if (machine.CurrentState == this) Enter(); else machine.ChangeState(this);
+            if (ReferenceEquals(machine.CurrentState, this)) Enter(); else machine.ChangeState(this);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace CombatSystem.Combat
             transform.rotation = Quaternion.LookRotation(-groundPushDirection);
             IsGroundComboReaction = true;
             reactionState = comboIndex == 0 ? "Base Layer.GroundHitA" : comboIndex == 2 ? "Base Layer.GroundHitC" : "Base Layer.GroundHitB";
-            if (machine.CurrentState == this) Enter();
+            if (ReferenceEquals(machine.CurrentState, this)) Enter();
             else machine.ChangeState(this);
         }
 
@@ -231,7 +231,7 @@ namespace CombatSystem.Combat
             physicalKnockdown = true;
             downElapsed = 0;
             knockback.Launch(away);
-            if (machine.CurrentState == this) Enter();
+            if (ReferenceEquals(machine.CurrentState, this)) Enter();
             else machine.ChangeState(this);
         }
 
@@ -249,7 +249,7 @@ namespace CombatSystem.Combat
             reactionState = "Base Layer.UpperHit";
             downElapsed = 0;
             knockback.LaunchUpper(away, config.upperLiftSpeed, config.upperPushSpeed);
-            if (machine.CurrentState == this) Enter();
+            if (ReferenceEquals(machine.CurrentState, this)) Enter();
             else machine.ChangeState(this);
         }
 
@@ -305,7 +305,7 @@ namespace CombatSystem.Combat
                 knockback.LaunchUpper(Vector3.zero, 0f, 0f);
                 knockback.AirComboImpact(true);
             }
-            if (machine.CurrentState == this) Enter();
+            if (ReferenceEquals(machine.CurrentState, this)) Enter();
             else machine.ChangeState(this);
         }
 

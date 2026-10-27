@@ -249,12 +249,6 @@ namespace CombatSystem.Player
             PiercingDash.Tick();
         }
 
-        /// <summary>현재는 사망 시 조기 반환만 하는 빈 후처리 훅이다.</summary>
-        private void LateUpdate()
-        {
-            if (IsDead) return;
-        }
-
         /// <summary>애니메이터의 루트 모션 이동량을 RootMotionModule에 넘겨 실제 이동으로 반영한다.</summary>
         private void OnAnimatorMove()
         {

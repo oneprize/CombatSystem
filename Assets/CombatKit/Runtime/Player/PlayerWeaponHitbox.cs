@@ -25,7 +25,6 @@ namespace CombatSystem.Player
         private PlayerCharacter player;
         private CombatModule combat => player.Combat;
         private Animator animator;
-        private PlayerSwordWave swordWave;
         private BoxCollider box;
         private int sequence = -1, combo = -1;
         private readonly System.Collections.Generic.HashSet<EnemyDamageReaction> hits =
@@ -107,7 +106,6 @@ namespace CombatSystem.Player
             }
             player = GetComponentInParent<PlayerCharacter>();
             animator = player.GetComponent<Animator>();
-            swordWave = player.GetComponent<PlayerSwordWave>();
             box = GetComponent<BoxCollider>();
             kickFoot = animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.RightFoot) : null;
             if (kickFoot != null) previousFootPosition = kickFoot.position;
@@ -159,7 +157,7 @@ namespace CombatSystem.Player
             }
             if (!state.IsName(name)) return;
             if (combat.IsParryAttempt || (combat.IsParryCounter && !combat.IsCounterAttacking)) return;
-            if (combat.IsChargingPower || combat.IsSheathedReady) return;
+            if (combat.IsChargingPower) return;
             if (combat.IsReleasingPower) { UpdatePowerHits(state); return; }
             if (combat.IsUsingSkillC)
             {
@@ -272,7 +270,7 @@ namespace CombatSystem.Player
                 }
                 return;
             }
-            Vector2 window = combat.IsParryCounter ? player.Profile.parry.counterHitWindow : combat.IsSheathedCombo ? player.Profile.combat.sheathedHitWindow : combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
+            Vector2 window = combat.IsParryCounter ? player.Profile.parry.counterHitWindow : combat.IsUsingEFollowUp ? player.Profile.combat.eFollowUpHitWindow : combat.IsUsingSkillA ? config.skillAHitWindow :
                 combat.IsUsingGroundCombo && config.groundHitWindows != null && index < config.groundHitWindows.Length
                     ? config.groundHitWindows[index] : config.hitWindow;
             // 지상 콤보는 프레임이 히트 구간을 건너뛰어도 놓치지 않도록 이전 진행도와 함께 구간 통과 여부로 판정한다.
@@ -290,17 +288,11 @@ namespace CombatSystem.Player
             foreach (var other in Physics.OverlapBox(transform.TransformPoint(box.center),
                 Vector3.Scale(box.size * 0.5f, scale), transform.rotation, ~0, QueryTriggerInteraction.Ignore))
             {
-                // 납도 콤보 중에는 검기 컴포넌트가 칼날 명중을 대신 처리한다.
-                if (combat.IsSheathedCombo && swordWave != null && swordWave.isActiveAndEnabled)
-                {
-                    swordWave.TryHitWithBlade(other);
-                    continue;
-                }
                 var enemy = other.GetComponentInParent<EnemyDamageReaction>();
                 HitBoss(other, false);
                 if (enemy != null && Struck(hits, enemy))
                 {
-                    if (combat.IsSheathedCombo) enemy.ReceiveGroundComboHit(player.transform, combat.SheathedComboStep % 2, false); else if (combat.IsUsingEFollowUp || combat.IsParryCounter) enemy.ReceiveGroundComboHit(player.transform, 1, false);
+                    if (combat.IsUsingEFollowUp || combat.IsParryCounter) enemy.ReceiveGroundComboHit(player.transform, 1, false);
                     else if (combat.IsUsingSkillA) enemy.ReceiveSkillHit(player.transform);
                     else if (combat.IsUsingGroundCombo) enemy.ReceiveGroundComboHit(player.transform, index, combat.IsGroundComboFinisher);
                     else enemy.ReceiveHit();
